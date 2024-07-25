@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getUserId } from '$lib/graphUtils';
+	import { getUserId, openGraphDb, getCsvFileName } from '$lib/graphUtils';
 	import { openDB } from '$lib/signUtils';
 	import { getAvailableGb, getFileImportDir, writeFile } from '$lib/fileUtils';
-	let availableFiles: { [id: string]: FileSystemFileHandle } = {};
+	let availableFiles: { [id: string]: string } = {};
 	let importDir: FileSystemDirectoryHandle;
 	let userId: string;
 	async function importSelectedFiles(event: Event) {
@@ -11,19 +11,22 @@
 			const input = <HTMLInputElement>event.target;
 			if (input.files) {
 				for (const file of input.files) {
-					writeFile(importDir, file, userId);
+					let { key, value } = await writeFile(importDir, file, userId);
+					availableFiles[key] = value;
 				}
 				gbPromise = getAvailableGb();
 			}
 		}
 	}
 	onMount(async () => {
-		openDB();
+		// TODO open this more reliably
+		await openGraphDb();
+		await openDB();
 		userId = await getUserId();
 		getFileImportDir().then(async (impDir) => {
 			importDir = impDir;
-			for await (const [key, value] of impDir.entries()) {
-				availableFiles[key] = <FileSystemFileHandle>value;
+			for await (const key of impDir.keys()) {
+				availableFiles[key] = await getCsvFileName(key);
 			}
 		});
 	});
@@ -48,8 +51,15 @@
 			<div>
 				<h3>Available files</h3>
 				<div>
-					{#each Object.keys(availableFiles) as key}
-						<div>{key}</div>
+					<div class="grid">
+						<h4>Id</h4>
+						<h4>Name</h4>
+					</div>
+					{#each Object.entries(availableFiles) as [key, value]}
+						<div class="grid">
+							<div>{key}</div>
+							<div>{value}</div>
+						</div>
 					{/each}
 				</div>
 			</div>

@@ -1,4 +1,5 @@
 import { digestFile } from '$lib/signUtils';
+import { storeCsvFile } from '$lib/graphUtils';
 export async function getAvailableGb(): Promise<string> {
 	const quota = (await navigator.storage.estimate()).quota;
 	const usage = (await navigator.storage.estimate()).usage;
@@ -15,11 +16,14 @@ export async function getFileImportDir(): Promise<FileSystemDirectoryHandle> {
 	return importDir;
 }
 export async function writeFile(importDir: FileSystemDirectoryHandle, file: File, userId: string) {
-	const importFile = await importDir.getFileHandle(file.name, { create: true });
+	const digestHex = await digestFile(file, userId);
+	console.log(digestHex);
+	const importFile = await importDir.getFileHandle(digestHex, { create: true });
 	console.log(importFile);
-	digestFile(file, userId).then((digestHex) => console.log(digestHex));
 	//TODO: https://webkit.org/b/231706
 	const writable = await importFile.createWritable();
 	await writable.write(file);
 	await writable.close();
+	storeCsvFile(file.name, digestHex);
+	return { key: digestHex, value: file.name };
 }
