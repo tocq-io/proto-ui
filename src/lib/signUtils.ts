@@ -1,5 +1,5 @@
 let db: IDBDatabase;
-export async function openDB() {
+export function openDB() {
 	const DBOpenRequest = indexedDB.open('identity');
 	DBOpenRequest.onsuccess = (e) => {
 		if (e.target) {
@@ -43,6 +43,7 @@ async function getKeyPair(id: string): Promise<CryptoKeyPair | undefined> {
 	return keys;
 }
 export async function initKeyPair(): Promise<string> {
+	// TODO use proper user onboarding to set a key
 	const keyPair = await crypto.subtle.generateKey(
 		{
 			name: 'RSASSA-PKCS1-v1_5',

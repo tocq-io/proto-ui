@@ -14,7 +14,7 @@ const db = new Surreal({
 	engines: surrealdbWasmEngines()
 });
 export async function openGraphDb() {
-	db.connect('indxdb://configuration', { namespace: 'browser', database: 'proto' });
+	await db.connect('indxdb://configuration', { namespace: 'browser', database: 'proto' });
 }
 export async function storeCsvFile(csvName: string, id: string) {
 	// TODO use UPSERT with v2 of DB

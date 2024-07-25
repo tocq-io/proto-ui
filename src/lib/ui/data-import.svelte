@@ -19,9 +19,8 @@
 		}
 	}
 	onMount(async () => {
-		// TODO open this more reliably
 		await openGraphDb();
-		await openDB();
+		openDB();
 		userId = await getUserId();
 		getFileImportDir().then(async (impDir) => {
 			importDir = impDir;
