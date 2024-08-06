@@ -1,4 +1,5 @@
 <script lang="ts">
+	import init from 'proto-query-engine';
 	import { onMount } from 'svelte';
 	import { getUserId, openGraphDb, getCsvFileName } from '$lib/graphUtils';
 	import { openDB } from '$lib/signUtils';
@@ -19,6 +20,7 @@
 		}
 	}
 	onMount(async () => {
+		await init();
 		await openGraphDb();
 		openDB();
 		userId = await getUserId();

@@ -1,6 +1,6 @@
 import { Surreal, StringRecordId, RecordId } from 'surrealdb.js';
 import { surrealdbWasmEngines } from 'surrealdb.wasm';
-import { initKeyPair } from './signUtils';
+import { initKeyPair } from '$lib/signUtils';
 type User = {
 	scope: string;
 	identity: {

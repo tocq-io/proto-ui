@@ -14,7 +14,8 @@
 		"test:integration": "playwright test",
 		"test:unit": "vitest",
 		"deploy": "npm run build && wrangler pages deploy",
-		"cf-typegen": "wrangler types && mv worker-configuration.d.ts src/"
+		"cf-typegen": "wrangler types && mv worker-configuration.d.ts src/",
+		"wasm": "wasm-pack build ./proto-query-engine --target web"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240718.0",
@@ -38,6 +39,7 @@
 		"typescript-eslint": "^8.0.0-alpha.20",
 		"vite": "^5.3.4",
 		"vite-plugin-wasm": "^3.3.0",
+		"vite-plugin-wasm-pack": "^0.1.12",
 		"vitest": "^1.2.0",
 		"wrangler": "^3.65.0"
 	},
