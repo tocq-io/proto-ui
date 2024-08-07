@@ -1,0 +1,33 @@
+<script lang="ts">
+	import { writable } from 'svelte/store';
+	import { SvelteFlow, Background, Controls } from '@xyflow/svelte';
+
+	import '@xyflow/svelte/dist/style.css';
+
+	const nodes = writable([
+		{
+			id: '1', // required and needs to be a string
+			position: { x: 0, y: 0 }, // required
+			data: { label: 'hey' } // required
+		},
+		{
+			id: '2',
+			position: { x: 100, y: 100 },
+			data: { label: 'world' }
+		}
+	]);
+	const edges = writable([]);
+</script>
+
+<section id="analyze" class="analyze-canvas">
+	<SvelteFlow {nodes} {edges}>
+		<Background />
+		<Controls />
+	</SvelteFlow>
+</section>
+
+<style>
+	section.analyze-canvas {
+		height: 100vh;
+	}
+</style>
