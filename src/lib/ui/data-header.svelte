@@ -23,7 +23,8 @@
 	} from 'flowbite-svelte-icons';
 	import { onMount } from 'svelte';
 	import { digestString, openDB } from '$lib/signUtils';
-	import { getAvailableGb, writeFile, nodesArray, addTestEdge, addTestNode } from '$lib/fileUtils';
+	import { getAvailableGb, writeFile } from '$lib/fileUtils';
+	import { nodesArray, addTestEdge,  addTestNode } from '$lib/flowUtils';
 
 	let csvUploadModal = false;
 	let sqlConfigModal = false;

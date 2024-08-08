@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { writable } from 'svelte/store';
 	import { SvelteFlow, Background, Controls, MiniMap } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
-	import { loadFileImportDir, importDir, nodes, edges, addTestNode } from '$lib/fileUtils';
+	import { loadFileImportDir, importDir } from '$lib/fileUtils';
+	import { nodes, edges, addTestNode } from '$lib/flowUtils';
 	import { openGraphDb, getCsvFileName } from '$lib/graphUtils';
 
 	import '@xyflow/svelte/dist/style.css';
