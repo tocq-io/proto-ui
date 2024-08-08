@@ -1,3 +1,4 @@
+import { getUserId } from '$lib/graphUtils';
 let db: IDBDatabase;
 export function openDB() {
 	const DBOpenRequest = indexedDB.open('identity');
@@ -61,9 +62,14 @@ export async function initKeyPair(): Promise<string> {
 	await storeKeyPair(pubKeyString, keyPair);
 	return pubKeyString;
 }
-export async function digestFile(file: File, userId: string): Promise<string> {
+export async function digestFile(file: File): Promise<string> {
 	const fileUint8 = await file.arrayBuffer(); // encode as (utf-8) Uint8Array
-	return digestBuffer(fileUint8, userId);
+	return getUserId().then((userId) => digestBuffer(fileUint8, userId));
+}
+export async function digestString(data: string): Promise<string> {
+	const enc = new TextEncoder();
+	const dataUint8 = enc.encode(data); // encode as (utf-8) Uint8Array
+	return getUserId().then((userId) => digestBuffer(dataUint8, userId));
 }
 async function quickHash(value: ArrayBuffer): Promise<string> {
 	const hashBuffer = await crypto.subtle.digest('SHA-1', value); // quickly hash the value

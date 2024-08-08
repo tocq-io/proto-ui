@@ -1,9 +1,9 @@
 <script lang="ts">
-	import DataImport from '$lib/ui/data-import.svelte';
+	import DataHeader from '$lib/ui/data-header.svelte';
 	import DataAnalyzer from '$lib/ui/data-analyzer.svelte';
 </script>
 
 <main>
-	<DataImport />
+	<DataHeader />
 	<DataAnalyzer />
 </main>
