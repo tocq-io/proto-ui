@@ -1,33 +1,30 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
-	import { SvelteFlow, Background, Controls } from '@xyflow/svelte';
+	import { SvelteFlow, Background, Controls, MiniMap } from '@xyflow/svelte';
+	import { onMount } from 'svelte';
+	import { loadFileImportDir, importDir, nodes, addFileNode } from '$lib/fileUtils';
+	import { openGraphDb, getCsvFileName } from '$lib/graphUtils';
 
 	import '@xyflow/svelte/dist/style.css';
 
-	const nodes = writable([
-		{
-			id: '1', // required and needs to be a string
-			position: { x: 0, y: 0 }, // required
-			data: { label: 'hey' } // required
-		},
-		{
-			id: '2',
-			position: { x: 100, y: 100 },
-			data: { label: 'world' }
-		}
-	]);
 	const edges = writable([]);
+
+	onMount(async () => {
+		await openGraphDb();
+		loadFileImportDir().then(async () => {
+			for await (const key of importDir.keys()) {
+				getCsvFileName(key).then((tableName) => addFileNode(key, tableName));
+			}
+		});
+	});
 </script>
 
-<section id="analyze" class="analyze-canvas">
-	<SvelteFlow {nodes} {edges}>
-		<Background />
-		<Controls />
-	</SvelteFlow>
+<section class="h-screen px-8">
+	<div class="h-3/5 overview border-slate-500 border-dotted border-2">
+		<SvelteFlow {nodes} {edges}>
+			<Background />
+			<Controls />
+			<MiniMap zoomable pannable height={120} />
+		</SvelteFlow>
+	</div>
 </section>
-
-<style>
-	section.analyze-canvas {
-		height: 100vh;
-	}
-</style>

@@ -5,6 +5,5 @@
 
 <main>
 	<DataImport />
-	<hr />
 	<DataAnalyzer />
 </main>
