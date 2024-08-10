@@ -1,6 +1,5 @@
 import { digestFile } from '$lib/signUtils';
 import { storeCsvFile } from '$lib/graphUtils';
-import { addTestNode } from '$lib//flowUtils';
 export let importDir: FileSystemDirectoryHandle;
 export async function getAvailableGb(): Promise<string> {
 	const quota = (await navigator.storage.estimate()).quota;
@@ -21,8 +20,7 @@ export async function loadFileImportDir(): Promise<void> {
 		)
 	);
 }
-export async function writeFile(file: File): Promise<void> {
-	const tableName = file.name.replace(/\.[^/.]+$/, '');
+export async function writeFile(file: File, tableName: string): Promise<string> {
 	return digestFile(file).then(
 		(digestHex) => (importDir.getFileHandle(digestHex, { create: true })).then(
 			(importFile) => (importFile.createWritable()).then(
@@ -30,8 +28,8 @@ export async function writeFile(file: File): Promise<void> {
 					() => (writable.close()).then(
 						() => (storeCsvFile(tableName, digestHex)).then(
 							() => {
-								addTestNode(digestHex, tableName);
 								console.log(digestHex);
 								console.log(importFile);
+								return digestHex;
 							}))))));
 }
