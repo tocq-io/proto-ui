@@ -1,5 +1,6 @@
 import { digestFile } from '$lib/signUtils';
-import { storeCsvFile } from '$lib/graphUtils';
+import { storeCsvFile, type DataFile } from '$lib/graphUtils';
+import { addDataNode } from './flowUtils';
 export let importDir: FileSystemDirectoryHandle;
 export async function getAvailableGb(): Promise<string> {
 	const quota = (await navigator.storage.estimate()).quota;
@@ -20,16 +21,31 @@ export async function loadFileImportDir(): Promise<void> {
 		)
 	);
 }
-export async function writeFile(file: File, tableName: string): Promise<string> {
-	return digestFile(file).then(
+async function getCsvHeader(file: File): Promise<string[]> {
+	return new Promise<string[]>((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onload = () => {
+			const text = reader.result;
+			const firstLine = (<string>text)?.split('\n').shift();
+			let header = firstLine?.split(',');
+			console.log(header);
+			resolve(header || []);
+		}
+		reader.onerror = reject;
+		reader.readAsText(file, 'UTF-8');
+	});
+}
+export async function writeCsvFile(file: File, tableName: string) {
+	digestFile(file).then(
 		(digestHex) => (importDir.getFileHandle(digestHex, { create: true })).then(
 			(importFile) => (importFile.createWritable()).then(
 				(writable) => (writable.write(file)).then(
 					() => (writable.close()).then(
-						() => (storeCsvFile(tableName, digestHex)).then(
-							() => {
-								console.log(digestHex);
-								console.log(importFile);
-								return digestHex;
-							}))))));
+						() => (getCsvHeader(file)).then(
+							(header) => (storeCsvFile(header, file.size, tableName, digestHex).then(
+								(fileData) => (addDataNode(fileData, digestHex).then(
+									() => {
+										console.log(digestHex);
+										console.log(importFile);
+									}))))))))));
 }

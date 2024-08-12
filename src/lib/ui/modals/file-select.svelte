@@ -2,16 +2,14 @@
 	import { Button, Fileupload, Modal } from 'flowbite-svelte';
 	import { PlusOutline } from 'flowbite-svelte-icons';
 	import type { Writable } from 'svelte/store';
-	import { writeFile } from '$lib/fileUtils';
-	import { addCsvNode } from '$lib/flowUtils';
+	import { writeCsvFile } from '$lib/fileUtils';
 
 	export let csvUploadModal: Writable<boolean>;
 
 	async function importFiles(files: FileList) {
 		for (const file of files) {
 			const fileName = file.name.replace(/\.[^/.]+$/, '');
-			const fileId = await writeFile(file, fileName);
-			addCsvNode(fileId, fileName, file.size);
+			writeCsvFile(file, fileName);
 		}
 	}
 

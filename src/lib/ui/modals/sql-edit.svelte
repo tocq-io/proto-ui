@@ -15,20 +15,22 @@
 		ToolbarButton
 	} from 'flowbite-svelte';
 	import { BullhornOutline, RocketOutline, TrashBinOutline } from 'flowbite-svelte-icons';
-	import { digestString } from '$lib/signUtils';
-	import { nodes, addTestEdge, addTestNode } from '$lib/flowUtils';
+	import { writeSqlStatement } from '$lib/transformerUtils';
+	import { nodes } from '$lib/flowUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
 	import type { Writable } from 'svelte/store';
+	import type { Node } from '@xyflow/svelte';
 
 	export let sqlConfigModal: Writable<boolean>;
 	let tables: string[] = [];
-	let dbResult = 'will be displayed here!';
-	async function initTables(tableName: string, tableId: string) {
-		let hasTable = await has_table(String(tableName));
-		if (hasTable && !(tables.indexOf(tableId) > -1)) {
-			tables.push(tableId);
+	let dbResult = 'SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100';
+
+	async function initTables(node: Node) {
+		let hasTable = await has_table(String(node.data.name));
+		if (hasTable && !(tables.indexOf(node.id) > -1)) {
+			tables.push(node.id);
 		}
-		return hasTable;
+		return { selected: <boolean>hasTable, name: <string>node.data.name };
 	}
 	async function resetSql() {
 		const text = <HTMLInputElement>document.getElementById('sqlEditor');
@@ -57,12 +59,8 @@
 	async function saveSqlNode() {
 		console.log(tables);
 		if (tables.length > 0) {
-			// TODO more than 1 table
-			let table = tables[0];
 			sqlConfigModal.set(false);
-			getSqlAsText().then((sql) =>
-				digestString(sql).then((id) => addTestNode(id, sql, 120).then(() => addTestEdge(table, id)))
-			);
+			getSqlAsText().then((sql) => writeSqlStatement(sql, tables));
 		}
 	}
 	async function manageTable(e: Event) {
@@ -91,12 +89,12 @@
 		<span>Select table(s):</span>
 		<!--Checkbox name="flavours" {choices} bind:group groupInputClass='ms-2'/-->
 		{#each $nodes as node}
-			{#await initTables(String(node.data.label), node.id) then hasTable}
+			{#await initTables(node) then data}
 				<Checkbox
-					checked={hasTable}
-					name={String(node.data.label)}
+					checked={data.selected}
+					name={data.name}
 					id={node.id}
-					on:change={(e) => manageTable(e)}>{node.data.label}</Checkbox
+					on:change={(e) => manageTable(e)}>{data.name}</Checkbox
 				>
 			{/await}
 		{/each}

@@ -9,6 +9,8 @@
 	export let id: $$Props['id'];
 	let name = <string>data.name;
 	let size = <number>data.size;
+	let schema = <string[]>data.schema;
+	let format = <string>data.format;
 </script>
 
 <Handle type="target" position={Position.Left} />
@@ -18,10 +20,10 @@
 			<strong>TABLE [{name}] </strong>
 		</p>
 		<div class="text-right">
-			<Badge color="purple">[text/csv] [size: {size}]</Badge>
+			<Badge color="purple">[{format}] [size: {size}]</Badge>
 		</div>
 	</div>
-	<p class="left py-3">SCHEMA</p>
+	<p class="left py-3">columns: [{schema}]</p>
 	<p>
 		<Badge color="dark">[id: {id}]</Badge>
 	</p>
