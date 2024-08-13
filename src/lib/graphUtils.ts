@@ -13,7 +13,7 @@ export type DataFile = {
 	size: number;
 	schema: string[];
 };
-export type Transformer = {
+export type Query = {
 	id: RecordId,
 	format: string,
 	statement: string;
@@ -57,10 +57,10 @@ export async function getDataFile(id: string): Promise<DataFile> {
 	return db.select<DataFile>(new StringRecordId('data:' + id));
 }
 // Transformers
-export async function importDataToTf(dataId: string, tfId: string) {
-	const queryString = 'RELATE transformer:' + tfId + '->import->data:' + dataId + ';';
+export async function linkQueryToData(dataId: string, queryId: string) {
+	const queryString = 'RELATE queries:' + queryId + '->import->data:' + dataId + ';';
 	// TODO currently only works with string concat..
-	// await db.query('RELATE transformer:$tfId->import->data:$dataId;',
+	// await db.query('RELATE queries:$tfId->import->data:$dataId;',
 	// 	{
 	// 		tfId: tfId,
 	// 		dataId: dataId,
@@ -68,19 +68,19 @@ export async function importDataToTf(dataId: string, tfId: string) {
 
 	await db.query(queryString).then((result) => (console.log(result)));
 }
-export async function getImportedData(transfomerId:RecordId): Promise<Object[]>{
+export async function getImportedData(queryId:RecordId): Promise<Object[]>{
 	//console.log(db.query('SELECT in FROM import;'))
-	let result = await db.query<Object[]>('SELECT out FROM import WHERE in = transformer:'+transfomerId.id+';');
+	let result = await db.query<Object[]>('SELECT out FROM import WHERE in = queries:'+queryId.id+';');
 	console.log(result);
 	return result;
 }
-export async function getTransformers(): Promise<Transformer[]> {
-	return db.select<Transformer>('transformer');
+export async function getQueries(): Promise<Query[]> {
+	return db.select<Query>('queries');
 }
-export async function storeDfSqlFile(sqlStatement: string, tfId: string): Promise<Transformer> {
+export async function storeDfSqlFile(sqlStatement: string, queryId: string): Promise<Query> {
 	// TODO use UPSERT with v2 of DB
-	const result = await db.create<Transformer>('transformer', {
-		id: new RecordId('transfomer', tfId),
+	const result = await db.create<Query>('queries', {
+		id: new RecordId('transfomer', queryId),
 		format: 'df/sql',
 		statement: sqlStatement,
 	});

@@ -1,6 +1,5 @@
 <script lang="ts">
-	import init, { load_csv, run_sql, delete_table, has_table } from 'proto-query-engine';
-	import { onMount } from 'svelte';
+	import { load_csv, run_sql, delete_table, has_table } from 'proto-query-engine';
 	import {
 		Alert,
 		Button,
@@ -15,13 +14,13 @@
 		ToolbarButton
 	} from 'flowbite-svelte';
 	import { BullhornOutline, RocketOutline, TrashBinOutline } from 'flowbite-svelte-icons';
-	import { writeSqlStatement } from '$lib/transformerUtils';
+	import { writeSqlStatement } from '$lib/queryUtils';
 	import { nodes } from '$lib/flowUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
 	import type { Writable } from 'svelte/store';
 	import type { Node } from '@xyflow/svelte';
 
-	export let sqlConfigModal: Writable<boolean>;
+	export let queryConfigModal: Writable<boolean>;
 	let tables: string[] = [];
 	let dbResult = 'SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100';
 
@@ -59,7 +58,7 @@
 	async function saveSqlNode() {
 		console.log(tables);
 		if (tables.length > 0) {
-			sqlConfigModal.set(false);
+			queryConfigModal.set(false);
 			getSqlAsText().then((sql) => writeSqlStatement(sql, tables));
 		}
 	}
@@ -74,14 +73,11 @@
 			tables.splice(index, 1);
 		}
 	}
-	onMount(async () => {
-		await init();
-	});
 </script>
 
 <Modal
 	title="Run SQL on one or many tables"
-	bind:open={$sqlConfigModal}
+	bind:open={$queryConfigModal}
 	autoclose
 	class="min-w-full"
 >
@@ -117,7 +113,7 @@
 			<BullhornOutline class="h-5 w-5" />
 			<span class="text-lg font-medium">Results</span>
 		</div>
-		<p id="resultP" class="mb-4 mt-2 text-sm">{dbResult}</p>
+		<p class="mb-4 mt-2 text-sm">{dbResult}</p>
 	</Alert>
 	<div>
 		<Label for="input-addon" class="mb-2">Store result and configuration</Label>

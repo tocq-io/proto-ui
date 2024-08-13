@@ -11,11 +11,11 @@
     let format = <string>data.format;
 </script>
 
-<Handle type="target" position={Position.Left} />
+<Handle type="target" position={Position.Top} />
 <div>
 	<div class="grid sm:grid-cols-2">
 		<p>
-			<strong>DF SQL</strong>
+			<strong>DF Query</strong>
 		</p>
 		<div class="text-right">
 			<Badge color="purple">[{format}]]</Badge>
@@ -26,4 +26,4 @@
 		<Badge color="dark">[id: {id}]</Badge>
 	</p>
 </div>
-<Handle type="source" position={Position.Right} />
+<Handle type="source" position={Position.Bottom} />

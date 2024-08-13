@@ -1,6 +1,7 @@
 import { digestFile } from '$lib/signUtils';
 import { storeCsvFile, type DataFile } from '$lib/graphUtils';
-import { addDataNode } from './flowUtils';
+import { addDataNode, type PreviewData } from './flowUtils';
+import type { Writable } from 'svelte/store';
 export let importDir: FileSystemDirectoryHandle;
 export async function getAvailableGb(): Promise<string> {
 	const quota = (await navigator.storage.estimate()).quota;
@@ -35,7 +36,7 @@ async function getCsvHeader(file: File): Promise<string[]> {
 		reader.readAsText(file, 'UTF-8');
 	});
 }
-export async function writeCsvFile(file: File, tableName: string) {
+export async function writeCsvFile(file: File, tableName: string, dataView: Writable<PreviewData>) {
 	digestFile(file).then(
 		(digestHex) => (importDir.getFileHandle(digestHex, { create: true })).then(
 			(importFile) => (importFile.createWritable()).then(
@@ -43,7 +44,7 @@ export async function writeCsvFile(file: File, tableName: string) {
 					() => (writable.close()).then(
 						() => (getCsvHeader(file)).then(
 							(header) => (storeCsvFile(header, file.size, tableName, digestHex).then(
-								(fileData) => (addDataNode(fileData, digestHex).then(
+								(fileData) => (addDataNode(fileData, digestHex, dataView).then(
 									() => {
 										console.log(digestHex);
 										console.log(importFile);

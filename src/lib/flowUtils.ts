@@ -1,9 +1,14 @@
 import { type Edge, type Node } from '@xyflow/svelte';
-import { writable } from 'svelte/store';
-import type { DataFile, Transformer } from '$lib/graphUtils';
+import { writable, type Writable } from 'svelte/store';
+import type { DataFile, Query } from '$lib/graphUtils';
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
-export async function addDataNode(df: DataFile, key: string, shiftX: number = 0, shiftY: number = 0): Promise<void> {
+export interface PreviewData {
+    view: boolean;
+    id: string;
+    name: string;
+}
+export async function addDataNode(df: DataFile, key: string, dataView: Writable<PreviewData>, shiftX: number = 0, shiftY: number = 0): Promise<void> {
     let data = {} as Node;
     data.type = 'dataNode',
     data.id = key;
@@ -13,7 +18,8 @@ export async function addDataNode(df: DataFile, key: string, shiftX: number = 0,
         name: df.fileName,
         size: df.size,
         schema: df.schema,
-        format: df.format
+        format: df.format,
+        view: dataView
     };
     console.log(data);
     nodes.update((nodeArr) => {
@@ -21,30 +27,30 @@ export async function addDataNode(df: DataFile, key: string, shiftX: number = 0,
         return nodeArr;
     });
 }
-export async function addTransformerNode(tf: Transformer, shiftX: number = 0, shiftY: number = 0): Promise<void> {
-    console.log(tf);
-    let tfData = {} as Node;
-    tfData.type = 'tfNode';
-    tfData.id = tf.id.id.toString();
-    tfData.position = { x: 24 + shiftX, y: 24 + shiftY };
-    tfData.style = 'border: 1px solid #777; padding: 10px;',
-    tfData.data = { 
-        sql: tf.statement,
-        format: tf.format
+export async function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 0): Promise<void> {
+    console.log(query);
+    let queryData = {} as Node;
+    queryData.type = 'queryNode';
+    queryData.id = query.id.id.toString();
+    queryData.position = { x: 24 + shiftX, y: 24 + shiftY };
+    queryData.style = 'border: 1px solid #777; padding: 10px;',
+    queryData.data = { 
+        sql: query.statement,
+        format: query.format
     };
-    console.log(tfData);
+    console.log(queryData);
     nodes.update((nodeArr) => {
-        nodeArr.push(tfData);
+        nodeArr.push(queryData);
         return nodeArr;
     });
 }
-export async function addTfDataEdge(from: string, to: string): Promise<void> {
-    let tfDfEdge = {} as Edge;
-    tfDfEdge.source = from;
-    tfDfEdge.target = to;
-    tfDfEdge.id = 'e' + from + '-' + to;
+export async function addQueryDataEdge(from: string, to: string): Promise<void> {
+    let queryDataEdge = {} as Edge;
+    queryDataEdge.source = from;
+    queryDataEdge.target = to;
+    queryDataEdge.id = 'e' + from + '-' + to;
     edges.update((edgeArr) => {
-        edgeArr.push(tfDfEdge);
+        edgeArr.push(queryDataEdge);
         return edgeArr;
     });
 }
