@@ -1,12 +1,25 @@
 import { addQueryDataEdge, addQueryNode } from "$lib/flowUtils";
 import { digestString } from "$lib/signUtils";
+import type { Writable } from "svelte/store";
 import { linkQueryToData, storeDfSqlFile } from "./graphUtils";
-
-export async function writeSqlStatement(sql:string, tables: string[]) {
+import type { Table } from "@apache-arrow/ts";
+export interface PreviewTable {
+    view: boolean;
+    table: Table | undefined;
+}
+export interface SqlEdit {
+    view: boolean;
+    sql: string;
+}
+export async function writeSqlStatement(sql: string, tableIds: string[], dataView: Writable<PreviewTable>, showEditView: Writable<SqlEdit>) {
     digestString(sql).then(
-        (id) => storeDfSqlFile(sql, id).then(
-            (tf) => linkQueryToData(tables[0], id).then(
-            () => addQueryNode(tf, 120, 160).then(
-            () => addQueryDataEdge(tables[0], id))
-    )));    
+        (queryId) => storeDfSqlFile(sql, queryId).then(
+            (query) => addQueryNode(query, dataView, tableIds, showEditView, 120, 160).then(() => {
+                for (const tableId of tableIds) {
+                    linkQueryToData(tableId, queryId);
+                }
+            }
+            ).then(
+                () => addQueryDataEdge(tableIds[0], queryId))
+        ));
 }

@@ -3,15 +3,15 @@
 	import { PlusOutline } from 'flowbite-svelte-icons';
 	import type { Writable } from 'svelte/store';
 	import { writeCsvFile } from '$lib/fileUtils';
-	import type { PreviewData } from '$lib/flowUtils';
+		import type { PreviewTable } from '$lib/queryUtils';
 
 	export let dataUploadModal: Writable<boolean>;
-	export let dataView: Writable<PreviewData>;
+	export let previewTable: Writable<PreviewTable>;
 
 	async function importFiles(files: FileList) {
 		for (const file of files) {
 			const fileName = file.name.replace(/\.[^/.]+$/, '');
-			writeCsvFile(file, fileName, dataView);
+			writeCsvFile(file, fileName, previewTable);
 		}
 	}
 

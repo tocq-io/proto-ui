@@ -1,9 +1,11 @@
 <script lang="ts">
-	import type { PreviewData } from '$lib/flowUtils';
+		import type { PreviewTable } from '$lib/queryUtils';
 	import { Handle, Position, type NodeProps } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
 	import { TableRowOutline } from 'flowbite-svelte-icons';
-	import type { Writable } from 'svelte/store';
+	import { type Writable } from 'svelte/store';
+	import { load_csv, delete_table, run_sql, has_table } from 'proto-query-engine';
+	import { tableFromIPC } from '@apache-arrow/ts';
 
 	type $$Props = NodeProps;
 	$$restProps;
@@ -14,12 +16,27 @@
 	let size = <number>data.size;
 	let schema = <string[]>data.schema;
 	let format = <string>data.format;
-	let previewData = <Writable<PreviewData>>data.view;
+	let previewData = <Writable<PreviewTable>>data.view;
 
-	async function setPreviewData(){
-		$previewData.id = id;
-		$previewData.name = name;
-		$previewData.view = true;
+	async function setPreviewData() {
+		const sql = `SELECT * FROM ${name} LIMIT 10`;
+		if (await has_table(name)) {
+			run_sql(sql).then((ipcResult) => {
+				$previewData.table = tableFromIPC(ipcResult);
+				console.log($previewData.table.schema);
+				$previewData.view = true;
+			});
+		} else {
+			load_csv(id, name).then(() =>
+				run_sql(sql)
+					.then((ipcResult) => {
+						$previewData.table = tableFromIPC(ipcResult);
+						console.log($previewData.table.schema);
+						$previewData.view = true;
+					})
+					.then(() => delete_table(id, name))
+			);
+		}
 	}
 </script>
 

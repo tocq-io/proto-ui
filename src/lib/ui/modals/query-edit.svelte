@@ -14,13 +14,15 @@
 		ToolbarButton
 	} from 'flowbite-svelte';
 	import { BullhornOutline, RocketOutline, TrashBinOutline } from 'flowbite-svelte-icons';
-	import { writeSqlStatement } from '$lib/queryUtils';
+	import { writeSqlStatement, type SqlEdit } from '$lib/queryUtils';
 	import { nodes } from '$lib/flowUtils';
+	import { type PreviewTable } from '$lib/queryUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
 	import type { Writable } from 'svelte/store';
 	import type { Node } from '@xyflow/svelte';
 
-	export let queryConfigModal: Writable<boolean>;
+	export let sqlEditControl: Writable<SqlEdit>;	
+	export let previewTable: Writable<PreviewTable>;
 	let tables: string[] = [];
 	let dbResult = 'SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100';
 
@@ -47,9 +49,8 @@
 		return '';
 	}
 	async function runSql() {
-		const sql = await getSqlAsText();
 		// SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100
-		run_sql(sql).then((ipcResult) => {
+		run_sql($sqlEditControl.sql).then((ipcResult) => {
 			const table = tableFromIPC(ipcResult);
 			console.log(table.toString());
 			dbResult = table.toString();
@@ -58,8 +59,8 @@
 	async function saveSqlNode() {
 		console.log(tables);
 		if (tables.length > 0) {
-			queryConfigModal.set(false);
-			getSqlAsText().then((sql) => writeSqlStatement(sql, tables));
+			sqlEditControl.set({view: false, sql: await getSqlAsText()});
+			writeSqlStatement($sqlEditControl.sql, tables, previewTable, sqlEditControl);
 		}
 	}
 	async function manageTable(e: Event) {
@@ -77,7 +78,7 @@
 
 <Modal
 	title="Run SQL on one or many tables"
-	bind:open={$queryConfigModal}
+	bind:open={$sqlEditControl.view}
 	autoclose
 	class="min-w-full"
 >
@@ -95,7 +96,7 @@
 			{/await}
 		{/each}
 	</div>
-	<Textarea id="sqlEditor" rows="8" class="mb-4" placeholder="Write some Datafusion SQL">
+	<Textarea id="sqlEditor" rows="8" class="mb-4" placeholder="Write some Datafusion SQL" bind:value="{$sqlEditControl.sql}">
 		<div slot="footer" class="flex items-center justify-between">
 			<span />
 			<Toolbar embedded slot="end">

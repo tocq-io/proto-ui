@@ -8,47 +8,29 @@
 		TableHead,
 		TableHeadCell
 	} from 'flowbite-svelte';
-	import { writable, type Writable } from 'svelte/store';
-	import { Table as ArrowTable, tableFromIPC } from '@apache-arrow/ts';
-	import { load_csv, delete_table, run_sql } from 'proto-query-engine';
-	import type { PreviewData } from '$lib/flowUtils';
-	import { valueToString } from '@apache-arrow/ts/util/pretty';
+	import { type Writable } from 'svelte/store';
+		import type { PreviewTable } from '$lib/queryUtils';
 
-	export let previewData: Writable<PreviewData>;
-	let table: Writable<ArrowTable>;
-
-	previewData.subscribe(() => {
-		if ($previewData.view) {
-			const sql = `SELECT * FROM ${$previewData.name} LIMIT 10`;
-			load_csv($previewData.id, $previewData.name).then(() =>
-				run_sql(sql).then((ipcResult) => {
-					table = writable(tableFromIPC(ipcResult));
-					console.log($table.schema);
-				})
-			);
-		} else if ($previewData.id && $previewData.name) {
-			delete_table($previewData.id, $previewData.name);
-		}
-	});
+	export let previewTable: Writable<PreviewTable>;
 </script>
 
-<Modal bind:open={$previewData.view} class="text-xs">
+<Modal bind:open={$previewTable.view} class="text-xs">
 	<div class="pt-4">
-		{#if $table}
+		{#if $previewTable.table}
 			<Table>
 				<TableHead>
-					{#each $table.schema.fields as field}
+					{#each $previewTable.table.schema.fields as field}
 						<TableHeadCell padding="px-2 py-1 text-center" scope="col"
 							><nobr>{field.name} ({field.type})</nobr></TableHeadCell
 						>
 					{/each}
 				</TableHead>
 				<TableBody>
-					{#each $table.data as line}
+					{#each $previewTable.table.data as line}
 						<TableBodyRow>
 							{#each line.children as child}
 								<TableBodyCell tdClass="px-2 py-1 text-center"
-									>{valueToString(child.values[0])}</TableBodyCell
+									>{child.values[0]}</TableBodyCell
 								>
 							{/each}
 						</TableBodyRow>
@@ -57,7 +39,7 @@
 			</Table>
 		{/if}
 	</div>
-	<div>
-		<span class="text-xs">[first 10 lines]</span>
+	<div class="text-center">
+		<span class="text-xs">(first 10 lines)</span>
 	</div>
 </Modal>
