@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { type DataFileProps } from '$lib/flowUtils';
-	import { Handle, Position, type NodeProps } from '@xyflow/svelte';
+	import { type DataFileProps, previewTable } from '$lib/flowUtils';
+	import { Handle, Position } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
 	import { TableRowOutline } from 'flowbite-svelte-icons';
 	import { load_csv, delete_table, run_sql, has_table } from 'proto-query-engine';
@@ -11,23 +11,20 @@
 
 	export let data: $$Props['data'];
 	export let id: $$Props['id'];
-	let previewData = data.dataView;
 
 	async function setPreviewData() {
 		const sql = `SELECT * FROM ${data.name} LIMIT 10`;
 		if (await has_table(data.name)) {
 			run_sql(sql).then((ipcResult) => {
-				$previewData.table = tableFromIPC(ipcResult);
-				console.log($previewData.table.schema);
-				$previewData.view = true;
+				$previewTable.table = tableFromIPC(ipcResult);
+				$previewTable.view = true;
 			});
 		} else {
 			load_csv(id, data.name).then(() =>
 				run_sql(sql)
 					.then((ipcResult) => {
-						$previewData.table = tableFromIPC(ipcResult);
-						console.log($previewData.table.schema);
-						$previewData.view = true;
+						$previewTable.table = tableFromIPC(ipcResult);
+						$previewTable.view = true;
 					})
 					.then(() => delete_table(id, data.name))
 			);

@@ -8,10 +8,7 @@
 		TableHead,
 		TableHeadCell
 	} from 'flowbite-svelte';
-	import { type Writable } from 'svelte/store';
-	import type { PreviewTable } from '$lib/queryUtils';
-
-	export let previewTable: Writable<PreviewTable>;
+	import { previewTable } from '$lib/flowUtils';
 </script>
 
 <Modal bind:open={$previewTable.view} class="text-xs">

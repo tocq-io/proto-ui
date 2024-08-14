@@ -1,63 +1,26 @@
 <script lang="ts">
 	import init from 'proto-query-engine';
-	import QueryEdit from './modals/query-edit.svelte';
+	import QueryEdit from '$lib/ui/modals/query-edit.svelte';
 	import { Button } from 'flowbite-svelte';
 	import { PlusOutline } from 'flowbite-svelte-icons';
-	import FileSelect from './modals/file-select.svelte';
+	import FileSelect from '$lib/ui/modals/file-select.svelte';
 	import { writable, type Writable } from 'svelte/store';
-	import { getAvailableGb, loadFileImportDir, importDir } from '$lib/fileUtils';
-	import TablePreview from './modals/table-preview.svelte';
+	import { getAvailableGb, loadInit } from '$lib/fileUtils';
+	import TablePreview from '$lib/ui/modals/table-preview.svelte';
 	import { onMount } from 'svelte';
 	import { openDB } from '$lib/signUtils';
-	import { getDataFile, getImportedData, getQueries, openGraphDb } from '$lib/graphUtils';
-	import { addDataNode, addQueryDataEdge, addQueryNode } from '$lib/flowUtils';
-	import { type PreviewTable, type SqlEdit } from '$lib/queryUtils';
+	import { openGraphDb } from '$lib/graphUtils';
+	import { sqlEditControl } from '$lib/flowUtils';
 
 	let dataUploadModal = writable(false);
 	let gbPromise: Writable<Promise<string>>;
 	$: gbPromise = writable(getAvailableGb());
 
-	let previewTable: Writable<PreviewTable> = writable({
-		view: false,
-		table: undefined
-	});
-	let sqlEditControl: Writable<SqlEdit> = writable({
-		view: false,
-		sql: ''
-	});
-
 	onMount(async () => {
 		await init();
 		openDB();
 		await openGraphDb();
-		loadFileImportDir()
-			.then(async () => {
-				let count = 0;
-				for await (const key of importDir.keys()) {
-					await getDataFile(key).then((dataFile) =>
-						addDataNode(dataFile, key, previewTable, count * 120, 0)
-					);
-					count++;
-				}
-			})
-			.then(() =>
-				getQueries().then((queries) => {
-					let count = 1;
-					for (const query of queries) {
-						getImportedData(query.id).then((edge) => {
-							//TODO find out how the edge format is actually returned from surreal
-							console.log(edge);
-							console.log(edge[0][0]);
-							for (const outDestination of edge[0]) {
-								const tableId = outDestination.out.id;
-								addQueryDataEdge(tableId, query.id.id.toString());
-								addQueryNode(query, previewTable, [tableId], sqlEditControl, count * 80, 160);
-							}
-						});
-						count++;
-					}
-				})
-			);
+		loadInit();
 	});
 </script>
 
@@ -82,9 +45,9 @@
 			</Button>
 		</div>
 	</div>
-	<FileSelect {dataUploadModal} {previewTable} />
-	<QueryEdit {sqlEditControl} {previewTable} />
+	<FileSelect {dataUploadModal} />
+	<QueryEdit />
 </section>
 <section>
-	<TablePreview {previewTable} />
+	<TablePreview />
 </section>

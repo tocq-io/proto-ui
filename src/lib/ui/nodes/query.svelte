@@ -5,14 +5,13 @@
 	import { Button } from 'flowbite-svelte';
 	import { EditOutline, TableRowOutline } from 'flowbite-svelte-icons';
 	import { load_csv, delete_table, run_sql, has_table } from 'proto-query-engine';
-	import type { QueryProps } from '$lib/flowUtils';
+	import { type QueryProps, previewTable, sqlEditControl } from '$lib/flowUtils';
 
 	type $$Props = QueryProps;
 	$$restProps;
 
 	export let data: $$Props['data'];
 	export let id: $$Props['id'];
-	let previewData = data.dataView;
 
 	async function setPreviewData() {
 		const notHadTables = new Map<string, string>();
@@ -24,13 +23,9 @@
 				notHadTables.set(tableId, tableName.fileName);
 			}
 		}
-		// if (!sql.toUpperCase().includes('LIMIT 10')) {
-		// 	sql += ' LIMIT 10';
-		// }
 		await run_sql(data.sql).then((ipcResult) => {
-			$previewData.table = tableFromIPC(ipcResult);
-			console.log($previewData.table.schema);
-			$previewData.view = true;
+			$previewTable.table = tableFromIPC(ipcResult);
+			$previewTable.view = true;
 		});
 
 		for (const [tableId, tableName] of notHadTables) {
@@ -38,7 +33,7 @@
 		}
 	}
 	async function showEditView() {
-		data.editView.set({
+		sqlEditControl.set({
 			view: true,
 			sql: data.sql
 		});

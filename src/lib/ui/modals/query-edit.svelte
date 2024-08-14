@@ -14,15 +14,11 @@
 		ToolbarButton
 	} from 'flowbite-svelte';
 	import { BullhornOutline, RocketOutline, TrashBinOutline } from 'flowbite-svelte-icons';
-	import { persistQuery, type SqlEdit } from '$lib/queryUtils';
-	import { nodes, type DataFileNode } from '$lib/flowUtils';
-	import { type PreviewTable } from '$lib/queryUtils';
+	import { persistQuery} from '$lib/queryUtils';
+	import { nodes, type DataFileNode, sqlEditControl } from '$lib/flowUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
-	import type { Writable } from 'svelte/store';
 	import type { Node } from '@xyflow/svelte';
 
-	export let sqlEditControl: Writable<SqlEdit>;
-	export let previewTable: Writable<PreviewTable>;
 	let tables: string[] = [];
 	let dbResult = 'SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100';
 
@@ -38,12 +34,6 @@
 		}
 		return hasTable;
 	}
-	async function resetSql() {
-		sqlEditControl.update((ec) => {
-			ec.sql = '';
-			return ec;
-		});
-	}
 	async function runSql() {
 		// SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100
 		run_sql($sqlEditControl.sql).then((ipcResult) => {
@@ -53,13 +43,9 @@
 		});
 	}
 	async function saveSqlNode() {
-		console.log(tables);
 		if (tables.length > 0) {
-			sqlEditControl.update((ec) => {
-				ec.view = false;
-				return ec;
-			});
-			persistQuery($sqlEditControl.sql, tables, previewTable, sqlEditControl);
+			$sqlEditControl.view = false;
+			persistQuery($sqlEditControl.sql, tables);
 		}
 	}
 	async function manageTable(e: Event) {
@@ -83,7 +69,6 @@
 >
 	<div class="flex gap-3">
 		<span>Select table(s):</span>
-		<!--Checkbox name="flavours" {choices} bind:group groupInputClass='ms-2'/-->
 		{#each $nodes as node}
 			{#if isDataFileNode(node)}
 				{#await initTables(node) then hasTable}
@@ -107,7 +92,7 @@
 		<div slot="footer" class="flex items-center justify-between">
 			<span />
 			<Toolbar embedded slot="end">
-				<ToolbarButton name="reset" on:click={() => resetSql()}
+				<ToolbarButton name="reset" on:click={() => $sqlEditControl.sql = ''}
 					><TrashBinOutline class="h-6 w-6" /></ToolbarButton
 				>
 				<ToolbarButton name="run" on:click={() => runSql()}
