@@ -41,6 +41,7 @@ export let sqlEditControl: Writable<SqlEdit> = writable({
     view: false,
     sql: ''
 });
+export let showDataUpload = writable(false);
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
 export async function addDataNode(df: DataFile, key: string, shiftX: number = 0, shiftY: number = 0): Promise<void> {

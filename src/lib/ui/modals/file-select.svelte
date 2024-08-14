@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { Button, Fileupload, Modal } from 'flowbite-svelte';
 	import { PlusOutline } from 'flowbite-svelte-icons';
-	import type { Writable } from 'svelte/store';
 	import { writeCsvFile } from '$lib/fileUtils';
-
-	export let dataUploadModal: Writable<boolean>;
+	import { showDataUpload } from '$lib/flowUtils';
 
 	let files: FileList;
 
@@ -16,7 +14,7 @@
 	}
 </script>
 
-<Modal title="Upload some files" bind:open={$dataUploadModal} autoclose class="min-w-full">
+<Modal title="Upload some files" bind:open={$showDataUpload} autoclose class="min-w-full">
 	<div class="mb-4 grid gap-4 sm:grid-cols-2">
 		<div class="w-96">
 			<Fileupload id="multiple_files" multiple bind:files />
