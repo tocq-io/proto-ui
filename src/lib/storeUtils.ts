@@ -17,7 +17,7 @@ export type DataFileNode = Node & {
 };
 export type QueryData = {
     sql: string;
-    tableIds: string[];
+    //tableIds: string[];
     format: string;
 };
 export type QueryProps = NodeProps & {
@@ -46,3 +46,7 @@ export let sqlEditControl: Writable<SqlEdit> = writable({
 export let showDataUpload = writable(false);
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
+///// HELPER FUNCTIONS
+export function isDataFileNode(node: Node): node is DataFileNode {
+    return node.data.name !== undefined && node.data.schema !== undefined;
+}

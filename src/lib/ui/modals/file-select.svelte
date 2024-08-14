@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { Button, Fileupload, Modal } from 'flowbite-svelte';
 	import { PlusOutline } from 'flowbite-svelte-icons';
-	import { writeCsvFile } from '$lib/fileUtils';
+	import { writeCsvFile, getFileImportDir } from '$lib/fileUtils';
 	import { showDataUpload } from '$lib/storeUtils';
 
 	let files: FileList;
 
 	async function importFiles() {
+		const importDir = await getFileImportDir();
 		for (const file of files) {
 			const tableName = file.name.replace(/\.[^/.]+$/, '');
-			writeCsvFile(file, tableName);
+			writeCsvFile(importDir, file, tableName);
 		}
 	}
 </script>

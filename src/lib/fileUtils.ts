@@ -1,8 +1,6 @@
 import { digestFile } from '$lib/signUtils';
-import { getDataFile, getImportedData, getQueries, storeCsvFile } from '$lib/graphUtils';
-import { addDataNode, addQueryDataEdge, addQueryNode } from '$lib/flowUtils';
-
-export let importDir: FileSystemDirectoryHandle;
+import { storeCsvFile } from '$lib/graphUtils';
+import { addDataNode } from '$lib/flowUtils';
 
 export async function getAvailableGb(): Promise<string> {
 	const quota = (await navigator.storage.estimate()).quota;
@@ -12,16 +10,9 @@ export async function getAvailableGb(): Promise<string> {
 		1000000000
 	).toFixed(2);
 }
-async function loadFileImportDir(): Promise<void> {
+export async function getFileImportDir(): Promise<FileSystemDirectoryHandle> {
 	return navigator.storage.getDirectory().then(
-		(opfsRoot) => (opfsRoot.getDirectoryHandle('fileImport', { create: true })).then(
-			(dir) => {
-				importDir = dir;
-				console.log(opfsRoot);
-				console.log(dir);
-			}
-		)
-	);
+		(opfsRoot) => (opfsRoot.getDirectoryHandle('fileImport', { create: true })));
 }
 async function getCsvHeader(file: File): Promise<string[]> {
 	return new Promise<string[]>((resolve, reject) => {
@@ -37,7 +28,7 @@ async function getCsvHeader(file: File): Promise<string[]> {
 		reader.readAsText(file, 'UTF-8');
 	});
 }
-export async function writeCsvFile(file: File, tableName: string) {
+export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: File, tableName: string) {
 	digestFile(file).then(
 		(digestHex) => (importDir.getFileHandle(digestHex, { create: true })).then(
 			(importFile) => (importFile.createWritable()).then(
@@ -45,38 +36,9 @@ export async function writeCsvFile(file: File, tableName: string) {
 					() => (writable.close()).then(
 						() => (getCsvHeader(file)).then(
 							(header) => (storeCsvFile(header, file.size, tableName, digestHex).then(
-								(fileData) => (addDataNode(fileData, digestHex).then(
+								(fileData) => (addDataNode(fileData).then(
 									() => {
 										console.log(digestHex);
 										console.log(importFile);
 									}))))))))));
-}
-export async function loadInit() {
-	loadFileImportDir()
-		.then(async () => {
-			let count = 0;
-			for await (const key of importDir.keys()) {
-				await getDataFile(key).then((dataFile) => addDataNode(dataFile, key, count * 120, 0));
-				count++;
-			}
-		})
-		.then(() =>
-			getQueries().then((queries) => {
-				let count = 1;
-				for (const query of queries) {
-					getImportedData(query.id).then((edge) => {
-						//TODO find out how the edge format is actually returned from surreal
-						console.log(edge);
-						console.log(edge[0][0]);
-						for (const outDestination of edge[0]) {
-							const tableId = outDestination.out.id;
-							addQueryDataEdge(tableId, query.id.id.toString());
-							addQueryNode(query, [tableId], count * 80, 160);
-						}
-					});
-					count++;
-				}
-			})
-		);
-
 }

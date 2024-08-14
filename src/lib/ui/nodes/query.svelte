@@ -1,11 +1,17 @@
 <script lang="ts">
-	import { getDataFile } from '$lib/graphUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
 	import { Handle, Position } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
 	import { EditOutline, TableRowOutline } from 'flowbite-svelte-icons';
 	import { load_csv, delete_table, run_sql, has_table } from 'proto-query-engine';
-	import { type QueryProps, previewTable, sqlEditControl } from '$lib/storeUtils';
+	import {
+	type DataFileNode,
+		type QueryProps,
+		isDataFileNode,
+		nodes,
+		previewTable,
+		sqlEditControl
+	} from '$lib/storeUtils';
 
 	type $$Props = QueryProps;
 	$$restProps;
@@ -15,12 +21,14 @@
 
 	async function setPreviewData() {
 		const notHadTables = new Map<string, string>();
-		for (const tableId of data.tableIds) {
-			const tableName = await getDataFile(tableId);
-			const hasTable = await has_table(tableName.fileName);
-			if (!hasTable) {
-				await load_csv(tableId, tableName.fileName);
-				notHadTables.set(tableId, tableName.fileName);
+		for (const node of $nodes) {
+			if (isDataFileNode(node)) {
+				const dfNode = <DataFileNode>node;
+				const hasTable = await has_table(dfNode.data.name);
+				if (!hasTable) {
+					await load_csv(dfNode.id, dfNode.data.name);
+					notHadTables.set(dfNode.id, dfNode.data.name);
+				}
 			}
 		}
 		await run_sql(data.sql).then((ipcResult) => {

@@ -15,16 +15,11 @@
 	} from 'flowbite-svelte';
 	import { BullhornOutline, RocketOutline, TrashBinOutline } from 'flowbite-svelte-icons';
 	import { persistQuery} from '$lib/queryUtils';
-	import { nodes, type DataFileNode, sqlEditControl } from '$lib/storeUtils';
+	import { nodes, type DataFileNode, sqlEditControl, isDataFileNode } from '$lib/storeUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
-	import type { Node } from '@xyflow/svelte';
 
 	let tables: string[] = [];
 	let dbResult = 'SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100';
-
-	function isDataFileNode(node: Node): node is DataFileNode {
-		return node.data.name !== undefined && node.data.schema !== undefined;
-	}
 
 	async function initTables(node: DataFileNode) {
 		// TODO load from edges
@@ -38,7 +33,6 @@
 		// SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100
 		run_sql($sqlEditControl.sql).then((ipcResult) => {
 			const table = tableFromIPC(ipcResult);
-			console.log(table.toString());
 			dbResult = table.toString();
 		});
 	}

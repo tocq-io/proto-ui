@@ -3,7 +3,8 @@
 	import { Button } from 'flowbite-svelte';
 	import { PlusOutline } from 'flowbite-svelte-icons';
 	import { writable, type Writable } from 'svelte/store';
-	import { getAvailableGb, loadInit } from '$lib/fileUtils';
+	import { getAvailableGb } from '$lib/fileUtils';
+	import { initFlow } from '$lib/flowUtils';
 	import { onMount } from 'svelte';
 	import { openDB } from '$lib/signUtils';
 	import { openGraphDb } from '$lib/graphUtils';
@@ -16,7 +17,7 @@
 		await init();
 		openDB();
 		await openGraphDb();
-		loadInit();
+		initFlow();
 	});
 </script>
 
