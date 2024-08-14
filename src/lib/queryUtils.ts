@@ -11,15 +11,12 @@ export interface SqlEdit {
     view: boolean;
     sql: string;
 }
-export async function writeSqlStatement(sql: string, tableIds: string[], dataView: Writable<PreviewTable>, showEditView: Writable<SqlEdit>) {
+export async function persistQuery(sql: string, tableIds: string[], dataView: Writable<PreviewTable>, showEditView: Writable<SqlEdit>) {
     digestString(sql).then(
         (queryId) => storeDfSqlFile(sql, queryId).then(
             (query) => addQueryNode(query, dataView, tableIds, showEditView, 120, 160).then(() => {
                 for (const tableId of tableIds) {
-                    linkQueryToData(tableId, queryId);
+                    linkQueryToData(tableId, queryId).then(() => addQueryDataEdge(tableId, queryId));
                 }
-            }
-            ).then(
-                () => addQueryDataEdge(tableIds[0], queryId))
-        ));
+            })));
 }

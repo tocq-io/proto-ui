@@ -9,7 +9,7 @@
 		TableHeadCell
 	} from 'flowbite-svelte';
 	import { type Writable } from 'svelte/store';
-		import type { PreviewTable } from '$lib/queryUtils';
+	import type { PreviewTable } from '$lib/queryUtils';
 
 	export let previewTable: Writable<PreviewTable>;
 </script>
@@ -29,9 +29,7 @@
 					{#each $previewTable.table.data as line}
 						<TableBodyRow>
 							{#each line.children as child}
-								<TableBodyCell tdClass="px-2 py-1 text-center"
-									>{child.values[0]}</TableBodyCell
-								>
+								<TableBodyCell tdClass="px-2 py-1 text-center">{child.values[0]}</TableBodyCell>
 							{/each}
 						</TableBodyRow>
 					{/each}

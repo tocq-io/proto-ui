@@ -8,14 +8,14 @@
 	export let dataUploadModal: Writable<boolean>;
 	export let previewTable: Writable<PreviewTable>;
 
-	async function importFiles(files: FileList) {
+	let files: FileList;
+
+	async function importFiles() {
 		for (const file of files) {
 			const fileName = file.name.replace(/\.[^/.]+$/, '');
 			writeCsvFile(file, fileName, previewTable);
 		}
 	}
-
-	let files: FileList;
 </script>
 
 <Modal title="Upload some files" bind:open={$dataUploadModal} autoclose class="min-w-full">
@@ -24,7 +24,7 @@
 			<Fileupload id="multiple_files" multiple bind:files />
 		</div>
 		<div class="text-right">
-			<Button type="submit" class="w-44" on:click={() => importFiles(files)}>
+			<Button type="submit" class="w-44" on:click={() => importFiles()}>
 				<PlusOutline class="mr-2 h-3.5 w-3.5" />Add new files
 			</Button>
 		</div>

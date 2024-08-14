@@ -14,39 +14,35 @@
 		ToolbarButton
 	} from 'flowbite-svelte';
 	import { BullhornOutline, RocketOutline, TrashBinOutline } from 'flowbite-svelte-icons';
-	import { writeSqlStatement, type SqlEdit } from '$lib/queryUtils';
-	import { nodes } from '$lib/flowUtils';
+	import { persistQuery, type SqlEdit } from '$lib/queryUtils';
+	import { nodes, type DataFileNode } from '$lib/flowUtils';
 	import { type PreviewTable } from '$lib/queryUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
 	import type { Writable } from 'svelte/store';
 	import type { Node } from '@xyflow/svelte';
 
-	export let sqlEditControl: Writable<SqlEdit>;	
+	export let sqlEditControl: Writable<SqlEdit>;
 	export let previewTable: Writable<PreviewTable>;
 	let tables: string[] = [];
 	let dbResult = 'SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100';
 
-	async function initTables(node: Node) {
-		let hasTable = await has_table(String(node.data.name));
+	function isDataFileNode(node: Node): node is DataFileNode {
+		return node.data.name !== undefined && node.data.schema !== undefined;
+	}
+
+	async function initTables(node: DataFileNode) {
+		// TODO load from edges
+		let hasTable = await has_table(node.data.name);
 		if (hasTable && !(tables.indexOf(node.id) > -1)) {
 			tables.push(node.id);
 		}
-		return { selected: <boolean>hasTable, name: <string>node.data.name };
+		return hasTable;
 	}
 	async function resetSql() {
-		const text = <HTMLInputElement>document.getElementById('sqlEditor');
-		if (text && text.value) {
-			console.log(text.value);
-			text.value = '';
-		}
-	}
-	async function getSqlAsText() {
-		const text = <HTMLInputElement>document.getElementById('sqlEditor');
-		if (text && text.value) {
-			console.log(text.value);
-			return text.value;
-		}
-		return '';
+		sqlEditControl.update((ec) => {
+			ec.sql = '';
+			return ec;
+		});
 	}
 	async function runSql() {
 		// SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100
@@ -59,8 +55,11 @@
 	async function saveSqlNode() {
 		console.log(tables);
 		if (tables.length > 0) {
-			sqlEditControl.set({view: false, sql: await getSqlAsText()});
-			writeSqlStatement($sqlEditControl.sql, tables, previewTable, sqlEditControl);
+			sqlEditControl.update((ec) => {
+				ec.view = false;
+				return ec;
+			});
+			persistQuery($sqlEditControl.sql, tables, previewTable, sqlEditControl);
 		}
 	}
 	async function manageTable(e: Event) {
@@ -86,17 +85,25 @@
 		<span>Select table(s):</span>
 		<!--Checkbox name="flavours" {choices} bind:group groupInputClass='ms-2'/-->
 		{#each $nodes as node}
-			{#await initTables(node) then data}
-				<Checkbox
-					checked={data.selected}
-					name={data.name}
-					id={node.id}
-					on:change={(e) => manageTable(e)}>{data.name}</Checkbox
-				>
-			{/await}
+			{#if isDataFileNode(node)}
+				{#await initTables(node) then hasTable}
+					<Checkbox
+						checked={hasTable}
+						name={node.data.name}
+						id={node.id}
+						on:change={(e) => manageTable(e)}>{node.data.name}</Checkbox
+					>
+				{/await}
+			{/if}
 		{/each}
 	</div>
-	<Textarea id="sqlEditor" rows="8" class="mb-4" placeholder="Write some Datafusion SQL" bind:value="{$sqlEditControl.sql}">
+	<Textarea
+		id="sqlEditor"
+		rows="8"
+		class="mb-4"
+		placeholder="Write some Datafusion SQL"
+		bind:value={$sqlEditControl.sql}
+	>
 		<div slot="footer" class="flex items-center justify-between">
 			<span />
 			<Toolbar embedded slot="end">

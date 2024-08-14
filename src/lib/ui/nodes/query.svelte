@@ -1,27 +1,22 @@
 <script lang="ts">
-		import type { PreviewTable, SqlEdit } from '$lib/queryUtils';
 	import { getDataFile } from '$lib/graphUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
-	import { Handle, Position, type NodeProps } from '@xyflow/svelte';
+	import { Handle, Position } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
 	import { EditOutline, TableRowOutline } from 'flowbite-svelte-icons';
 	import { load_csv, delete_table, run_sql, has_table } from 'proto-query-engine';
-	import type { Writable } from 'svelte/store';
+	import type { QueryProps } from '$lib/flowUtils';
 
-	type $$Props = NodeProps;
+	type $$Props = QueryProps;
 	$$restProps;
 
 	export let data: $$Props['data'];
 	export let id: $$Props['id'];
-	let sql = <string>data.sql;
-	let tableIds = <string[]>data.tableIds;
-	let format = <string>data.format;
-	let previewData = <Writable<PreviewTable>>data.view;
-	let sqlEditControl = <Writable<SqlEdit>>data.sqlEditControl;
+	let previewData = data.dataView;
 
 	async function setPreviewData() {
 		const notHadTables = new Map<string, string>();
-		for (const tableId of tableIds) {
+		for (const tableId of data.tableIds) {
 			const tableName = await getDataFile(tableId);
 			const hasTable = await has_table(tableName.fileName);
 			if (!hasTable) {
@@ -29,10 +24,10 @@
 				notHadTables.set(tableId, tableName.fileName);
 			}
 		}
-		if (!sql.toUpperCase().includes('LIMIT 10')) {
-			sql += ' LIMIT 10';
-		}
-		await run_sql(sql).then((ipcResult) => {
+		// if (!sql.toUpperCase().includes('LIMIT 10')) {
+		// 	sql += ' LIMIT 10';
+		// }
+		await run_sql(data.sql).then((ipcResult) => {
 			$previewData.table = tableFromIPC(ipcResult);
 			console.log($previewData.table.schema);
 			$previewData.view = true;
@@ -43,9 +38,9 @@
 		}
 	}
 	async function showEditView() {
-		sqlEditControl.set({
+		data.editView.set({
 			view: true,
-			sql: sql
+			sql: data.sql
 		});
 	}
 </script>
@@ -66,10 +61,10 @@
 		</div>
 	</div>
 	<hr />
-	<div class="py-3">{sql}</div>
+	<div class="py-3">{data.sql}</div>
 	<hr />
 	<div class="grid pt-1.5 sm:grid-cols-2">
-		<p class="text-xs">[format: {format}]</p>
+		<p class="text-xs">[format: {data.format}]</p>
 		<p class="text-right text-xs">[{id}]</p>
 	</div>
 </div>
