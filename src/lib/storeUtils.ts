@@ -1,5 +1,5 @@
 import type { Table } from '@apache-arrow/ts';
-import type { NodeProps, Edge, Node } from '@xyflow/svelte';
+import { type NodeProps, type Edge, type Node } from '@xyflow/svelte';
 import { type Writable, writable } from 'svelte/store';
 
 ///// TYPES
@@ -17,7 +17,6 @@ export type DataFileNode = Node & {
 };
 export type QueryData = {
     sql: string;
-    //tableIds: string[];
     format: string;
 };
 export type QueryProps = NodeProps & {
@@ -33,6 +32,7 @@ export type PreviewTable = {
 type SqlEdit = {
     view: boolean;
     sql: string;
+    queryId: string;
 };
 ///// SVELTE STORES
 export let previewTable: Writable<PreviewTable> = writable({
@@ -41,7 +41,8 @@ export let previewTable: Writable<PreviewTable> = writable({
 });
 export let sqlEditControl: Writable<SqlEdit> = writable({
     view: false,
-    sql: ''
+    sql: '',
+    queryId: ''
 });
 export let showDataUpload = writable(false);
 export const nodes = writable<Node[]>([]);

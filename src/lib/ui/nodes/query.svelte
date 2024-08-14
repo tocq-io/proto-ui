@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tableFromIPC } from '@apache-arrow/ts';
-	import { Handle, Position } from '@xyflow/svelte';
+	import { Handle, Position, useHandleConnections } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
 	import { EditOutline, TableRowOutline } from 'flowbite-svelte-icons';
 	import { load_csv, delete_table, run_sql, has_table } from 'proto-query-engine';
@@ -12,6 +12,7 @@
 		previewTable,
 		sqlEditControl
 	} from '$lib/storeUtils';
+	import { linkQueryToData } from '$lib/graphUtils';
 
 	type $$Props = QueryProps;
 	$$restProps;
@@ -43,9 +44,22 @@
 	async function showEditView() {
 		sqlEditControl.set({
 			view: true,
-			sql: data.sql
+			sql: data.sql,
+			queryId: id
 		});
 	}
+
+	// TODO needs check which connection already exists.. another time
+	// const connections = useHandleConnections({ nodeId: id, type: 'target' });
+ 
+	// $: {
+	// 	// This will be called whenever connections change
+	// 	// for the target handle in the node with id 'node-id'
+	// 	console.log($connections);
+	// 	if ($connections.length > 0) {
+	// 		linkQueryToData($connections[0].source, $connections[0].target);
+	// 	}
+	// }
 </script>
 
 <Handle type="target" position={Position.Top} />
@@ -71,4 +85,3 @@
 		<p class="text-right text-xs">[{id}]</p>
 	</div>
 </div>
-<Handle type="source" position={Position.Bottom} />

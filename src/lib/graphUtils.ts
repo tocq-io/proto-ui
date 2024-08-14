@@ -1,7 +1,7 @@
 import { Surreal, StringRecordId, RecordId } from 'surrealdb.js';
 import { surrealdbWasmEngines } from 'surrealdb.wasm';
 import { initKeyPair } from '$lib/signUtils';
-type User = GeneralResult & {
+type User = {
 	scope: string;
 	identity: {
 		key: string;
@@ -51,10 +51,15 @@ export async function storeCsvFile(csvHeader: string[], csvSize: number, csvName
 	return result[0];
 }
 // Transformers
-export async function linkQueryToData(dataId: string, queryId: string): Promise<QueryDataEdge[]> {
+export async function linkQueryToData(dataId: string, queryId: string): Promise<QueryDataEdge> {
 	const queryString = 'RELATE queries:' + queryId + '->import->data:' + dataId + ';';
-	const result =  db.query<QueryDataEdge[]>(queryString);
-	return result;
+	const result =  await db.query<QueryDataEdge[][]>(queryString);
+	return result[0][0];
+}
+export async function deleteQueryToData(dataId: string, queryId: string): Promise<QueryDataEdge> {
+	const queryString = 'DELETE queries:' + queryId + '->import WHERE out=data:' + dataId + ';';
+	const result =  await db.query<QueryDataEdge[][]>(queryString);
+	return result[0][0];
 }
 export async function getDataGraph(): Promise<GeneralResult[][]> {
 	let result = await db.query<GeneralResult[][]>('SELECT * FROM data;SELECT * FROM queries;SELECT * FROM import;');
@@ -69,16 +74,20 @@ export async function storeDfSqlFile(sqlStatement: string, queryId: string): Pro
 	});
 	return result[0];
 }
+export async function updateDfSqlFile(sqlStatement: string, queryId: string): Promise<Query> {
+	// TODO use UPSERT with v2 of DB
+	const result = await db.merge<Query>(new StringRecordId('queries:' + queryId), {
+		statement: sqlStatement,
+	});
+	return result;
+}
 // User
 export async function getUserId(): Promise<string> {
-	console.log(await db.version());
-	// TODO surreal assumes that RecordId generates an array. Could be a bug.
-	const record = new RecordId('user', 'browser'); //new RecordId('user', 'browser');
+	const record = new StringRecordId('user:' + 'browser'); 
 	let user = await db.select<User>(record);
 	if (user === undefined) {
 		user = await initKeyPair().then((keyId) => {
-			return db.create<User>('user', {
-				id: record,
+			return db.create<User>(record, {
 				scope: 'Browser Only',
 				identity: {
 					key: keyId
@@ -86,6 +95,6 @@ export async function getUserId(): Promise<string> {
 			});
 		});
 	}
-	console.log('Uder ID: ' + user[0].identity.key);
-	return user[0].identity.key;
+	console.log(user);
+	return user.identity.key;
 }

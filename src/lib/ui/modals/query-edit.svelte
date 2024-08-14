@@ -14,19 +14,26 @@
 		ToolbarButton
 	} from 'flowbite-svelte';
 	import { BullhornOutline, RocketOutline, TrashBinOutline } from 'flowbite-svelte-icons';
-	import { persistQuery} from '$lib/queryUtils';
-	import { nodes, type DataFileNode, sqlEditControl, isDataFileNode } from '$lib/storeUtils';
+	import { persistQuery, updateQuery} from '$lib/queryUtils';
+	import { nodes, edges, type DataFileNode, sqlEditControl, isDataFileNode } from '$lib/storeUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
 
-	let tables: string[] = [];
-	let dbResult = 'SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100';
+	let tables = new Map<string, string>();
+	const defaultQuery = 'SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100';
+	let dbResult = defaultQuery;
 
 	async function initTables(node: DataFileNode) {
-		// TODO load from edges
-		let hasTable = await has_table(node.data.name);
-		if (hasTable && !(tables.indexOf(node.id) > -1)) {
-			tables.push(node.id);
-		}
+		let hasTable = false;
+		for (const edge of $edges) {
+			if (edge.target == $sqlEditControl.queryId && edge.source === node.id){
+				hasTable = true;
+				load_csv(node.id, node.data.name);
+				if (!(tables.has(node.id))) {
+					tables.set(node.id, node.data.name);
+				}
+				break;
+			}
+		}		
 		return hasTable;
 	}
 	async function runSql() {
@@ -37,27 +44,37 @@
 		});
 	}
 	async function saveSqlNode() {
-		if (tables.length > 0) {
-			$sqlEditControl.view = false;
-			persistQuery($sqlEditControl.sql, tables);
-		}
+		$sqlEditControl.view = false;
+		await persistQuery($sqlEditControl.sql, tables);
+	}
+	async function updateSqlNode() {
+		$sqlEditControl.view = false;
+		await updateQuery($sqlEditControl.sql, tables, $sqlEditControl.queryId);
 	}
 	async function manageTable(e: Event) {
 		const chck = <HTMLInputElement>e.target;
 		if (chck?.checked) {
 			load_csv(chck.id, chck.name);
-			tables.push(chck.id);
+			tables.set(chck.id, chck.name);
 		} else {
 			delete_table(chck.id, chck.name);
-			const index = tables.indexOf(chck.id);
-			tables.splice(index, 1);
+			tables.delete(chck.id);
 		}
 	}
+	async function unloadTables() {
+		console.log("Unloading...");
+		for (const [id, name] of tables){
+			delete_table(id, name);
+		}
+		dbResult = defaultQuery;
+	}
+	$: dbResult;
 </script>
 
 <Modal
 	title="Run SQL on one or many tables"
 	bind:open={$sqlEditControl.view}
+	on:close={()=>unloadTables()}
 	autoclose
 	class="min-w-full"
 >
@@ -107,7 +124,11 @@
 		<ButtonGroup class="w-full">
 			<InputAddon><Checkbox id="perist"><nobr>Persist result table</nobr></Checkbox></InputAddon>
 			<Input id="input-addon" type="text" placeholder="=> name" />
-			<Button color="primary" on:click={() => saveSqlNode()}><nobr>Save + Exit</nobr></Button>
+			{#if $sqlEditControl.queryId}
+				<Button color="primary" on:click={() => updateSqlNode()}><nobr>Update</nobr></Button>
+			{:else}
+				<Button color="primary" on:click={() => saveSqlNode()}><nobr>Save</nobr></Button>
+			{/if}
 		</ButtonGroup>
 	</div>
 </Modal>

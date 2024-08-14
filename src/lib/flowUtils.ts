@@ -34,11 +34,25 @@ export async function addQueryNode(query: Query, shiftX: number = 0, shiftY: num
         return nodeArr;
     });
 }
+export async function updateQueryNode(query: Query): Promise<void> {
+    nodes.update((nodeArr) => {
+        for (const node of nodeArr) {
+            if (node.id === query.id.id.toString()){
+                let dt = node.data;
+                dt.sql = query.statement;
+                node.data = {...dt};
+            }
+        }
+        return nodeArr;
+    });
+}
 export async function addQueryDataEdge(edge: QueryDataEdge): Promise<void> {
     let queryDataEdge = {} as Edge;
+    //data
     const from = edge.out.id.toString();
-    const to = edge.in.id.toString();
     queryDataEdge.source = from;
+    //queries
+    const to = edge.in.id.toString();
     queryDataEdge.target = to;
     queryDataEdge.id = 'e' + from + '-' + to;
     edges.update((edgeArr) => {
@@ -46,25 +60,46 @@ export async function addQueryDataEdge(edge: QueryDataEdge): Promise<void> {
         return edgeArr;
     });
 }
+export function updateQueryDataEdges(queryId: string, dataIds: Set<string>) {
+    let addableTables: Set<string> = dataIds;
+    let deletableTables: Set<string> = new Set();
+    edges.update((edgeArr) => {
+        let newArr: Edge[] = [];
+        for (const edge of edgeArr){
+            if (edge.target === queryId){
+                if (addableTables.has(edge.source)){
+                    newArr.push(edge);
+                } else {
+                    deletableTables.add(edge.source);
+                }
+                addableTables.delete(edge.source);
+            } else {
+                newArr.push(edge);
+            }
+        }
+        return newArr;
+    });
+    return {addableTables, deletableTables};
+}
 export async function initFlow() {
-	getDataGraph().then((data) => {
-		let count = 0;
-		for (const datum of data) {
-			for (const entry of datum) {
-				switch (entry.id.tb) {
-					case 'data':
-						addDataNode(<DataFile>entry, count * 120, 0);
-						break;
-					case 'queries':
-						addQueryNode(<Query>entry, count * 80, 160);
-						break;
-					case 'import':
-						const edge = <QueryDataEdge>entry;
-						addQueryDataEdge(edge);
-						break;
-				}
-			}
-			count++;
-		}
-	});
+    getDataGraph().then((data) => {
+        let countData = 0;
+        let countQuery = 0;
+        for (const datum of data) {
+            for (const entry of datum) {
+                console.log(entry);
+                switch (entry.id.tb) {
+                    case 'data':
+                        addDataNode(<DataFile>entry, countData++ * 360, 0);
+                        break;
+                    case 'queries':
+                        addQueryNode(<Query>entry, countQuery++ * 240, 160);
+                        break;
+                    case 'import':
+                        addQueryDataEdge(<QueryDataEdge>entry);
+                        break;
+                }
+            }
+        }
+    });
 }

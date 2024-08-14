@@ -32,7 +32,6 @@
 	}
 </script>
 
-<Handle type="target" position={Position.Top} />
 <div>
 	<div class="-mb-2 grid sm:grid-cols-2">
 		<div>

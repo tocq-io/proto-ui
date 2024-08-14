@@ -39,7 +39,7 @@
 			<Button class="h-2/3" on:click={() => $showDataUpload = true}>
 				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Data</span>
 			</Button>
-			<Button class="h-2/3" on:click={() => $sqlEditControl.view = true}>
+			<Button class="h-2/3" on:click={() => sqlEditControl.set({view: true, queryId: '', sql: ''})}>
 				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Query</span>
 			</Button>
 			<Button class="h-2/3" disabled>

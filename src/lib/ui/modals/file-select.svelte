@@ -8,9 +8,10 @@
 
 	async function importFiles() {
 		const importDir = await getFileImportDir();
+		let count = 0;
 		for (const file of files) {
 			const tableName = file.name.replace(/\.[^/.]+$/, '');
-			writeCsvFile(importDir, file, tableName);
+			await writeCsvFile(importDir, file, tableName, count++ * 360);
 		}
 	}
 </script>
