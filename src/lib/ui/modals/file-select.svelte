@@ -2,7 +2,7 @@
 	import { Button, Fileupload, Modal } from 'flowbite-svelte';
 	import { PlusOutline } from 'flowbite-svelte-icons';
 	import { writeCsvFile } from '$lib/fileUtils';
-	import { showDataUpload } from '$lib/flowUtils';
+	import { showDataUpload } from '$lib/storeUtils';
 
 	let files: FileList;
 

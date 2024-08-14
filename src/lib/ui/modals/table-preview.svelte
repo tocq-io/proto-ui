@@ -8,7 +8,7 @@
 		TableHead,
 		TableHeadCell
 	} from 'flowbite-svelte';
-	import { previewTable } from '$lib/flowUtils';
+	import { previewTable } from '$lib/storeUtils';
 </script>
 
 <Modal bind:open={$previewTable.view} class="text-xs">

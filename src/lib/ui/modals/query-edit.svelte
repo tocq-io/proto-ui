@@ -15,7 +15,7 @@
 	} from 'flowbite-svelte';
 	import { BullhornOutline, RocketOutline, TrashBinOutline } from 'flowbite-svelte-icons';
 	import { persistQuery} from '$lib/queryUtils';
-	import { nodes, type DataFileNode, sqlEditControl } from '$lib/flowUtils';
+	import { nodes, type DataFileNode, sqlEditControl } from '$lib/storeUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
 	import type { Node } from '@xyflow/svelte';
 

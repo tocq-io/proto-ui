@@ -1,49 +1,6 @@
-import { type Edge, type Node, type NodeProps } from '@xyflow/svelte';
-import { writable, type Writable } from 'svelte/store';
+import { type Edge } from '@xyflow/svelte';
 import type { DataFile, Query } from '$lib/graphUtils';
-import type { Table } from '@apache-arrow/ts';
-type DataFileData = {
-    name: string;
-    size: number;
-    schema: string[];
-    format: string;
-};
-export type DataFileProps = NodeProps &{
-    data: DataFileData;
-};
-export type DataFileNode = Node & {
-    data: DataFileData;
-};
-type QueryData = {
-    sql: string;
-    tableIds: string[];
-    format: string;
-};
-export type QueryProps = NodeProps & {
-    data: QueryData;
-};
-export type QueryNode = Node & {
-    data: QueryData;
-};
-export type PreviewTable = {
-    view: boolean;
-    table: Table | undefined;
-}
-type SqlEdit = {
-    view: boolean;
-    sql: string;
-}
-export let previewTable: Writable<PreviewTable> = writable({
-    view: false,
-    table: undefined
-});
-export let sqlEditControl: Writable<SqlEdit> = writable({
-    view: false,
-    sql: ''
-});
-export let showDataUpload = writable(false);
-export const nodes = writable<Node[]>([]);
-export const edges = writable<Edge[]>([]);
+import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges } from '$lib/storeUtils';
 export async function addDataNode(df: DataFile, key: string, shiftX: number = 0, shiftY: number = 0): Promise<void> {
     let data = {} as DataFileNode;
     data.type = 'dataNode';

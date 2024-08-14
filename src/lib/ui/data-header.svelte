@@ -7,7 +7,7 @@
 	import { onMount } from 'svelte';
 	import { openDB } from '$lib/signUtils';
 	import { openGraphDb } from '$lib/graphUtils';
-	import { sqlEditControl, showDataUpload } from '$lib/flowUtils';
+	import { sqlEditControl, showDataUpload } from '$lib/storeUtils';
 	
 	let gbPromise: Writable<Promise<string>>;
 	$: gbPromise = writable(getAvailableGb());

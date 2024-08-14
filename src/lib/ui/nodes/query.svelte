@@ -5,7 +5,7 @@
 	import { Button } from 'flowbite-svelte';
 	import { EditOutline, TableRowOutline } from 'flowbite-svelte-icons';
 	import { load_csv, delete_table, run_sql, has_table } from 'proto-query-engine';
-	import { type QueryProps, previewTable, sqlEditControl } from '$lib/flowUtils';
+	import { type QueryProps, previewTable, sqlEditControl } from '$lib/storeUtils';
 
 	type $$Props = QueryProps;
 	$$restProps;

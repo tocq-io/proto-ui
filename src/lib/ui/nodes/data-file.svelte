@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type DataFileProps, previewTable } from '$lib/flowUtils';
+	import { type DataFileProps, previewTable } from '$lib/storeUtils';
 	import { Handle, Position } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
 	import { TableRowOutline } from 'flowbite-svelte-icons';
