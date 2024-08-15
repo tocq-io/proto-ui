@@ -44,8 +44,9 @@
 		</div>
 	</div>
 	<hr />
-	<div>
-		<span class="text-xs">[format: {data.format}] [size: {data.size}]</span>
+	<div class="grid sm:grid-cols-2 mt-1">
+		<span class="text-xs">[format: {data.format}]</span>
+		<span class="text-xs text-right">[size: {data.size}]</span>
 	</div>
 	<div>
 		<span class="text-xs">[{id}]</span>

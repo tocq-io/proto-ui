@@ -13,13 +13,12 @@ export async function addDataNode(df: DataFile, shiftX: number = 0, shiftY: numb
         schema: df.schema,
         format: df.format
     } as DataFileData;
-    nodes.update((nodeArr) => {
+    await nodes.update((nodeArr) => {
         nodeArr.push(data);
         return nodeArr;
     });
 }
 export async function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 0): Promise<void> {
-    console.log(query);
     let queryData = {} as QueryNode;
     queryData.type = 'queryNode';
     queryData.id = query.id.id.toString();
@@ -29,18 +28,18 @@ export async function addQueryNode(query: Query, shiftX: number = 0, shiftY: num
         sql: query.statement,
         format: query.format
     } as QueryData;
-    nodes.update((nodeArr) => {
+    await nodes.update((nodeArr) => {
         nodeArr.push(queryData);
         return nodeArr;
     });
 }
 export async function updateQueryNode(query: Query): Promise<void> {
-    nodes.update((nodeArr) => {
+    await nodes.update((nodeArr) => {
         for (const node of nodeArr) {
-            if (node.id === query.id.id.toString()){
+            if (node.id === query.id.id.toString()) {
                 let dt = node.data;
                 dt.sql = query.statement;
-                node.data = {...dt};
+                node.data = { ...dt };
             }
         }
         return nodeArr;
@@ -55,7 +54,11 @@ export async function addQueryDataEdge(edge: QueryDataEdge): Promise<void> {
     const to = edge.in.id.toString();
     queryDataEdge.target = to;
     queryDataEdge.id = 'e' + from + '-' + to;
-    edges.update((edgeArr) => {
+    queryDataEdge.data = {
+        label: 'loads'
+    };
+    queryDataEdge.type = 'queryDataEdge'
+    await edges.update((edgeArr) => {
         edgeArr.push(queryDataEdge);
         return edgeArr;
     });
@@ -65,9 +68,9 @@ export function updateQueryDataEdges(queryId: string, dataIds: Set<string>) {
     let deletableTables: Set<string> = new Set();
     edges.update((edgeArr) => {
         let newArr: Edge[] = [];
-        for (const edge of edgeArr){
-            if (edge.target === queryId){
-                if (addableTables.has(edge.source)){
+        for (const edge of edgeArr) {
+            if (edge.target === queryId) {
+                if (addableTables.has(edge.source)) {
                     newArr.push(edge);
                 } else {
                     deletableTables.add(edge.source);
@@ -79,15 +82,14 @@ export function updateQueryDataEdges(queryId: string, dataIds: Set<string>) {
         }
         return newArr;
     });
-    return {addableTables, deletableTables};
+    return { addableTables, deletableTables };
 }
 export async function initFlow() {
-    getDataGraph().then((data) => {
+    await getDataGraph().then((data) => {
         let countData = 0;
         let countQuery = 0;
         for (const datum of data) {
             for (const entry of datum) {
-                console.log(entry);
                 switch (entry.id.tb) {
                     case 'data':
                         addDataNode(<DataFile>entry, countData++ * 360, 0);

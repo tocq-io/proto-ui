@@ -42,46 +42,49 @@
 		}
 	}
 	async function showEditView() {
-		sqlEditControl.set({
-			view: true,
-			sql: data.sql,
-			queryId: id
+		sqlEditControl.update((ctrl) => {
+			ctrl.view = true;
+			ctrl.done = false;
+			ctrl.sql = data.sql;
+			ctrl.queryId = id;
+			return ctrl;
 		});
 	}
 
 	const connections = useHandleConnections({ nodeId: id, type: 'target' });
-	let connectedTables = new Set<string>();
 	let initPhase = true;
 
 	$: {
-		if ($connections.length > 0) {
-			// init phase
-			if (connectedTables.size == 0) {
-				for (const connection of $connections) {
-					connectedTables.add(connection.source);
-					if (!initPhase) {
-						linkQueryToData(connection.source, id);
+		if ($sqlEditControl.done === true) {
+			if ($connections.length > 0) {
+				if ($sqlEditControl.edgeTables.size == 0) {
+					for (const connection of $connections) {
+						$sqlEditControl.edgeTables.add(connection.source);
+						if (!initPhase) {
+							linkQueryToData(connection.source, id);
+						}
+					}
+				} else {
+					let deletableTables = $sqlEditControl.edgeTables;
+					$sqlEditControl.edgeTables = new Set<string>();
+					for (const connection of $connections) {
+						if (deletableTables.has(connection.source)) {
+							deletableTables.delete(connection.source);
+						} else {
+							linkQueryToData(connection.source, id);
+						}
+						$sqlEditControl.edgeTables.add(connection.source);
+					}
+					for (const table of deletableTables) {
+						deleteQueryToData(table, id);
 					}
 				}
-			} else {
-				let deletableTables = connectedTables;
-				connectedTables = new Set<string>();
-				for (const connection of $connections) {
-					if (!deletableTables.has(connection.source)) {
-						linkQueryToData(connection.source, id);
-					} else {
-						deletableTables.delete(connection.source);
-					}
-					connectedTables.add(connection.source);
-				}
-				for (const table of deletableTables) {
-					deleteQueryToData(table, id);
-				}
+			} else if ($sqlEditControl.edgeTables.size > 0) {
+				deleteAllQueryToData(id);
+				$sqlEditControl.edgeTables = new Set<string>();
 			}
-		} else {
-			deleteAllQueryToData(id);
+			initPhase = false;
 		}
-		initPhase = false;
 	}
 </script>
 

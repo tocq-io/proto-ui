@@ -22,7 +22,7 @@
 </script>
 
 <header class="px-8 text-gray-900 dark:text-white">
-	<h1 class="mb-8 pt-12 text-6xl font-extrabold tracking-tight">tocq.io > data on the edge</h1>
+	<h1 class="mb-4 pt-4 text-6xl font-extrabold tracking-tight">tocq.io > data on the edge</h1>
 </header>
 <section class="px-8">
 	<div class="mb-4 grid gap-4 sm:grid-cols-2">

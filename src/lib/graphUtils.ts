@@ -58,8 +58,7 @@ export async function linkQueryToData(dataId: string, queryId: string): Promise<
 }
 export async function deleteQueryToData(dataId: string, queryId: string) {
 	const queryString = 'DELETE queries:' + queryId + '->import WHERE out=data:' + dataId + ';';
-	let result = await db.query<QueryDataEdge[][]>(queryString);
-	console.log(result);
+	await db.query<QueryDataEdge[][]>(queryString);
 }
 export async function deleteAllQueryToData( queryId: string) {
 	const queryString = 'DELETE queries:' + queryId + '->import;';

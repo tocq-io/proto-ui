@@ -9,8 +9,7 @@ export async function persistQuery(sql: string, tableIds: Map<string, string>) {
                 return queryId;
             })));
     for (const tableId of tableIds.keys()) {
-        await linkQueryToData(tableId, queryId).then(
-            (edge) => addQueryDataEdge(edge));
+        await linkQueryToData(tableId, queryId).then((edge) => addQueryDataEdge(edge));
     }
 }
 export async function updateQuery(sql: string, tableIds: Map<string, string>, queryId: string) {
@@ -19,8 +18,8 @@ export async function updateQuery(sql: string, tableIds: Map<string, string>, qu
             () => updateQueryDataEdges(queryId, new Set(tableIds.keys())
             )));
     for (const tableId of result.addableTables) {
-        await linkQueryToData(tableId, queryId).then(
-            (edge) => addQueryDataEdge(edge));
+        let edge = await linkQueryToData(tableId, queryId);
+        await addQueryDataEdge(edge);
     }
     for (const tableId of result.deletableTables) {
         await deleteQueryToData(tableId, queryId);

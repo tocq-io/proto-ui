@@ -3,17 +3,18 @@
 	import {
 		Alert,
 		Button,
-		ButtonGroup,
 		Checkbox,
-		InputAddon,
-		Label,
 		Modal,
-		Input,
 		Textarea,
 		Toolbar,
 		ToolbarButton
 	} from 'flowbite-svelte';
-	import { BullhornOutline, FloppyDiskAltOutline, RocketOutline, TrashBinOutline } from 'flowbite-svelte-icons';
+	import {
+		BullhornOutline,
+		FloppyDiskAltOutline,
+		RocketOutline,
+		TrashBinOutline
+	} from 'flowbite-svelte-icons';
 	import { persistQuery, updateQuery } from '$lib/queryUtils';
 	import { nodes, edges, type DataFileNode, sqlEditControl, isDataFileNode } from '$lib/storeUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
@@ -49,19 +50,23 @@
 			.catch((e) => {
 				let errMsg: string = e.message;
 				if (errMsg.toLowerCase().includes('table') && errMsg.toLowerCase().includes('not found')) {
-					errMsg = errMsg.replace('datafusion.public.', '') + '. Please select a table.';
+					errMsg = errMsg.replace('datafusion.public.', '') + '. Please load a table.';
 				}
 				dbResult = errMsg;
 				alertColor = 'red';
 			});
 	}
 	async function saveSqlNode() {
-		$sqlEditControl.view = false;
-		await persistQuery($sqlEditControl.sql, tables);
+		await persistQuery($sqlEditControl.sql, tables).then(() => {
+			$sqlEditControl.edgeTables = new Set<string>(tables.keys());
+			$sqlEditControl.done = true;
+		});
 	}
 	async function updateSqlNode() {
-		$sqlEditControl.view = false;
-		await updateQuery($sqlEditControl.sql, tables, $sqlEditControl.queryId);
+		await updateQuery($sqlEditControl.sql, tables, $sqlEditControl.queryId).then(() => {
+			$sqlEditControl.edgeTables = new Set<string>(tables.keys());
+			$sqlEditControl.done = true;
+		});
 	}
 	async function manageTable(e: Event) {
 		const chck = <HTMLInputElement>e.target;
@@ -90,9 +95,29 @@
 	autoclose
 	class="min-w-full"
 >
-	<div class="grid sm:grid-cols-2">
+	<Textarea
+		id="sqlEditor"
+		rows="8"
+		class="mb-4"
+		headerClass="h-10"
+		placeholder="Write some Datafusion SQL"
+		bind:value={$sqlEditControl.sql}
+	>
+		<div slot="header" class="mt-0.5 flex h-5/6 items-center justify-between">
+			<span />
+			<Toolbar embedded slot="end">
+				<ToolbarButton size="sm" name="reset" on:click={() => ($sqlEditControl.sql = '')}
+					><TrashBinOutline class="h-6 w-6" /></ToolbarButton
+				>
+				<ToolbarButton size="sm" name="run" on:click={() => runSql()}
+					><RocketOutline class="h-6 w-6" /></ToolbarButton
+				>
+			</Toolbar>
+		</div>
+	</Textarea>
+	<div class="grid pt-1 sm:grid-cols-2">
 		<div class="flex gap-3">
-			<span>Select table(s):</span>
+			<span>Loaded tables:</span>
 			{#each $nodes as node}
 				{#if isDataFileNode(node)}
 					{#await initTables(node) then hasTable}
@@ -110,34 +135,15 @@
 		<div class="text-right">
 			{#if $sqlEditControl.queryId}
 				<Button class="h-2/3 gap-1" color="primary" on:click={() => updateSqlNode()}
-					><FloppyDiskAltOutline />Update</Button
+					><FloppyDiskAltOutline />Update SQL</Button
 				>
 			{:else}
 				<Button class="h-2/3 gap-1" color="primary" on:click={() => saveSqlNode()}
-					><FloppyDiskAltOutline />Save</Button
+					><FloppyDiskAltOutline />Save SQL</Button
 				>
 			{/if}
 		</div>
 	</div>
-	<Textarea
-		id="sqlEditor"
-		rows="8"
-		class="mb-4"
-		placeholder="Write some Datafusion SQL"
-		bind:value={$sqlEditControl.sql}
-	>
-		<div slot="footer" class="flex items-center justify-between">
-			<span />
-			<Toolbar embedded slot="end">
-				<ToolbarButton name="reset" on:click={() => ($sqlEditControl.sql = '')}
-					><TrashBinOutline class="h-6 w-6" /></ToolbarButton
-				>
-				<ToolbarButton name="run" on:click={() => runSql()}
-					><RocketOutline class="h-6 w-6" /></ToolbarButton
-				>
-			</Toolbar>
-		</div>
-	</Textarea>
 	<Alert color={alertColor}>
 		<div class="flex items-center gap-3">
 			<BullhornOutline class="h-5 w-5" />
