@@ -56,14 +56,21 @@ export async function linkQueryToData(dataId: string, queryId: string): Promise<
 	const result =  await db.query<QueryDataEdge[][]>(queryString);
 	return result[0][0];
 }
-export async function deleteQueryToData(dataId: string, queryId: string): Promise<QueryDataEdge> {
+export async function deleteQueryToData(dataId: string, queryId: string) {
 	const queryString = 'DELETE queries:' + queryId + '->import WHERE out=data:' + dataId + ';';
-	const result =  await db.query<QueryDataEdge[][]>(queryString);
-	return result[0][0];
+	let result = await db.query<QueryDataEdge[][]>(queryString);
+	console.log(result);
+}
+export async function deleteAllQueryToData( queryId: string) {
+	const queryString = 'DELETE queries:' + queryId + '->import;';
+	await db.query<QueryDataEdge[][]>(queryString);
 }
 export async function getDataGraph(): Promise<GeneralResult[][]> {
 	let result = await db.query<GeneralResult[][]>('SELECT * FROM data;SELECT * FROM queries;SELECT * FROM import;');
 	return result;
+}
+export async function deleteItAll() {
+	await db.query<GeneralResult[][]>('DELETE data;DELETE queries;DELETE import;DELETE user;');
 }
 export async function storeDfSqlFile(sqlStatement: string, queryId: string): Promise<Query> {
 	// TODO use UPSERT with v2 of DB

@@ -14,6 +14,13 @@ export async function getFileImportDir(): Promise<FileSystemDirectoryHandle> {
 	return navigator.storage.getDirectory().then(
 		(opfsRoot) => (opfsRoot.getDirectoryHandle('fileImport', { create: true })));
 }
+export async function resetImportDir() {
+	getFileImportDir().then(async (dir) => {
+		for await (const [key, _] of dir.entries()) {
+			dir.removeEntry(key);
+		}
+	});
+}
 async function getCsvHeader(file: File): Promise<string[]> {
 	return new Promise<string[]>((resolve, reject) => {
 		const reader = new FileReader();

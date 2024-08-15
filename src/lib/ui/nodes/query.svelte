@@ -1,17 +1,18 @@
 <script lang="ts">
 	import { tableFromIPC } from '@apache-arrow/ts';
-	import { Handle, Position, useHandleConnections } from '@xyflow/svelte';
+	import { Handle, Position, useHandleConnections, useNodesData } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
 	import { EditOutline, TableRowOutline } from 'flowbite-svelte-icons';
 	import { load_csv, delete_table, run_sql, has_table } from 'proto-query-engine';
 	import {
-	type DataFileNode,
+		type DataFileNode,
 		type QueryProps,
 		isDataFileNode,
 		nodes,
 		previewTable,
 		sqlEditControl
 	} from '$lib/storeUtils';
+	import { deleteAllQueryToData, deleteQueryToData, linkQueryToData } from '$lib/graphUtils';
 
 	type $$Props = QueryProps;
 	$$restProps;
@@ -48,17 +49,40 @@
 		});
 	}
 
-	// TODO needs check which connection already exists.. another time
-	// const connections = useHandleConnections({ nodeId: id, type: 'target' });
- 
-	// $: {
-	// 	// This will be called whenever connections change
-	// 	// for the target handle in the node with id 'node-id'
-	// 	console.log($connections);
-	// 	if ($connections.length > 0) {
-	// 		linkQueryToData($connections[0].source, $connections[0].target);
-	// 	}
-	// }
+	const connections = useHandleConnections({ nodeId: id, type: 'target' });
+	let connectedTables = new Set<string>();
+	let initPhase = true;
+
+	$: {
+		if ($connections.length > 0) {
+			// init phase
+			if (connectedTables.size == 0) {
+				for (const connection of $connections) {
+					connectedTables.add(connection.source);
+					if (!initPhase) {
+						linkQueryToData(connection.source, id);
+					}
+				}
+			} else {
+				let deletableTables = connectedTables;
+				connectedTables = new Set<string>();
+				for (const connection of $connections) {
+					if (!deletableTables.has(connection.source)) {
+						linkQueryToData(connection.source, id);
+					} else {
+						deletableTables.delete(connection.source);
+					}
+					connectedTables.add(connection.source);
+				}
+				for (const table of deletableTables) {
+					deleteQueryToData(table, id);
+				}
+			}
+		} else {
+			deleteAllQueryToData(id);
+		}
+		initPhase = false;
+	}
 </script>
 
 <Handle type="target" position={Position.Top} />

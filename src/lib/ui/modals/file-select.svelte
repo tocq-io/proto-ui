@@ -16,7 +16,7 @@
 	}
 </script>
 
-<Modal title="Upload some files" bind:open={$showDataUpload} autoclose class="min-w-full">
+<Modal title="Upload CSV files" bind:open={$showDataUpload} autoclose class="min-w-full">
 	<div class="mb-4 grid gap-4 sm:grid-cols-2">
 		<div class="w-96">
 			<Fileupload id="multiple_files" multiple bind:files />

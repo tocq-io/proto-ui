@@ -22,7 +22,7 @@
 </script>
 
 <header class="px-8 text-gray-900 dark:text-white">
-	<h1 class="mb-8 pt-12 text-8xl font-extrabold tracking-tight">tocq.io > local data tooling</h1>
+	<h1 class="mb-8 pt-12 text-6xl font-extrabold tracking-tight">tocq.io > data on the edge</h1>
 </header>
 <section class="px-8">
 	<div class="mb-4 grid gap-4 sm:grid-cols-2">
@@ -31,7 +31,7 @@
 				<p class="text-left text-2xl">--(/\)--</p>
 			{:then gbs}
 				<p class="text-left text-2xl">
-					Analyze up to {gbs} GB of data files directly in your browser.
+					Analyze up to {gbs} GB of data in the browser, then run it on the edge.
 				</p>
 			{/await}
 		</div>

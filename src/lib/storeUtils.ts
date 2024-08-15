@@ -51,3 +51,7 @@ export const edges = writable<Edge[]>([]);
 export function isDataFileNode(node: Node): node is DataFileNode {
     return node.data.name !== undefined && node.data.schema !== undefined;
 }
+export function resetGraph(){
+    nodes.set([]);
+    edges.set([]);
+}

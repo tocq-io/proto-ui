@@ -15,7 +15,10 @@ export function openDB() {
 		}
 	};
 }
-async function storeKeyPair(id: string, keys: CryptoKeyPair) {
+export function resetKeys(){
+	indexedDB.deleteDatabase('identity');
+}
+function storeKeyPair(id: string, keys: CryptoKeyPair) {
 	console.log('Adding a new key pair');
 	const store = db.transaction('keypairs', 'readwrite').objectStore('keypairs');
 	store.add({ id: id, keys: keys });
