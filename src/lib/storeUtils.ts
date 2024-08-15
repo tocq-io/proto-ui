@@ -18,6 +18,8 @@ export type DataFileNode = Node & {
 export type QueryData = {
     sql: string;
     format: string;
+    edgeTables: Set<string>;
+    initPhase: boolean;
 };
 export type QueryProps = NodeProps & {
     data: QueryData;

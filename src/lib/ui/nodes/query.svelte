@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tableFromIPC } from '@apache-arrow/ts';
-	import { Handle, Position, useHandleConnections, useNodesData } from '@xyflow/svelte';
+	import { Handle, Position, useHandleConnections } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
 	import { EditOutline, TableRowOutline } from 'flowbite-svelte-icons';
 	import { load_csv, delete_table, run_sql, has_table } from 'proto-query-engine';
@@ -13,12 +13,17 @@
 		sqlEditControl
 	} from '$lib/storeUtils';
 	import { deleteAllQueryToData, deleteQueryToData, linkQueryToData } from '$lib/graphUtils';
+	import type { HandleConnection } from '@xyflow/system';
 
 	type $$Props = QueryProps;
 	$$restProps;
 
 	export let data: $$Props['data'];
 	export let id: $$Props['id'];
+
+	const connections = useHandleConnections({ nodeId: id, type: 'target' });
+	let initPhase = true;
+	let edgeTables = new Set<string>();
 
 	async function setPreviewData() {
 		const notHadTables = new Map<string, string>();
@@ -42,50 +47,50 @@
 		}
 	}
 	async function showEditView() {
-		sqlEditControl.update((ctrl) => {
-			ctrl.view = true;
-			ctrl.done = false;
-			ctrl.sql = data.sql;
-			ctrl.queryId = id;
-			return ctrl;
+		sqlEditControl.set({
+			view: true,
+			done: false,
+			sql: data.sql,
+			queryId: id,
+			edgeTables: edgeTables
 		});
 	}
 
-	const connections = useHandleConnections({ nodeId: id, type: 'target' });
-	let initPhase = true;
-
-	$: {
-		if ($sqlEditControl.done === true) {
-			if ($connections.length > 0) {
-				if ($sqlEditControl.edgeTables.size == 0) {
-					for (const connection of $connections) {
-						$sqlEditControl.edgeTables.add(connection.source);
+	async function handleChanges(cts: HandleConnection[]) {
+		if ($sqlEditControl.done) {
+			edgeTables = $sqlEditControl.edgeTables;
+			if (cts.length > 0) {
+				if (edgeTables.size == 0) {
+					for (const connection of cts) {
+						edgeTables.add(connection.source);
 						if (!initPhase) {
 							linkQueryToData(connection.source, id);
 						}
 					}
 				} else {
-					let deletableTables = $sqlEditControl.edgeTables;
-					$sqlEditControl.edgeTables = new Set<string>();
-					for (const connection of $connections) {
+					let deletableTables = edgeTables;
+					edgeTables = new Set<string>();
+					for (const connection of cts) {
 						if (deletableTables.has(connection.source)) {
 							deletableTables.delete(connection.source);
 						} else {
 							linkQueryToData(connection.source, id);
 						}
-						$sqlEditControl.edgeTables.add(connection.source);
+						edgeTables.add(connection.source);
 					}
 					for (const table of deletableTables) {
 						deleteQueryToData(table, id);
 					}
 				}
-			} else if ($sqlEditControl.edgeTables.size > 0) {
+			} else if (edgeTables.size > 0) {
 				deleteAllQueryToData(id);
-				$sqlEditControl.edgeTables = new Set<string>();
+				edgeTables = new Set<string>();
 			}
 			initPhase = false;
 		}
 	}
+
+	$: handleChanges($connections);
 </script>
 
 <Handle type="target" position={Position.Top} />

@@ -11,11 +11,12 @@
 	} from 'flowbite-svelte';
 	import {
 		BullhornOutline,
+		CircleMinusOutline,
 		FloppyDiskAltOutline,
 		RocketOutline,
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
-	import { persistQuery, updateQuery } from '$lib/queryUtils';
+	import { deleteQuery, persistQuery, updateQuery } from '$lib/queryUtils';
 	import { nodes, edges, type DataFileNode, sqlEditControl, isDataFileNode } from '$lib/storeUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
 	import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
@@ -30,7 +31,9 @@
 		for (const edge of $edges) {
 			if (edge.target == $sqlEditControl.queryId && edge.source === node.id) {
 				hasTable = true;
-				load_csv(node.id, node.data.name);
+				if (!(await has_table(node.id))) {
+					load_csv(node.id, node.data.name);
+				}
 				if (!tables.has(node.id)) {
 					tables.set(node.id, node.data.name);
 				}
@@ -58,21 +61,38 @@
 	}
 	async function saveSqlNode() {
 		await persistQuery($sqlEditControl.sql, tables).then(() => {
-			$sqlEditControl.edgeTables = new Set<string>(tables.keys());
-			$sqlEditControl.done = true;
+			sqlEditControl.update((ec) => {
+				ec.edgeTables = new Set<string>(tables.keys());
+				ec.done = true;
+				return ec;
+			});
 		});
 	}
 	async function updateSqlNode() {
 		await updateQuery($sqlEditControl.sql, tables, $sqlEditControl.queryId).then(() => {
-			$sqlEditControl.edgeTables = new Set<string>(tables.keys());
-			$sqlEditControl.done = true;
+			sqlEditControl.update((ec) => {
+				ec.edgeTables = new Set<string>(tables.keys());
+				ec.done = true;
+				return ec;
+			});
+		});
+	}
+	async function deleteSqlNode() {
+		await deleteQuery($sqlEditControl.queryId).then(() => {
+			sqlEditControl.update((ec) => {
+				ec.edgeTables = new Set<string>();
+				ec.done = true;
+				return ec;
+			});
 		});
 	}
 	async function manageTable(e: Event) {
 		const chck = <HTMLInputElement>e.target;
 		if (chck?.checked) {
-			load_csv(chck.id, chck.name);
-			tables.set(chck.id, chck.name);
+			if (!(await has_table(chck.id))) {
+				load_csv(chck.id, chck.name);
+				tables.set(chck.id, chck.name);
+			}
 		} else {
 			delete_table(chck.id, chck.name);
 			tables.delete(chck.id);
@@ -84,6 +104,7 @@
 		}
 		dbResult = defaultQuery;
 		alertColor = 'green';
+		tables = new Map<string, string>();
 	}
 	$: dbResult;
 </script>
@@ -115,22 +136,37 @@
 			</Toolbar>
 		</div>
 	</Textarea>
+	<div class="flex gap-3">
+		<span>Loaded tables:</span>
+		{#each $nodes as node}
+			{#if isDataFileNode(node)}
+				{#await initTables(node) then hasTable}
+					<Checkbox
+						checked={hasTable}
+						name={node.data.name}
+						id={node.id}
+						on:change={(e) => manageTable(e)}>{node.data.name}</Checkbox
+					>
+				{/await}
+			{/if}
+		{/each}
+	</div>
+	<Alert color={alertColor}>
+		<div class="flex items-center gap-3">
+			<BullhornOutline class="h-5 w-5" />
+			<span class="text-lg font-medium">Results</span>
+		</div>
+		<p class="mb-4 mt-2 text-sm">{dbResult}</p>
+	</Alert>
 	<div class="grid pt-1 sm:grid-cols-2">
-		<div class="flex gap-3">
-			<span>Loaded tables:</span>
-			{#each $nodes as node}
-				{#if isDataFileNode(node)}
-					{#await initTables(node) then hasTable}
-						<Checkbox
-							class="-mt-4"
-							checked={hasTable}
-							name={node.data.name}
-							id={node.id}
-							on:change={(e) => manageTable(e)}>{node.data.name}</Checkbox
-						>
-					{/await}
-				{/if}
-			{/each}
+		<div>
+			{#if $sqlEditControl.queryId}
+				<Button class="h-2/3 gap-1" color="primary" on:click={() => deleteSqlNode()}
+					><CircleMinusOutline />Delete</Button
+				>
+			{:else}
+				<div />
+			{/if}
 		</div>
 		<div class="text-right">
 			{#if $sqlEditControl.queryId}
@@ -144,11 +180,4 @@
 			{/if}
 		</div>
 	</div>
-	<Alert color={alertColor}>
-		<div class="flex items-center gap-3">
-			<BullhornOutline class="h-5 w-5" />
-			<span class="text-lg font-medium">Results</span>
-		</div>
-		<p class="mb-4 mt-2 text-sm">{dbResult}</p>
-	</Alert>
 </Modal>

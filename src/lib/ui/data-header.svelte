@@ -9,8 +9,20 @@
 	import { openDB } from '$lib/signUtils';
 	import { openGraphDb } from '$lib/graphUtils';
 	import { sqlEditControl, showDataUpload } from '$lib/storeUtils';
-	
+
 	let gbPromise: Writable<Promise<string>>;
+
+	function setSqlControl() {
+		sqlEditControl.set({
+			view: true,
+			queryId: '',
+			edgeTables: new Set<string>(),
+			sql: '',
+			done: false
+		});
+		console.log($sqlEditControl);
+	}
+
 	$: gbPromise = writable(getAvailableGb());
 
 	onMount(async () => {
@@ -31,15 +43,15 @@
 				<p class="text-left text-2xl">--(/\)--</p>
 			{:then gbs}
 				<p class="text-left text-2xl">
-					Analyze up to {gbs} GB of data in the browser, then run it on the edge.
+					Analyze up to {gbs} GB of data locally, then push it to the edge.
 				</p>
 			{/await}
 		</div>
 		<div class="text-right">
-			<Button class="h-2/3" on:click={() => $showDataUpload = true}>
+			<Button class="h-2/3" on:click={() => ($showDataUpload = true)}>
 				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Data</span>
 			</Button>
-			<Button class="h-2/3" on:click={() => sqlEditControl.set({view: true, queryId: '', sql: ''})}>
+			<Button class="h-2/3" on:click={() => setSqlControl()}>
 				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Query</span>
 			</Button>
 			<Button class="h-2/3" disabled>

@@ -1,7 +1,7 @@
-import { type Edge } from '@xyflow/svelte';
+import { type Edge, type Node } from '@xyflow/svelte';
 import { getDataGraph, type DataFile, type Query, type QueryDataEdge } from '$lib/graphUtils';
 import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges } from '$lib/storeUtils';
-export async function addDataNode(df: DataFile, shiftX: number = 0, shiftY: number = 0): Promise<void> {
+export function addDataNode(df: DataFile, shiftX: number = 0, shiftY: number = 0) {
     let data = {} as DataFileNode;
     data.type = 'dataNode';
     data.id = df.id.id.toString();
@@ -13,12 +13,12 @@ export async function addDataNode(df: DataFile, shiftX: number = 0, shiftY: numb
         schema: df.schema,
         format: df.format
     } as DataFileData;
-    await nodes.update((nodeArr) => {
+    nodes.update((nodeArr) => {
         nodeArr.push(data);
         return nodeArr;
     });
 }
-export async function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 0): Promise<void> {
+export function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 0) {
     let queryData = {} as QueryNode;
     queryData.type = 'queryNode';
     queryData.id = query.id.id.toString();
@@ -28,13 +28,13 @@ export async function addQueryNode(query: Query, shiftX: number = 0, shiftY: num
         sql: query.statement,
         format: query.format
     } as QueryData;
-    await nodes.update((nodeArr) => {
+    nodes.update((nodeArr) => {
         nodeArr.push(queryData);
         return nodeArr;
     });
 }
-export async function updateQueryNode(query: Query): Promise<void> {
-    await nodes.update((nodeArr) => {
+export function updateQueryNode(query: Query) {
+    nodes.update((nodeArr) => {
         for (const node of nodeArr) {
             if (node.id === query.id.id.toString()) {
                 let dt = node.data;
@@ -45,7 +45,7 @@ export async function updateQueryNode(query: Query): Promise<void> {
         return nodeArr;
     });
 }
-export async function addQueryDataEdge(edge: QueryDataEdge): Promise<void> {
+export function addQueryDataEdge(edge: QueryDataEdge) {
     let queryDataEdge = {} as Edge;
     //data
     const from = edge.out.id.toString();
@@ -58,7 +58,7 @@ export async function addQueryDataEdge(edge: QueryDataEdge): Promise<void> {
         label: 'loads'
     };
     queryDataEdge.type = 'queryDataEdge'
-    await edges.update((edgeArr) => {
+    edges.update((edgeArr) => {
         edgeArr.push(queryDataEdge);
         return edgeArr;
     });
@@ -83,6 +83,26 @@ export function updateQueryDataEdges(queryId: string, dataIds: Set<string>) {
         return newArr;
     });
     return { addableTables, deletableTables };
+}
+export function deleteQueryAndDataEdges(queryId: string) {
+    edges.update((edgeArr) => {
+        let newArr: Edge[] = [];
+        for (const edge of edgeArr) {
+            if (edge.target !== queryId) {
+                newArr.push(edge);
+            }
+        }
+        return newArr;
+    });
+    nodes.update((nodesArr) => {
+        let newArr: Node[] = [];
+        for (const node of nodesArr) {
+            if (node.id !== queryId) {
+                newArr.push(node);
+            }
+        }
+        return newArr;
+    })
 }
 export async function initFlow() {
     await getDataGraph().then((data) => {

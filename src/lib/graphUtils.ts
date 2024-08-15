@@ -87,6 +87,9 @@ export async function updateDfSqlFile(sqlStatement: string, queryId: string): Pr
 	});
 	return result;
 }
+export async function deleteDfSqlFile(queryId: string) {
+	await db.delete<Query>(new StringRecordId('queries:' + queryId));
+}
 // User
 export async function getUserId(): Promise<string> {
 	const record = new StringRecordId('user:' + 'browser'); 
