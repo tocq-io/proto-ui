@@ -26,7 +26,7 @@
 </header>
 <section class="px-8">
 	<div class="mb-4 grid gap-4 sm:grid-cols-2">
-		<div>
+		<div class="dark:text-white">
 			{#await $gbPromise}
 				<p class="text-left text-2xl">--(/\)--</p>
 			{:then gbs}

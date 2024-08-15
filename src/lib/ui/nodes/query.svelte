@@ -12,7 +12,6 @@
 		previewTable,
 		sqlEditControl
 	} from '$lib/storeUtils';
-	import { linkQueryToData } from '$lib/graphUtils';
 
 	type $$Props = QueryProps;
 	$$restProps;

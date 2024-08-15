@@ -13,35 +13,47 @@
 		Toolbar,
 		ToolbarButton
 	} from 'flowbite-svelte';
-	import { BullhornOutline, RocketOutline, TrashBinOutline } from 'flowbite-svelte-icons';
-	import { persistQuery, updateQuery} from '$lib/queryUtils';
+	import { BullhornOutline, FloppyDiskAltOutline, RocketOutline, TrashBinOutline } from 'flowbite-svelte-icons';
+	import { persistQuery, updateQuery } from '$lib/queryUtils';
 	import { nodes, edges, type DataFileNode, sqlEditControl, isDataFileNode } from '$lib/storeUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
+	import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
 
 	let tables = new Map<string, string>();
 	const defaultQuery = 'SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100';
 	let dbResult = defaultQuery;
+	let alertColor: FrameColor = 'green';
 
 	async function initTables(node: DataFileNode) {
 		let hasTable = false;
 		for (const edge of $edges) {
-			if (edge.target == $sqlEditControl.queryId && edge.source === node.id){
+			if (edge.target == $sqlEditControl.queryId && edge.source === node.id) {
 				hasTable = true;
 				load_csv(node.id, node.data.name);
-				if (!(tables.has(node.id))) {
+				if (!tables.has(node.id)) {
 					tables.set(node.id, node.data.name);
 				}
 				break;
 			}
-		}		
+		}
 		return hasTable;
 	}
 	async function runSql() {
 		// SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100
-		run_sql($sqlEditControl.sql).then((ipcResult) => {
-			const table = tableFromIPC(ipcResult);
-			dbResult = table.toString();
-		});
+		run_sql($sqlEditControl.sql)
+			.then((ipcResult) => {
+				const table = tableFromIPC(ipcResult);
+				dbResult = table.toString();
+				alertColor = 'green';
+			})
+			.catch((e) => {
+				let errMsg: string = e.message;
+				if (errMsg.toLowerCase().includes('table') && errMsg.toLowerCase().includes('not found')) {
+					errMsg = errMsg.replace('datafusion.public.', '') + '. Please select a table.';
+				}
+				dbResult = errMsg;
+				alertColor = 'red';
+			});
 	}
 	async function saveSqlNode() {
 		$sqlEditControl.view = false;
@@ -62,36 +74,50 @@
 		}
 	}
 	async function unloadTables() {
-		console.log("Unloading...");
-		for (const [id, name] of tables){
+		for (const [id, name] of tables) {
 			delete_table(id, name);
 		}
 		dbResult = defaultQuery;
+		alertColor = 'green';
 	}
 	$: dbResult;
 </script>
 
 <Modal
-	title="Run SQL on one or many tables"
+	title="Run SQL on selected tables"
 	bind:open={$sqlEditControl.view}
-	on:close={()=>unloadTables()}
+	on:close={() => unloadTables()}
 	autoclose
 	class="min-w-full"
 >
-	<div class="flex gap-3">
-		<span>Select table(s):</span>
-		{#each $nodes as node}
-			{#if isDataFileNode(node)}
-				{#await initTables(node) then hasTable}
-					<Checkbox
-						checked={hasTable}
-						name={node.data.name}
-						id={node.id}
-						on:change={(e) => manageTable(e)}>{node.data.name}</Checkbox
-					>
-				{/await}
+	<div class="grid sm:grid-cols-2">
+		<div class="flex gap-3">
+			<span>Select table(s):</span>
+			{#each $nodes as node}
+				{#if isDataFileNode(node)}
+					{#await initTables(node) then hasTable}
+						<Checkbox
+							class="-mt-4"
+							checked={hasTable}
+							name={node.data.name}
+							id={node.id}
+							on:change={(e) => manageTable(e)}>{node.data.name}</Checkbox
+						>
+					{/await}
+				{/if}
+			{/each}
+		</div>
+		<div class="text-right">
+			{#if $sqlEditControl.queryId}
+				<Button class="h-2/3 gap-1" color="primary" on:click={() => updateSqlNode()}
+					><FloppyDiskAltOutline />Update</Button
+				>
+			{:else}
+				<Button class="h-2/3 gap-1" color="primary" on:click={() => saveSqlNode()}
+					><FloppyDiskAltOutline />Save</Button
+				>
 			{/if}
-		{/each}
+		</div>
 	</div>
 	<Textarea
 		id="sqlEditor"
@@ -103,7 +129,7 @@
 		<div slot="footer" class="flex items-center justify-between">
 			<span />
 			<Toolbar embedded slot="end">
-				<ToolbarButton name="reset" on:click={() => $sqlEditControl.sql = ''}
+				<ToolbarButton name="reset" on:click={() => ($sqlEditControl.sql = '')}
 					><TrashBinOutline class="h-6 w-6" /></ToolbarButton
 				>
 				<ToolbarButton name="run" on:click={() => runSql()}
@@ -112,23 +138,11 @@
 			</Toolbar>
 		</div>
 	</Textarea>
-	<Alert color="green">
+	<Alert color={alertColor}>
 		<div class="flex items-center gap-3">
 			<BullhornOutline class="h-5 w-5" />
 			<span class="text-lg font-medium">Results</span>
 		</div>
 		<p class="mb-4 mt-2 text-sm">{dbResult}</p>
 	</Alert>
-	<div>
-		<Label for="input-addon" class="mb-2">Store result and configuration</Label>
-		<ButtonGroup class="w-full">
-			<InputAddon><Checkbox id="perist"><nobr>Persist result table</nobr></Checkbox></InputAddon>
-			<Input id="input-addon" type="text" placeholder="=> name" />
-			{#if $sqlEditControl.queryId}
-				<Button color="primary" on:click={() => updateSqlNode()}><nobr>Update</nobr></Button>
-			{:else}
-				<Button color="primary" on:click={() => saveSqlNode()}><nobr>Save</nobr></Button>
-			{/if}
-		</ButtonGroup>
-	</div>
 </Modal>

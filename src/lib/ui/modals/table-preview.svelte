@@ -9,6 +9,24 @@
 		TableHeadCell
 	} from 'flowbite-svelte';
 	import { previewTable } from '$lib/storeUtils';
+
+	let viewTable: any[] = [];
+
+	previewTable.subscribe((prvw) => {
+		viewTable = [];
+		if (prvw.table) {
+			let maxLength = 10;
+			for (const row of prvw.table.toArray()) {
+				let rowArr = [];
+				for (const value of row.toArray()) {
+					rowArr.push(value);
+				}
+				viewTable.push(rowArr);
+				if (--maxLength === 0) break;
+			}
+		}
+	});
+	$: viewTable;
 </script>
 
 <Modal bind:open={$previewTable.view} class="text-xs">
@@ -23,10 +41,10 @@
 					{/each}
 				</TableHead>
 				<TableBody>
-					{#each $previewTable.table.data as line}
+					{#each viewTable as row}
 						<TableBodyRow>
-							{#each line.children as child}
-								<TableBodyCell tdClass="px-2 py-1 text-center">{child.values[0]}</TableBodyCell>
+							{#each row as value}
+								<TableBodyCell tdClass="px-2 py-1 text-center">{value}</TableBodyCell>
 							{/each}
 						</TableBodyRow>
 					{/each}
