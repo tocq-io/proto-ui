@@ -1,6 +1,9 @@
 {
 	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
+		"module": "esnext",
+		"target": "ESNext",
+		//"moduleResolution": "Node",
 		"allowJs": true,
 		"checkJs": true,
 		"esModuleInterop": true,
@@ -10,6 +13,9 @@
 		"sourceMap": true,
 		"strict": true,
 		"moduleResolution": "bundler",
-		"types": ["@cloudflare/workers-types/2023-07-01", "@types/wicg-file-system-access"]
+		"types": [
+			"@cloudflare/workers-types/2023-07-01",
+			"@types/wicg-file-system-access"
+		]
 	}
 }

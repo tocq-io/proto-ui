@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import '../app.css';
 	import { DarkMode } from 'flowbite-svelte';
 	let darkmodebtn =

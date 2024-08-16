@@ -3,7 +3,6 @@
 	import DataAnalyzer from '$lib/ui/data-analyzer.svelte';
 	import DataFooter from '$lib/ui/data-footer.svelte';
 </script>
-
 <main>
 	<DataHeader />
 	<DataAnalyzer />
