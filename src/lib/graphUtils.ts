@@ -119,6 +119,5 @@ export async function getUserId(): Promise<string> {
 			});
 		});
 	}
-	console.log(user);
 	return user.identity.key;
 }
