@@ -34,7 +34,6 @@ export type PreviewTable = {
 type SqlEdit = {
     view: boolean;
     done: boolean;
-    edgeTables: Set<string>;
     sql: string;
     queryId: string;
 };
@@ -45,8 +44,7 @@ export let previewTable: Writable<PreviewTable> = writable({
 });
 export let sqlEditControl: Writable<SqlEdit> = writable({
     view: false,
-    done: true,
-    edgeTables: new Set<string>(),
+    done: false,
     sql: '',
     queryId: ''
 });

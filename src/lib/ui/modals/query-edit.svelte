@@ -43,7 +43,6 @@
 		return hasTable;
 	}
 	async function runSql() {
-		// SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100
 		run_sql($sqlEditControl.sql)
 			.then((ipcResult) => {
 				const table = tableFromIPC(ipcResult);
@@ -60,31 +59,18 @@
 			});
 	}
 	async function saveSqlNode() {
-		await persistQuery($sqlEditControl.sql, tables).then(() => {
-			sqlEditControl.update((ec) => {
-				ec.edgeTables = new Set<string>(tables.keys());
-				ec.done = true;
-				return ec;
-			});
-		});
+		const tableIds = new Set<string>(tables.keys());
+		await persistQuery($sqlEditControl.sql, tableIds)
+			.then(() => ($sqlEditControl.done = true));
 	}
 	async function updateSqlNode() {
-		await updateQuery($sqlEditControl.sql, tables, $sqlEditControl.queryId).then(() => {
-			sqlEditControl.update((ec) => {
-				ec.edgeTables = new Set<string>(tables.keys());
-				ec.done = true;
-				return ec;
-			});
-		});
+		const tableIds = new Set<string>(tables.keys());
+		await updateQuery($sqlEditControl.sql, tableIds, $sqlEditControl.queryId)
+			.then(() => ($sqlEditControl.done = true));
 	}
 	async function deleteSqlNode() {
-		await deleteQuery($sqlEditControl.queryId).then(() => {
-			sqlEditControl.update((ec) => {
-				ec.edgeTables = new Set<string>();
-				ec.done = true;
-				return ec;
-			});
-		});
+		await deleteQuery($sqlEditControl.queryId)
+			.then(() => ($sqlEditControl.done = true));
 	}
 	async function manageTable(e: Event) {
 		const chck = <HTMLInputElement>e.target;

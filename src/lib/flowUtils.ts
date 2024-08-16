@@ -1,6 +1,6 @@
 import { type Edge, type Node } from '@xyflow/svelte';
-import { getDataGraph, type DataFile, type Query, type QueryDataEdge } from '$lib/graphUtils';
-import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges } from '$lib/storeUtils';
+import { getDataGraph, type DataFile, type Query, type InOutEdge } from '$lib/graphUtils';
+import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges, sqlEditControl } from '$lib/storeUtils';
 export function addDataNode(df: DataFile, shiftX: number = 0, shiftY: number = 0) {
     let data = {} as DataFileNode;
     data.type = 'dataNode';
@@ -45,7 +45,7 @@ export function updateQueryNode(query: Query) {
         return nodeArr;
     });
 }
-export function addQueryDataEdge(edge: QueryDataEdge) {
+export function addQueryDataEdge(edge: InOutEdge) {
     let queryDataEdge = {} as Edge;
     //data
     const from = edge.out.id.toString();
@@ -118,10 +118,14 @@ export async function initFlow() {
                         addQueryNode(<Query>entry, countQuery++ * 240, 160);
                         break;
                     case 'import':
-                        addQueryDataEdge(<QueryDataEdge>entry);
+                        addQueryDataEdge(<InOutEdge>entry);
                         break;
                 }
             }
         }
     });
+    sqlEditControl.update((ctrl)=>{
+        ctrl.done = true;
+        return ctrl;
+    })
 }

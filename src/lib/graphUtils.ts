@@ -17,9 +17,12 @@ export type Query = GeneralResult & {
 	format: string;
 	statement: string;
 };
-export type QueryDataEdge = GeneralResult & {
+export type InOutEdge = GeneralResult & {
 	in: RecordId;
 	out: RecordId;
+};
+export type OutEdges = GeneralResult & {
+	out: RecordId[];
 };
 export type GeneralResult = {
 	id: RecordId,
@@ -51,25 +54,30 @@ export async function storeCsvFile(csvHeader: string[], csvSize: number, csvName
 	return result[0];
 }
 // Transformers
-export async function linkQueryToData(dataId: string, queryId: string): Promise<QueryDataEdge> {
+export async function linkQueryToData(dataId: string, queryId: string): Promise<InOutEdge> {
 	const queryString = 'RELATE queries:' + queryId + '->import->data:' + dataId + ';';
-	const result =  await db.query<QueryDataEdge[][]>(queryString);
+	const result =  await db.query<InOutEdge[][]>(queryString);
+	return result[0][0];
+}
+export async function getEdgeQueryToData(queryId: string): Promise<OutEdges> {
+	const queryString = 'SELECT ->import.out as out from queries:' + queryId + ';';
+	const result =  await db.query<OutEdges[][]>(queryString);
 	return result[0][0];
 }
 export async function deleteQueryToData(dataId: string, queryId: string) {
 	const queryString = 'DELETE queries:' + queryId + '->import WHERE out=data:' + dataId + ';';
-	await db.query<QueryDataEdge[][]>(queryString);
+	await db.query(queryString);
 }
 export async function deleteAllQueryToData( queryId: string) {
 	const queryString = 'DELETE queries:' + queryId + '->import;';
-	await db.query<QueryDataEdge[][]>(queryString);
+	await db.query(queryString);
 }
 export async function getDataGraph(): Promise<GeneralResult[][]> {
 	let result = await db.query<GeneralResult[][]>('SELECT * FROM data;SELECT * FROM queries;SELECT * FROM import;');
 	return result;
 }
 export async function deleteItAll() {
-	await db.query<GeneralResult[][]>('DELETE data;DELETE queries;DELETE import;DELETE user;');
+	await db.query('REMOVE DATABASE proto;');
 }
 export async function storeDfSqlFile(sqlStatement: string, queryId: string): Promise<Query> {
 	// TODO use UPSERT with v2 of DB

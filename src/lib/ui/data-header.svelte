@@ -16,7 +16,6 @@
 		sqlEditControl.set({
 			view: true,
 			queryId: '',
-			edgeTables: new Set<string>(),
 			sql: '',
 			done: false
 		});

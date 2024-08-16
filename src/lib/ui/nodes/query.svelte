@@ -12,7 +12,12 @@
 		previewTable,
 		sqlEditControl
 	} from '$lib/storeUtils';
-	import { deleteAllQueryToData, deleteQueryToData, linkQueryToData } from '$lib/graphUtils';
+	import {
+		deleteAllQueryToData,
+		deleteQueryToData,
+		getEdgeQueryToData,
+		linkQueryToData
+	} from '$lib/graphUtils';
 	import type { HandleConnection } from '@xyflow/system';
 
 	type $$Props = QueryProps;
@@ -22,8 +27,6 @@
 	export let id: $$Props['id'];
 
 	const connections = useHandleConnections({ nodeId: id, type: 'target' });
-	let initPhase = true;
-	let edgeTables = new Set<string>();
 
 	async function setPreviewData() {
 		const notHadTables = new Map<string, string>();
@@ -51,42 +54,44 @@
 			view: true,
 			done: false,
 			sql: data.sql,
-			queryId: id,
-			edgeTables: edgeTables
+			queryId: id
+		});
+	}
+
+	async function loadEdges(): Promise<Set<string>> {
+		return getEdgeQueryToData(id).then((existingEdges) => {
+			const currentTables = new Set<string>();
+			for (const recId of existingEdges.out) {
+				currentTables.add(recId.id.toString());
+			}
+			return currentTables;
 		});
 	}
 
 	async function handleChanges(cts: HandleConnection[]) {
+		// skip while the edit view is open
 		if ($sqlEditControl.done) {
-			edgeTables = $sqlEditControl.edgeTables;
+			let currentTables = await loadEdges();
 			if (cts.length > 0) {
-				if (edgeTables.size == 0) {
+				if (currentTables.size == 0) {
 					for (const connection of cts) {
-						edgeTables.add(connection.source);
-						if (!initPhase) {
-							linkQueryToData(connection.source, id);
-						}
+						linkQueryToData(connection.source, id);
 					}
 				} else {
-					let deletableTables = edgeTables;
-					edgeTables = new Set<string>();
 					for (const connection of cts) {
-						if (deletableTables.has(connection.source)) {
-							deletableTables.delete(connection.source);
-						} else {
+						if (!currentTables.has(connection.source)) {
 							linkQueryToData(connection.source, id);
 						}
-						edgeTables.add(connection.source);
+						currentTables.delete(connection.source);
 					}
-					for (const table of deletableTables) {
+					for (const table of currentTables) {
 						deleteQueryToData(table, id);
 					}
 				}
-			} else if (edgeTables.size > 0) {
+			} else if (currentTables.size > 0) {
 				deleteAllQueryToData(id);
-				edgeTables = new Set<string>();
+				currentTables = new Set<string>();
 			}
-			initPhase = false;
 		}
 	}
 
