@@ -33,18 +33,6 @@ export function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 
         return nodeArr;
     });
 }
-export function updateQueryNode(query: Query) {
-    nodes.update((nodeArr) => {
-        for (const node of nodeArr) {
-            if (node.id === query.id.id.toString()) {
-                let dt = node.data;
-                dt.sql = query.statement;
-                node.data = { ...dt };
-            }
-        }
-        return nodeArr;
-    });
-}
 export function addQueryDataEdge(edge: InOutEdge) {
     let queryDataEdge = {} as Edge;
     //data
@@ -63,48 +51,11 @@ export function addQueryDataEdge(edge: InOutEdge) {
         return edgeArr;
     });
 }
-export function updateQueryDataEdges(queryId: string, dataIds: Set<string>) {
-    let addableTables: Set<string> = dataIds;
-    let deletableTables: Set<string> = new Set();
-    edges.update((edgeArr) => {
-        let newArr: Edge[] = [];
-        for (const edge of edgeArr) {
-            if (edge.target === queryId) {
-                if (addableTables.has(edge.source)) {
-                    newArr.push(edge);
-                } else {
-                    deletableTables.add(edge.source);
-                }
-                addableTables.delete(edge.source);
-            } else {
-                newArr.push(edge);
-            }
-        }
-        return newArr;
-    });
-    return { addableTables, deletableTables };
-}
-export function deleteQueryAndDataEdges(queryId: string) {
-    edges.update((edgeArr) => {
-        let newArr: Edge[] = [];
-        for (const edge of edgeArr) {
-            if (edge.target !== queryId) {
-                newArr.push(edge);
-            }
-        }
-        return newArr;
-    });
-    nodes.update((nodesArr) => {
-        let newArr: Node[] = [];
-        for (const node of nodesArr) {
-            if (node.id !== queryId) {
-                newArr.push(node);
-            }
-        }
-        return newArr;
-    })
-}
 export async function initFlow() {
+    sqlEditControl.update((ctrl)=>{
+        ctrl.done = false;
+        return ctrl;
+    });
     await getDataGraph().then((data) => {
         let countData = 0;
         let countQuery = 0;
@@ -115,7 +66,7 @@ export async function initFlow() {
                         addDataNode(<DataFile>entry, countData++ * 360, 0);
                         break;
                     case 'queries':
-                        addQueryNode(<Query>entry, countQuery++ * 240, 160);
+                        addQueryNode(<Query>entry, countQuery++ * 640, 160);
                         break;
                     case 'import':
                         addQueryDataEdge(<InOutEdge>entry);
@@ -127,5 +78,5 @@ export async function initFlow() {
     sqlEditControl.update((ctrl)=>{
         ctrl.done = true;
         return ctrl;
-    })
+    });
 }

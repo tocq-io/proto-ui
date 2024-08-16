@@ -58,7 +58,7 @@
 		});
 	}
 
-	async function loadEdges(): Promise<Set<string>> {
+	async function getEdges(): Promise<Set<string>> {
 		return getEdgeQueryToData(id).then((existingEdges) => {
 			const currentTables = new Set<string>();
 			for (const recId of existingEdges.out) {
@@ -71,7 +71,7 @@
 	async function handleChanges(cts: HandleConnection[]) {
 		// skip while the edit view is open
 		if ($sqlEditControl.done) {
-			let currentTables = await loadEdges();
+			let currentTables = await getEdges();
 			if (cts.length > 0) {
 				if (currentTables.size == 0) {
 					for (const connection of cts) {

@@ -1,33 +1,29 @@
-import { addQueryDataEdge, addQueryNode, deleteQueryAndDataEdges, updateQueryDataEdges, updateQueryNode } from "$lib/flowUtils";
+import { initFlow } from "$lib/flowUtils";
 import { digestString } from "$lib/signUtils";
-import { deleteAllQueryToData, deleteDfSqlFile, deleteQueryToData, linkQueryToData, storeDfSqlFile, updateDfSqlFile } from "$lib/graphUtils";
+import { deleteAllQueryToData, deleteDfSqlFile, linkQueryToData, storeDfSqlFile, updateDfSqlFile } from "$lib/graphUtils";
+import { resetGraph } from "$lib/storeUtils";
 
 export async function persistQuery(sql: string, tableIds: Set<string>) {
-    const queryId = await digestString(sql)
-        .then((queryId) => storeDfSqlFile(sql, queryId)
-            .then((query) => {
-                addQueryNode(query, 120, 160);
-                return queryId;
-            }));
+    const queryId = await digestString(sql);
+    await storeDfSqlFile(sql, queryId);
     for (const tableId of tableIds) {
-        await linkQueryToData(tableId, queryId)
-            .then((edge) => addQueryDataEdge(edge));
+        await linkQueryToData(tableId, queryId);
     }
+    resetGraph();
+    await initFlow();
 }
 export async function updateQuery(sql: string, tableIds: Set<string>, queryId: string) {
-    const query = await updateDfSqlFile(sql, queryId);
-    updateQueryNode(query);
-    const result = updateQueryDataEdges(queryId, tableIds);
-    for (const tableId of result.addableTables) {
-        await linkQueryToData(tableId, queryId)
-            .then((edge) => addQueryDataEdge(edge));
+    await updateDfSqlFile(sql, queryId);
+    await deleteAllQueryToData(queryId);
+    for (const tableId of tableIds) {
+        await linkQueryToData(tableId, queryId);
     }
-    for (const tableId of result.deletableTables) {
-        await deleteQueryToData(tableId, queryId);
-    }
+    resetGraph();
+    await initFlow();
 }
 export async function deleteQuery(queryId: string) {
     await deleteDfSqlFile(queryId)
-        .then(() => deleteAllQueryToData(queryId))
-        .then(() => deleteQueryAndDataEdges(queryId));
+        .then(() => deleteAllQueryToData(queryId));
+    resetGraph();
+    await initFlow();
 }
