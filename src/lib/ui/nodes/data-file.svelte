@@ -1,16 +1,22 @@
 <script lang="ts">
-	import { type DataFileProps, previewTable } from '$lib/storeUtils';
+	import { type DataFileProps, previewTable, sqlEditControl } from '$lib/storeUtils';
 	import { Handle, Position } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
-	import { TableRowOutline } from 'flowbite-svelte-icons';
+	import { CloseCircleOutline, TableRowOutline } from 'flowbite-svelte-icons';
 	import { load_csv, delete_table, run_sql, has_table } from 'proto-query-engine';
 	import { tableFromIPC } from '@apache-arrow/ts';
+	import { deleteDataRecordAndEdges } from '$lib/queryUtils';
 
 	type $$Props = DataFileProps;
 	$$restProps;
 
 	export let data: $$Props['data'];
 	export let id: $$Props['id'];
+
+	async function deleteDataNode() {
+		$sqlEditControl.done = false;
+		await deleteDataRecordAndEdges(id).then(() => ($sqlEditControl.done = true));
+	}
 
 	async function setPreviewData() {
 		const sql = `SELECT * FROM ${data.name} LIMIT 10`;
@@ -34,8 +40,10 @@
 
 <div>
 	<div class="-mb-2 grid sm:grid-cols-2">
-		<div>
-			<strong>TABLE [{data.name}] </strong>
+		<div class="flex gap-2">
+			<Button class="h-6 w-6 mt-0.5" pill size="xs" color="primary" on:click={() => deleteDataNode()}
+				><CloseCircleOutline color="white" size="lg" strokeWidth="3" /></Button
+			><span class="text-xl font-semibold">TABLE [{data.name}]</span>
 		</div>
 		<div class="text-right">
 			<Button class="h-3/5 w-1/2" on:click={() => setPreviewData()}

@@ -53,7 +53,14 @@ export async function storeCsvFile(csvHeader: string[], csvSize: number, csvName
 	});
 	return result[0];
 }
-// Transformers
+export async function deleteDataRecord(dataId: string) {
+	await db.delete(new StringRecordId('data:' + dataId));
+}
+export async function deleteAllDataToQuery( dataId: string) {
+	const queryString = 'DELETE data:' + dataId + '<-import;';
+	await db.query(queryString);
+}
+// Queries
 export async function linkQueryToData(dataId: string, queryId: string): Promise<InOutEdge> {
 	const queryString = 'RELATE queries:' + queryId + '->import->data:' + dataId + ';';
 	const result =  await db.query<InOutEdge[][]>(queryString);
@@ -96,7 +103,7 @@ export async function updateDfSqlFile(sqlStatement: string, queryId: string): Pr
 	return result;
 }
 export async function deleteDfSqlFile(queryId: string) {
-	await db.delete<Query>(new StringRecordId('queries:' + queryId));
+	await db.delete(new StringRecordId('queries:' + queryId));
 }
 // User
 export async function getUserId(): Promise<string> {

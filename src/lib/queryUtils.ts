@@ -1,7 +1,6 @@
 import { initFlow } from "$lib/flowUtils";
 import { digestString } from "$lib/signUtils";
-import { deleteAllQueryToData, deleteDfSqlFile, linkQueryToData, storeDfSqlFile, updateDfSqlFile } from "$lib/graphUtils";
-import { resetGraph } from "$lib/storeUtils";
+import { deleteAllDataToQuery, deleteAllQueryToData, deleteDataRecord, deleteDfSqlFile, linkQueryToData, storeDfSqlFile, updateDfSqlFile } from "$lib/graphUtils";
 
 export async function persistQuery(sql: string, tableIds: Set<string>) {
     const queryId = await digestString(sql);
@@ -9,7 +8,6 @@ export async function persistQuery(sql: string, tableIds: Set<string>) {
     for (const tableId of tableIds) {
         await linkQueryToData(tableId, queryId);
     }
-    resetGraph();
     await initFlow();
 }
 export async function updateQuery(sql: string, tableIds: Set<string>, queryId: string) {
@@ -18,12 +16,15 @@ export async function updateQuery(sql: string, tableIds: Set<string>, queryId: s
     for (const tableId of tableIds) {
         await linkQueryToData(tableId, queryId);
     }
-    resetGraph();
     await initFlow();
 }
 export async function deleteQuery(queryId: string) {
     await deleteDfSqlFile(queryId)
         .then(() => deleteAllQueryToData(queryId));
-    resetGraph();
+    await initFlow();
+}
+export async function deleteDataRecordAndEdges(dataId: string) {
+    await deleteDataRecord(dataId)
+        .then(() => deleteAllDataToQuery(dataId));
     await initFlow();
 }

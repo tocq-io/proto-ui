@@ -9,7 +9,6 @@ export function openDB() {
 	};
 	DBOpenRequest.onupgradeneeded = (e) => {
 		if (e.target) {
-			console.log('Fresh DB created');
 			db = (<IDBOpenDBRequest>e.target).result;
 			db.createObjectStore('keypairs', { keyPath: 'id' });
 		}
@@ -19,7 +18,6 @@ export function resetKeys(){
 	indexedDB.deleteDatabase('identity');
 }
 function storeKeyPair(id: string, keys: CryptoKeyPair) {
-	console.log('Adding a new key pair');
 	const store = db.transaction('keypairs', 'readwrite').objectStore('keypairs');
 	store.add({ id: id, keys: keys });
 }
@@ -83,6 +81,5 @@ export async function digestBuffer(buffy: ArrayBuffer, userId: string): Promise<
 	const keys = await getKeyPair(userId);
 	if (keys === undefined) return '';
 	const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', keys.privateKey, buffy);
-	console.log(signature);
 	return quickHash(signature);
 }

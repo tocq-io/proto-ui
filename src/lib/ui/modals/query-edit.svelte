@@ -11,12 +11,11 @@
 	} from 'flowbite-svelte';
 	import {
 		BullhornOutline,
-		CircleMinusOutline,
 		FloppyDiskAltOutline,
 		RocketOutline,
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
-	import { deleteQuery, persistQuery, updateQuery } from '$lib/queryUtils';
+	import { persistQuery, updateQuery } from '$lib/queryUtils';
 	import { nodes, edges, type DataFileNode, sqlEditControl, isDataFileNode } from '$lib/storeUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
 	import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
@@ -60,17 +59,13 @@
 	}
 	async function saveSqlNode() {
 		const tableIds = new Set<string>(tables.keys());
-		await persistQuery($sqlEditControl.sql, tableIds)
-			.then(() => ($sqlEditControl.done = true));
+		await persistQuery($sqlEditControl.sql, tableIds).then(() => ($sqlEditControl.done = true));
 	}
 	async function updateSqlNode() {
 		const tableIds = new Set<string>(tables.keys());
-		await updateQuery($sqlEditControl.sql, tableIds, $sqlEditControl.queryId)
-			.then(() => ($sqlEditControl.done = true));
-	}
-	async function deleteSqlNode() {
-		await deleteQuery($sqlEditControl.queryId)
-			.then(() => ($sqlEditControl.done = true));
+		await updateQuery($sqlEditControl.sql, tableIds, $sqlEditControl.queryId).then(
+			() => ($sqlEditControl.done = true)
+		);
 	}
 	async function manageTable(e: Event) {
 		const chck = <HTMLInputElement>e.target;
@@ -96,7 +91,7 @@
 </script>
 
 <Modal
-	title="Run SQL on selected tables"
+	title="Run a query on selected tables"
 	bind:open={$sqlEditControl.view}
 	on:close={() => unloadTables()}
 	autoclose
@@ -122,20 +117,35 @@
 			</Toolbar>
 		</div>
 	</Textarea>
-	<div class="flex gap-3">
-		<span>Loaded tables:</span>
-		{#each $nodes as node}
-			{#if isDataFileNode(node)}
-				{#await initTables(node) then hasTable}
-					<Checkbox
-						checked={hasTable}
-						name={node.data.name}
-						id={node.id}
-						on:change={(e) => manageTable(e)}>{node.data.name}</Checkbox
-					>
-				{/await}
+
+	<div class="grid pt-1 sm:grid-cols-2">
+		<div class="flex gap-3">
+			<span>Loaded tables:</span>
+			{#each $nodes as node}
+				{#if isDataFileNode(node)}
+					{#await initTables(node) then hasTable}
+						<Checkbox
+							class="mb-4"
+							checked={hasTable}
+							name={node.data.name}
+							id={node.id}
+							on:change={(e) => manageTable(e)}>{node.data.name}</Checkbox
+						>
+					{/await}
+				{/if}
+			{/each}
+		</div>
+		<div class="text-right">
+			{#if $sqlEditControl.queryId}
+				<Button class="h-2/3 gap-1" color="primary" on:click={() => updateSqlNode()}
+					><FloppyDiskAltOutline />Update Query</Button
+				>
+			{:else}
+				<Button class="h-2/3 gap-1" color="primary" on:click={() => saveSqlNode()}
+					><FloppyDiskAltOutline />Save Query</Button
+				>
 			{/if}
-		{/each}
+		</div>
 	</div>
 	<Alert color={alertColor}>
 		<div class="flex items-center gap-3">
@@ -144,26 +154,4 @@
 		</div>
 		<p class="mb-4 mt-2 text-sm">{dbResult}</p>
 	</Alert>
-	<div class="grid pt-1 sm:grid-cols-2">
-		<div>
-			{#if $sqlEditControl.queryId}
-				<Button class="h-2/3 gap-1" color="primary" on:click={() => deleteSqlNode()}
-					><CircleMinusOutline />Delete</Button
-				>
-			{:else}
-				<div />
-			{/if}
-		</div>
-		<div class="text-right">
-			{#if $sqlEditControl.queryId}
-				<Button class="h-2/3 gap-1" color="primary" on:click={() => updateSqlNode()}
-					><FloppyDiskAltOutline />Update SQL</Button
-				>
-			{:else}
-				<Button class="h-2/3 gap-1" color="primary" on:click={() => saveSqlNode()}
-					><FloppyDiskAltOutline />Save SQL</Button
-				>
-			{/if}
-		</div>
-	</div>
 </Modal>

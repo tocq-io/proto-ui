@@ -1,20 +1,21 @@
-import { type Edge, type Node } from '@xyflow/svelte';
+import { type Edge } from '@xyflow/svelte';
 import { getDataGraph, type DataFile, type Query, type InOutEdge } from '$lib/graphUtils';
-import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges, sqlEditControl } from '$lib/storeUtils';
+import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges, sqlEditControl, resetGraph } from '$lib/storeUtils';
 export function addDataNode(df: DataFile, shiftX: number = 0, shiftY: number = 0) {
-    let data = {} as DataFileNode;
-    data.type = 'dataNode';
-    data.id = df.id.id.toString();
-    data.position = { x: 24 + shiftX, y: 24 + shiftY };
-    data.style = 'border: 1px solid #777; padding: 10px;';
-    data.data = {
+    let fileData = {} as DataFileNode;
+    fileData.type = 'dataNode';
+    fileData.id = df.id.id.toString();
+    fileData.deletable = false;
+    fileData.position = { x: 24 + shiftX, y: 24 + shiftY };
+    fileData.style = 'border: 1px solid #777; padding: 10px;';
+    fileData.data = {
         name: df.fileName,
         size: df.size,
         schema: df.schema,
         format: df.format
     } as DataFileData;
     nodes.update((nodeArr) => {
-        nodeArr.push(data);
+        nodeArr.push(fileData);
         return nodeArr;
     });
 }
@@ -22,8 +23,9 @@ export function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 
     let queryData = {} as QueryNode;
     queryData.type = 'queryNode';
     queryData.id = query.id.id.toString();
+    queryData.deletable = false;
     queryData.position = { x: 24 + shiftX, y: 24 + shiftY };
-    queryData.style = 'border: 1px solid #777; padding: 10px;';
+    queryData.style = 'border: 1px solid #777; padding: 10px; background: rgba(255, 255, 255, 0.65);';
     queryData.data = {
         sql: query.statement,
         format: query.format
@@ -56,6 +58,7 @@ export async function initFlow() {
         ctrl.done = false;
         return ctrl;
     });
+    resetGraph();
     await getDataGraph().then((data) => {
         let countData = 0;
         let countQuery = 0;

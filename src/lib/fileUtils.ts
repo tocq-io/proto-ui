@@ -25,7 +25,6 @@ async function getCsvHeader(file: File): Promise<string[]> {
 			const text = reader.result;
 			const firstLine = (<string>text)?.split('\n').shift();
 			let header = firstLine?.split(',');
-			console.log(header);
 			resolve(header || []);
 		}
 		reader.onerror = reject;

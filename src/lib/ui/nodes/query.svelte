@@ -2,7 +2,7 @@
 	import { tableFromIPC } from '@apache-arrow/ts';
 	import { Handle, Position, useHandleConnections } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
-	import { EditOutline, TableRowOutline } from 'flowbite-svelte-icons';
+	import { CloseCircleOutline, EditOutline, TableRowOutline } from 'flowbite-svelte-icons';
 	import { load_csv, delete_table, run_sql, has_table } from 'proto-query-engine';
 	import {
 		type DataFileNode,
@@ -19,6 +19,7 @@
 		linkQueryToData
 	} from '$lib/graphUtils';
 	import type { HandleConnection } from '@xyflow/system';
+	import { deleteQuery } from '$lib/queryUtils';
 
 	type $$Props = QueryProps;
 	$$restProps;
@@ -57,7 +58,10 @@
 			queryId: id
 		});
 	}
-
+	async function deleteSqlNode() {
+		$sqlEditControl.done = false;
+		await deleteQuery(id).then(() => ($sqlEditControl.done = true));
+	}
 	async function getEdges(): Promise<Set<string>> {
 		return getEdgeQueryToData(id).then((existingEdges) => {
 			const currentTables = new Set<string>();
@@ -101,9 +105,11 @@
 <Handle type="target" position={Position.Top} />
 <div>
 	<div class="-mb-2 grid sm:grid-cols-2">
-		<p>
-			<strong>DF Query</strong>
-		</p>
+		<div class="flex gap-2">
+			<Button class="h-6 w-6 mt-0.5" pill size="xs" color="primary" on:click={() => deleteSqlNode()}
+				><CloseCircleOutline color="white" size="lg" strokeWidth="3" /></Button
+			><span class="text-xl font-semibold">DF Query</span>
+		</div>
 		<div class="text-right">
 			<Button class="h-3/5 w-1/3" on:click={() => setPreviewData()}
 				><TableRowOutline /><span class="pl-1.5 text-sm">Results</span></Button
