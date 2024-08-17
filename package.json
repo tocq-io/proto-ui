@@ -5,7 +5,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"cf-build": "npm install-rust && npm run wasm && npm run build",
+		"cf-build": "npm run install-rust && npm run wasm && npm run build",
 		"preview": "npm run wasm && npm run build && wrangler pages dev",
 		"test": "npm run test:integration && npm run test:unit",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
