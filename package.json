@@ -5,7 +5,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"cf-build": "npm update node && npm run wasm && npm run build",
+		"cf-build": "npm run wasm && npm run build",
 		"preview": "npm run wasm && npm run build && wrangler pages dev",
 		"test": "npm run test:integration && npm run test:unit",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -57,11 +57,10 @@
 	"type": "module",
 	"dependencies": {
 		"@apache-arrow/ts": "^17.0.0",
-		"@picocss/pico": "^2.0.6",
 		"@xyflow/svelte": "^0.1.14",
 		"surrealdb.wasm": "^1.0.0-beta"
 	},
 	"engines": {
-		"node": ">=18.18.0"
+		"node": ">=20.9.0"
 	}
 }
