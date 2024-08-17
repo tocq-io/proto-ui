@@ -52,6 +52,7 @@
 		"vite-plugin-wasm": "^3.3.0",
 		"vite-plugin-wasm-pack": "^0.1.12",
 		"vitest": "^1.2.0",
+		"wasm-pack": "^0.13.0",
 		"wrangler": "^3.65.0"
 	},
 	"type": "module",
@@ -59,8 +60,5 @@
 		"@apache-arrow/ts": "^17.0.0",
 		"@xyflow/svelte": "^0.1.14",
 		"surrealdb.wasm": "^1.0.0-beta"
-	},
-	"engines": {
-		"node": ">=20.9.0"
 	}
 }
