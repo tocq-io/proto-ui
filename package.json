@@ -3,9 +3,9 @@
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "vite dev && npm surreal-fix",
 		"build": "vite build",
-		"cf-build": "npm run install-rust && npm run wasm && npm run build",
+		"cf-build": "npm run build",
 		"preview": "npm run wasm && npm run build && wrangler pages dev",
 		"test": "npm run test:integration && npm run test:unit",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -14,17 +14,18 @@
 		"format": "prettier --write .",
 		"test:integration": "playwright test",
 		"test:unit": "vitest",
-		"deploy": "npm run wasm && npm run build && wrangler pages deploy",
+		"deploy": "npm run wasm && npm run build && npm run proto-query-fix && wrangler pages deploy",
 		"cf-typegen": "wrangler types && mv worker-configuration.d.ts src/",
 		"wasm": ". $HOME/.cargo/env && wasm-pack build ./proto-query-engine --target web",
-		"install-rust": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && . $HOME/.cargo/env && rustup toolchain install stable --profile minimal && rustup target add wasm32-unknown-unknown"
+		"install-rust": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && . $HOME/.cargo/env && rustup toolchain install stable --profile minimal && rustup target add wasm32-unknown-unknown",
+		"surreal-fix": "cp node_modules/surrealdb.wasm/dist/embedded/index_bg.wasm node_modules/.vite/deps/",
+		"proto-query-fix": "cp proto-query-engine/pkg/proto_query_engine_bg.wasm ."
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240718.0",
 		"@playwright/test": "^1.28.1",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/adapter-cloudflare": "^4.6.1",
-		"@sveltejs/adapter-static": "^3.0.4",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@tailwindcss/typography": "^0.5.13",
@@ -53,7 +54,6 @@
 		"vite-plugin-wasm": "^3.3.0",
 		"vite-plugin-wasm-pack": "^0.1.12",
 		"vitest": "^1.2.0",
-		"wasm-pack": "^0.13.0",
 		"wrangler": "^3.65.0"
 	},
 	"type": "module",
