@@ -16,7 +16,7 @@
 		"test:unit": "vitest",
 		"deploy": "npm run wasm && npm run build && wrangler pages deploy",
 		"cf-typegen": "wrangler types && mv worker-configuration.d.ts src/",
-		"wasm": "wasm-pack build ./proto-query-engine --target web",
+		"wasm": ". $HOME/.cargo/env && wasm-pack build ./proto-query-engine --target web",
 		"install-rust": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && . $HOME/.cargo/env && rustup toolchain install stable --profile minimal && rustup target add wasm32-unknown-unknown"
 	},
 	"devDependencies": {
