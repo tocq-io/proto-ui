@@ -1,12 +1,11 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 import wasm from 'vite-plugin-wasm';
-import wasmPack from 'vite-plugin-wasm-pack';
 
 export default defineConfig({
-	plugins: [wasm(), sveltekit(), wasmPack('./proto-query-engine')],
+	plugins: [wasm(), sveltekit()],
 	optimizeDeps: {
-		exclude: ['@surrealdb/wasm', 'surrealql.wasm', 'surrealdb.wasm'],
+		exclude: ['surrealdb.wasm', './proto-query-engine'],
 		esbuildOptions: {
 			target: 'esnext',
 		},
