@@ -8,6 +8,7 @@
 		"cf-build": "npm run build",
 		"preview": "npm run wasm && npm run build && wrangler pages dev",
 		"start-preview": "wrangler pages dev",
+		"wrglr-deploy": "wrangler pages deploy",
 		"test": "npm run test:integration && npm run test:unit",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -15,12 +16,11 @@
 		"format": "prettier --write .",
 		"test:integration": "playwright test",
 		"test:unit": "vitest",
-		"deploy": "npm run wasm && npm run proto-query-fix && npm run build && wrangler pages deploy",
+		"deploy": "npm run wasm && npm run build && wrangler pages deploy",
 		"cf-typegen": "wrangler types && mv worker-configuration.d.ts src/",
 		"wasm": ". $HOME/.cargo/env && wasm-pack build ./proto-query-engine --target web && npm run proto-query-fix",
 		"install-rust": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && . $HOME/.cargo/env && rustup toolchain install stable --profile minimal && rustup target add wasm32-unknown-unknown && cargo install wasm-pack",
-		"surreal-fix": "cp node_modules/surrealdb.wasm/dist/embedded/index_bg.wasm node_modules/.vite/deps/",
-		"proto-query-fix": "cp ./proto-query-engine/pkg/proto_query_engine_bg.wasm ."
+		"surreal-fix": "cp node_modules/surrealdb.wasm/dist/embedded/index_bg.wasm node_modules/.vite/deps/"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240718.0",
@@ -60,6 +60,7 @@
 	"dependencies": {
 		"@apache-arrow/ts": "^17.0.0",
 		"@xyflow/svelte": "^0.1.14",
+		"proto-query-engine": "file:../proto-query-engine/pkg",
 		"surrealdb.wasm": "^1.0.0-beta"
 	}
 }
