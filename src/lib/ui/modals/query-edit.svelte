@@ -1,14 +1,6 @@
 <script lang="ts">
-	import { load_csv, run_sql, delete_table, has_table } from 'proto-query-engine';
-	import {
-		Alert,
-		Button,
-		Checkbox,
-		Modal,
-		Textarea,
-		Toolbar,
-		ToolbarButton
-	} from 'flowbite-svelte';
+	import { run_sql } from 'proto-query-engine';
+	import { Alert, Modal, Textarea, Toolbar, ToolbarButton } from 'flowbite-svelte';
 	import {
 		BullhornOutline,
 		FloppyDiskAltOutline,
@@ -16,29 +8,35 @@
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 	import { persistQuery, updateQuery } from '$lib/queryUtils';
-	import { nodes, edges, type DataFileNode, sqlEditControl, isDataFileNode } from '$lib/storeUtils';
+	import { sqlEditControl } from '$lib/storeUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
 	import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
 
-	let tables = new Map<string, string>();
+	//let tables = new Map<string, string>();
 	let dbResult = '...';
 	let alertColor: FrameColor = 'green';
-
-	async function initTables(node: DataFileNode) {
-		let hasTable = false;
-		for (const edge of $edges) {
-			if (edge.target == $sqlEditControl.queryId && edge.source === node.id) {
-				hasTable = true;
-				if (!(await has_table(node.id))) {
-					load_csv(node.id, node.data.name);
+	async function getTables(): Promise<Set<string>> {
+		let tables = new Set<string>();
+		return run_sql('EXPLAIN ' + $sqlEditControl.sql).then((ipcResult) => {
+			const table = tableFromIPC(ipcResult);
+			for (const result of table.toArray()) {
+				const row = result.toArray();
+				// TODO this could probably be done in a more robust way...
+				if (row[0] === 'physical_plan') {
+					for (const analysis of row[1].split(/\n/)) {
+						let candidate: string = analysis.trim();
+						const idLength = 'CsvExec: file_groups={1 group: [['.length;
+						const startIndex = candidate.indexOf('CsvExec: file_groups={1 group: [[');
+						if (startIndex == 0) {
+							const endIndex = candidate.indexOf('.csv]]}, projection');
+							candidate = candidate.substring(idLength, endIndex);
+							tables.add(candidate.trim());
+						}
+					}
 				}
-				if (!tables.has(node.id)) {
-					tables.set(node.id, node.data.name);
-				}
-				break;
 			}
-		}
-		return hasTable;
+			return tables;
+		});
 	}
 	async function runSql() {
 		run_sql($sqlEditControl.sql)
@@ -58,34 +56,20 @@
 			});
 	}
 	async function saveSqlNode() {
-		const tableIds = new Set<string>(tables.keys());
+		const tableIds = await getTables();
 		await persistQuery($sqlEditControl.sql, tableIds).then(() => ($sqlEditControl.done = true));
+		$sqlEditControl.view = false;
 	}
 	async function updateSqlNode() {
-		const tableIds = new Set<string>(tables.keys());
+		const tableIds = await getTables();
 		await updateQuery($sqlEditControl.sql, tableIds, $sqlEditControl.queryId).then(
 			() => ($sqlEditControl.done = true)
 		);
+		$sqlEditControl.view = false;
 	}
-	async function manageTable(e: Event) {
-		const chck = <HTMLInputElement>e.target;
-		if (chck?.checked) {
-			if (!(await has_table(chck.id))) {
-				load_csv(chck.id, chck.name);
-				tables.set(chck.id, chck.name);
-			}
-		} else {
-			delete_table(chck.id, chck.name);
-			tables.delete(chck.id);
-		}
-	}
-	async function unloadTables() {
-		for (const [id, name] of tables) {
-			delete_table(id, name);
-		}
+	async function unload() {
 		dbResult = '...';
 		alertColor = 'green';
-		tables = new Map<string, string>();
 	}
 	$: dbResult;
 </script>
@@ -93,7 +77,7 @@
 <Modal
 	title="Run a query on selected tables"
 	bind:open={$sqlEditControl.view}
-	on:close={() => unloadTables()}
+	on:close={() => unload()}
 	autoclose
 	class="min-w-full"
 >
@@ -106,50 +90,30 @@
 		bind:value={$sqlEditControl.sql}
 	>
 		<div slot="header" class="mt-0.5 flex h-5/6 items-center justify-between">
-			<span />
-			<Toolbar embedded slot="end">
+			<Toolbar embedded slot="start">
 				<ToolbarButton
 					size="sm"
 					name="reset"
 					on:click={() => (($sqlEditControl.sql = ''), (dbResult = '...'))}
 					><TrashBinOutline class="h-6 w-6" /></ToolbarButton
 				>
+			</Toolbar>
+			<Toolbar embedded slot="end">
+				{#if $sqlEditControl.queryId}
+					<ToolbarButton size="sm" name="reset" on:click={() => updateSqlNode()}
+						><FloppyDiskAltOutline class="h-6 w-6" /></ToolbarButton
+					>
+				{:else}
+					<ToolbarButton size="sm" name="run" on:click={() => saveSqlNode()}
+						><FloppyDiskAltOutline /></ToolbarButton
+					>
+				{/if}
 				<ToolbarButton size="sm" name="run" on:click={() => runSql()}
 					><RocketOutline class="h-6 w-6" /></ToolbarButton
 				>
 			</Toolbar>
 		</div>
 	</Textarea>
-
-	<div class="grid pt-1 sm:grid-cols-2">
-		<div class="flex gap-3">
-			<span>Loaded tables:</span>
-			{#each $nodes as node}
-				{#if isDataFileNode(node)}
-					{#await initTables(node) then hasTable}
-						<Checkbox
-							class="mb-4"
-							checked={hasTable}
-							name={node.data.name}
-							id={node.id}
-							on:change={(e) => manageTable(e)}>{node.data.name}</Checkbox
-						>
-					{/await}
-				{/if}
-			{/each}
-		</div>
-		<div class="text-right">
-			{#if $sqlEditControl.queryId}
-				<Button class="h-2/3 gap-1" color="primary" on:click={() => updateSqlNode()}
-					><FloppyDiskAltOutline />Update Query</Button
-				>
-			{:else}
-				<Button class="h-2/3 gap-1" color="primary" on:click={() => saveSqlNode()}
-					><FloppyDiskAltOutline />Save Query</Button
-				>
-			{/if}
-		</div>
-	</div>
 	<Alert color={alertColor}>
 		<div class="flex items-center gap-3">
 			<BullhornOutline class="h-5 w-5" />

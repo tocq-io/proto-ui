@@ -19,7 +19,6 @@
 			sql: '',
 			done: false
 		});
-		console.log($sqlEditControl);
 	}
 
 	$: gbPromise = writable(getAvailableGb());
