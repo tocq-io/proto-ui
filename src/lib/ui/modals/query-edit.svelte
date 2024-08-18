@@ -21,8 +21,7 @@
 	import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
 
 	let tables = new Map<string, string>();
-	const defaultQuery = 'SELECT a, MIN(b) FROM test WHERE a <= b GROUP BY a LIMIT 100';
-	let dbResult = defaultQuery;
+	let dbResult = '...';
 	let alertColor: FrameColor = 'green';
 
 	async function initTables(node: DataFileNode) {
@@ -45,7 +44,8 @@
 		run_sql($sqlEditControl.sql)
 			.then((ipcResult) => {
 				const table = tableFromIPC(ipcResult);
-				dbResult = table.toString();
+				const result = table.toString();
+				dbResult = result.length > 1024 ? result.substring(0, 1024) + ' ... ... ...' : result;
 				alertColor = 'green';
 			})
 			.catch((e) => {
@@ -83,7 +83,7 @@
 		for (const [id, name] of tables) {
 			delete_table(id, name);
 		}
-		dbResult = defaultQuery;
+		dbResult = '...';
 		alertColor = 'green';
 		tables = new Map<string, string>();
 	}
@@ -108,7 +108,10 @@
 		<div slot="header" class="mt-0.5 flex h-5/6 items-center justify-between">
 			<span />
 			<Toolbar embedded slot="end">
-				<ToolbarButton size="sm" name="reset" on:click={() => ($sqlEditControl.sql = '')}
+				<ToolbarButton
+					size="sm"
+					name="reset"
+					on:click={() => (($sqlEditControl.sql = ''), (dbResult = '...'))}
 					><TrashBinOutline class="h-6 w-6" /></ToolbarButton
 				>
 				<ToolbarButton size="sm" name="run" on:click={() => runSql()}
@@ -150,7 +153,7 @@
 	<Alert color={alertColor}>
 		<div class="flex items-center gap-3">
 			<BullhornOutline class="h-5 w-5" />
-			<span class="text-lg font-medium">Results</span>
+			<span class="text-lg font-medium">Result preview</span>
 		</div>
 		<p class="mb-4 mt-2 text-sm">{dbResult}</p>
 	</Alert>
