@@ -33,11 +33,11 @@ async function getCsvHeader(file: File): Promise<string[]> {
 }
 export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: File, tableName: string, shiftX: number) {
 	await digestFile(file)
-		.then((digestHex) => (importDir.getFileHandle(digestHex, { create: true }))
+		.then(([digest, salt]) => (importDir.getFileHandle(digest, { create: true }))
 			.then((importFile) => (importFile.createWritable())
 				.then((writable) => (writable.write(file))
 					.then(() => (writable.close())
 						.then(() => (getCsvHeader(file))
-							.then((header) => (storeCsvFile(header, file.size, tableName, digestHex)
+							.then((header) => (storeCsvFile(header, file.size, tableName, digest, salt)
 								.then((fileData) => (addDataNode(fileData, shiftX, 0))))))))));
 }

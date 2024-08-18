@@ -14,15 +14,15 @@ export function openDB() {
 		}
 	};
 }
-export function resetKeys(){
+export function resetKeys() {
 	indexedDB.deleteDatabase('identity');
 }
 function storeKeyPair(id: string, keys: CryptoKeyPair) {
 	const store = db.transaction('keypairs', 'readwrite').objectStore('keypairs');
 	store.add({ id: id, keys: keys });
 }
-async function getKeyPair(id: string): Promise<CryptoKeyPair | undefined> {
-	const promise = new Promise<CryptoKeyPair>((resolve, reject) => {
+async function getKeyPair(id: string): Promise<CryptoKeyPair> {
+	return new Promise<CryptoKeyPair>((resolve, reject) => {
 		let keys: CryptoKeyPair;
 		const tx = db.transaction('keypairs', 'readonly');
 		tx.oncomplete = () => resolve(keys);
@@ -35,14 +35,6 @@ async function getKeyPair(id: string): Promise<CryptoKeyPair | undefined> {
 		const request = store.get(id);
 		request.onsuccess = () => (keys = request.result.keys);
 	});
-	let keys;
-	try {
-		keys = await promise;
-	} catch (error) {
-		console.log(error);
-		return undefined;
-	}
-	return keys;
 }
 export async function initKeyPair(): Promise<string> {
 	// TODO use proper user onboarding to set a key
@@ -63,11 +55,11 @@ export async function initKeyPair(): Promise<string> {
 	await storeKeyPair(pubKeyString, keyPair);
 	return pubKeyString;
 }
-export async function digestFile(file: File): Promise<string> {
+export async function digestFile(file: File): Promise<[string, Uint8Array]> {
 	const fileUint8 = await file.arrayBuffer(); // encode as (utf-8) Uint8Array
 	return getUserId().then((userId) => digestBuffer(fileUint8, userId));
 }
-export async function digestString(data: string): Promise<string> {
+export async function digestString(data: string): Promise<[string, Uint8Array]> {
 	const enc = new TextEncoder();
 	const dataUint8 = enc.encode(data); // encode as (utf-8) Uint8Array
 	return getUserId().then((userId) => digestBuffer(dataUint8, userId));
@@ -77,9 +69,14 @@ async function quickHash(value: ArrayBuffer): Promise<string> {
 	const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
 	return hashArray.map((b) => b.toString(16).padStart(2, '0')).join(''); // convert bytes to hex string
 }
-export async function digestBuffer(buffy: ArrayBuffer, userId: string): Promise<string> {
+async function digestBuffer(buffer: ArrayBuffer, userId: string): Promise<[string, Uint8Array]> {
 	const keys = await getKeyPair(userId);
-	if (keys === undefined) return '';
-	const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', keys.privateKey, buffy);
-	return quickHash(signature);
+	if (keys === undefined) return ['', new Uint8Array(0)];
+	const rsArr = new Uint8Array(16);
+	const randomSalt = crypto.getRandomValues(rsArr);
+	var saltedBuffer = new Uint8Array(buffer.byteLength + randomSalt.byteLength);
+	saltedBuffer.set(new Uint8Array(buffer), 0);
+	saltedBuffer.set(new Uint8Array(randomSalt), buffer.byteLength);
+	const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', keys.privateKey, saltedBuffer);
+	return [await quickHash(signature), saltedBuffer];
 }
