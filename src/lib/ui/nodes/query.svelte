@@ -1,10 +1,8 @@
 <script lang="ts">
-	import { tableFromIPC } from '@apache-arrow/ts';
 	import { Handle, Position } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
 	import { CloseCircleOutline, EditOutline, TableRowOutline } from 'flowbite-svelte-icons';
-	import { run_sql } from 'proto-query-engine';
-	import { type QueryProps, previewTable, sqlEditControl } from '$lib/storeUtils';
+	import { type QueryProps, previewTable, results, sqlEditControl } from '$lib/storeUtils';
 	import { deleteQuery } from '$lib/queryUtils';
 
 	type $$Props = QueryProps;
@@ -14,22 +12,23 @@
 	export let id: $$Props['id'];
 
 	async function setPreviewData() {
-		await run_sql(data.sql).then((ipcResult) => {
-			$previewTable.table = tableFromIPC(ipcResult);
-			$previewTable.view = true;
-		});
+		$previewTable.table = $results.get(id);
+		$previewTable.view = true;
 	}
 	async function showEditView() {
 		sqlEditControl.set({
 			view: true,
-			done: false,
 			sql: data.sql,
 			queryId: id
 		});
 	}
 	async function deleteSqlNode() {
-		$sqlEditControl.done = false;
-		await deleteQuery(id).then(() => ($sqlEditControl.done = true));
+		deleteQuery(id).then(() => {
+			results.update((rslts) => {
+				rslts.delete(id);
+				return rslts;
+			});
+		});
 	}
 </script>
 

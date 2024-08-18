@@ -16,20 +16,7 @@ export async function getFileImportDir(): Promise<FileSystemDirectoryHandle> {
 }
 export async function resetImportDir() {
 	return navigator.storage.getDirectory().then(
-		(opfsRoot) => (opfsRoot.removeEntry('fileImport', {recursive: true})));
-}
-async function getCsvHeader(file: File): Promise<string[]> {
-	return new Promise<string[]>((resolve, reject) => {
-		const reader = new FileReader();
-		reader.onload = () => {
-			const text = reader.result;
-			const firstLine = (<string>text)?.split('\n').shift();
-			let header = firstLine?.split(',');
-			resolve(header || []);
-		}
-		reader.onerror = reject;
-		reader.readAsText(file, 'UTF-8');
-	});
+		(opfsRoot) => (opfsRoot.removeEntry('fileImport', { recursive: true })));
 }
 export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: File, tableName: string, shiftX: number) {
 	await digestFile(file)
@@ -37,7 +24,6 @@ export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: F
 			.then((importFile) => (importFile.createWritable())
 				.then((writable) => (writable.write(file))
 					.then(() => (writable.close())
-						.then(() => (getCsvHeader(file))
-							.then((header) => (storeCsvFile(header, file.size, tableName, digest, salt)
-								.then((fileData) => (addDataNode(fileData, shiftX, 0))))))))));
+						.then(() => (storeCsvFile(file.size, tableName, digest, salt)
+							.then((fileData) => (addDataNode(fileData, shiftX, 0)))))))));
 }

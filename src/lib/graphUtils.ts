@@ -10,7 +10,6 @@ type User = {
 export type DataFile = TocqNode & {
 	fileName: string;
 	size: number;
-	schema: string[];
 };
 export type Query = TocqNode & {
 	statement: string;
@@ -44,14 +43,13 @@ export async function openGraphDb() {
 	// 			))));
 }
 // Data Files
-export async function storeCsvFile(csvHeader: string[], csvSize: number, csvName: string, csvId: string, salt: Uint8Array): Promise<DataFile> {
+export async function storeCsvFile(csvSize: number, csvName: string, csvId: string, salt: Uint8Array): Promise<DataFile> {
 	// TODO use UPSERT with v2 of DB
 	const result = await db.create<DataFile>('data', {
 		id: new RecordId('data', csvId),
 		format: 'text/csv',
 		fileName: csvName,
 		size: csvSize,
-		schema: csvHeader,
 		salt: salt,
 	});
 	return result[0];

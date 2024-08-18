@@ -8,12 +8,12 @@
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 	import { persistQuery, updateQuery } from '$lib/queryUtils';
-	import { sqlEditControl } from '$lib/storeUtils';
-	import { tableFromIPC } from '@apache-arrow/ts';
+	import { results, sqlEditControl } from '$lib/storeUtils';
+	import { Table, tableFromIPC } from '@apache-arrow/ts';
 	import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
 
-	//let tables = new Map<string, string>();
 	let dbResult = '...';
+	let errMsg: string = '';
 	let alertColor: FrameColor = 'green';
 	async function getTables(): Promise<Set<string>> {
 		let tables = new Set<string>();
@@ -26,7 +26,7 @@
 					for (const analysis of row[1].split(/\n/)) {
 						let candidate: string = analysis.trim();
 						const idLength = 'CsvExec: file_groups={1 group: [['.length;
-						const startIndex = candidate.indexOf('CsvExec: file_groups={1 group: [[');
+						const startIndex = candidate.indexOf('CsvExec: ');
 						if (startIndex == 0) {
 							const endIndex = candidate.indexOf('.csv]]}, projection');
 							candidate = candidate.substring(idLength, endIndex);
@@ -38,32 +38,59 @@
 			return tables;
 		});
 	}
-	async function runSql() {
-		run_sql($sqlEditControl.sql)
+	async function runSql(): Promise<Table | undefined> {
+		return run_sql($sqlEditControl.sql)
 			.then((ipcResult) => {
-				const table = tableFromIPC(ipcResult);
-				const result = table.toString();
-				dbResult = result.length > 1024 ? result.substring(0, 1024) + ' ... ... ...' : result;
-				alertColor = 'green';
+				return tableFromIPC(ipcResult);
 			})
 			.catch((e) => {
-				let errMsg: string = e.message;
+				errMsg = e.message;
+				return undefined;
+			});
+	}
+	async function showSql() {
+		runSql().then((tbl) => {
+			if (tbl) {
+				const result = tbl.toString();
+				dbResult = result.length > 1024 ? result.substring(0, 1024) + ' ... ... ...' : result;
+				alertColor = 'green';
+			} else {
 				if (errMsg.toLowerCase().includes('table') && errMsg.toLowerCase().includes('not found')) {
 					errMsg = errMsg.replace('datafusion.public.', '') + '. Please load a table.';
 				}
 				dbResult = errMsg;
 				alertColor = 'red';
-			});
+				errMsg = '';
+			}
+		});
 	}
 	async function saveSqlNode() {
-		const tableIds = await getTables();
-		await persistQuery($sqlEditControl.sql, tableIds).then(() => ($sqlEditControl.done = true));
+		getTables().then((tableIds) =>
+			persistQuery($sqlEditControl.sql, tableIds).then((id) => {
+				runSql().then((tbl) => {
+					if (tbl) {
+						results.update((rslt) => {
+							rslt.set(id, tbl);
+							return rslt;
+						});
+					}
+				});
+			})
+		);
 		$sqlEditControl.view = false;
 	}
 	async function updateSqlNode() {
-		const tableIds = await getTables();
-		await updateQuery($sqlEditControl.sql, tableIds, $sqlEditControl.queryId).then(
-			() => ($sqlEditControl.done = true)
+		getTables().then((tableIds) =>
+			updateQuery($sqlEditControl.sql, tableIds, $sqlEditControl.queryId).then((id) => {
+				runSql().then((tbl) => {
+					if (tbl) {
+						results.update((rslt) => {
+							rslt.set(id, tbl);
+							return rslt;
+						});
+					}
+				});
+			})
 		);
 		$sqlEditControl.view = false;
 	}
@@ -108,8 +135,12 @@
 						><FloppyDiskAltOutline /></ToolbarButton
 					>
 				{/if}
-				<ToolbarButton size="sm" name="run" on:click={() => runSql()}
-					><RocketOutline class="h-6 w-6" /></ToolbarButton
+				<ToolbarButton
+					size="sm"
+					name="run"
+					on:click={() => {
+						showSql();
+					}}><RocketOutline class="h-6 w-6" /></ToolbarButton
 				>
 			</Toolbar>
 		</div>

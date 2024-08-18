@@ -33,7 +33,6 @@ export type PreviewTable = {
 };
 type SqlEdit = {
     view: boolean;
-    done: boolean;
     sql: string;
     queryId: string;
 };
@@ -44,13 +43,13 @@ export let previewTable: Writable<PreviewTable> = writable({
 });
 export let sqlEditControl: Writable<SqlEdit> = writable({
     view: false,
-    done: false,
     sql: '',
     queryId: ''
 });
 export let showDataUpload = writable(false);
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
+export const results = writable<Map<string, Table>>(new Map());
 ///// HELPER FUNCTIONS
 export function resetGraph(){
     nodes.set([]);

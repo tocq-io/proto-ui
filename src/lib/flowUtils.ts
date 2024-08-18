@@ -1,7 +1,7 @@
 import { type Edge } from '@xyflow/svelte';
 import { getDataGraph, type DataFile, type Query, type InOutEdge } from '$lib/graphUtils';
 import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges, sqlEditControl, resetGraph } from '$lib/storeUtils';
-import { load_csv } from 'proto-query-engine';
+import { has_table, load_csv } from 'proto-query-engine';
 export function addDataNode(df: DataFile, shiftX: number = 0, shiftY: number = 0) {
     let fileData = {} as DataFileNode;
     fileData.type = 'dataNode';
@@ -13,14 +13,14 @@ export function addDataNode(df: DataFile, shiftX: number = 0, shiftY: number = 0
     fileData.data = {
         name: df.fileName,
         size: df.size,
-        schema: df.schema,
         format: df.format
     } as DataFileData;
     nodes.update((nodeArr) => {
         nodeArr.push(fileData);
         return nodeArr;
     });
-    load_csv(fileData.id, fileData.data.name);
+    has_table(fileData.data.name)
+        .then((hasTable) => {if (!hasTable) load_csv(fileData.id, fileData.data.name);});
 }
 export function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 0) {
     let queryData = {} as QueryNode;
@@ -60,10 +60,6 @@ export function addQueryDataEdge(edge: InOutEdge) {
     });
 }
 export async function initFlow() {
-    sqlEditControl.update((ctrl)=>{
-        ctrl.done = false;
-        return ctrl;
-    });
     resetGraph();
     await getDataGraph().then((data) => {
         let countData = 0;
@@ -83,9 +79,5 @@ export async function initFlow() {
                 }
             }
         }
-    });
-    sqlEditControl.update((ctrl)=>{
-        ctrl.done = true;
-        return ctrl;
     });
 }

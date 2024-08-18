@@ -17,7 +17,6 @@
 			view: true,
 			queryId: '',
 			sql: '',
-			done: false
 		});
 	}
 
