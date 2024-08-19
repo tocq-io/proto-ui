@@ -1,6 +1,14 @@
 <script lang="ts">
 	import { run_sql } from 'proto-query-engine';
-	import { Alert, Modal, Textarea, Toolbar, ToolbarButton } from 'flowbite-svelte';
+	import {
+		Alert,
+		Button,
+		ButtonGroup,
+		Modal,
+		Textarea,
+		Toolbar,
+		ToolbarButton
+	} from 'flowbite-svelte';
 	import {
 		BullhornOutline,
 		FloppyDiskAltOutline,
@@ -11,6 +19,7 @@
 	import { results, sqlEditControl } from '$lib/storeUtils';
 	import { Table, tableFromIPC } from '@apache-arrow/ts';
 	import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
+	import CodeEditor from '$lib/ui/editor/code-editor.svelte';
 
 	let dbResult = '...';
 	let errMsg: string = '';
@@ -21,7 +30,7 @@
 			const table = tableFromIPC(ipcResult);
 			for (const result of table.toArray()) {
 				const row = result.toArray();
-				// TODO this could probably be done in a more robust way...
+				// TODO this could probably be done in a more robust way on the rust side...
 				if (row[0] === 'physical_plan') {
 					for (const analysis of row[1].split(/\n/)) {
 						let candidate: string = analysis.trim();
@@ -102,49 +111,31 @@
 </script>
 
 <Modal
-	title="Run a query on selected tables"
 	bind:open={$sqlEditControl.view}
 	on:close={() => unload()}
 	autoclose
 	class="min-w-full"
 >
-	<Textarea
-		id="sqlEditor"
-		rows="8"
-		class="mb-4"
-		headerClass="h-10"
-		placeholder="Write some Datafusion SQL"
-		bind:value={$sqlEditControl.sql}
-	>
-		<div slot="header" class="mt-0.5 flex h-5/6 items-center justify-between">
-			<Toolbar embedded slot="start">
-				<ToolbarButton
-					size="sm"
-					name="reset"
-					on:click={() => (($sqlEditControl.sql = ''), (dbResult = '...'))}
-					><TrashBinOutline class="h-6 w-6" /></ToolbarButton
-				>
-			</Toolbar>
-			<Toolbar embedded slot="end">
-				{#if $sqlEditControl.queryId}
-					<ToolbarButton size="sm" name="reset" on:click={() => updateSqlNode()}
-						><FloppyDiskAltOutline class="h-6 w-6" /></ToolbarButton
-					>
-				{:else}
-					<ToolbarButton size="sm" name="run" on:click={() => saveSqlNode()}
-						><FloppyDiskAltOutline /></ToolbarButton
-					>
-				{/if}
-				<ToolbarButton
-					size="sm"
-					name="run"
-					on:click={() => {
-						showSql();
-					}}><RocketOutline class="h-6 w-6" /></ToolbarButton
-				>
-			</Toolbar>
+	<div class="grid sm:grid-cols-2 pt-4">
+		<div>
+			<p class="mt-1 text-lg font-semibold">Run a query on selected tables</p>
 		</div>
-	</Textarea>
+		<div class="text-right">
+			<ButtonGroup>
+				<Button
+					on:click={() => (($sqlEditControl.sql = ''), (dbResult = '...'), (alertColor = 'green'))}
+					><TrashBinOutline /></Button
+				>
+				{#if $sqlEditControl.queryId}
+					<Button on:click={() => updateSqlNode()}><FloppyDiskAltOutline /></Button>
+				{:else}
+					<Button on:click={() => saveSqlNode()}><FloppyDiskAltOutline /></Button>
+				{/if}
+				<Button on:click={() => showSql()}><RocketOutline /></Button>
+			</ButtonGroup>
+		</div>
+	</div>
+	<CodeEditor />
 	<Alert color={alertColor}>
 		<div class="flex items-center gap-3">
 			<BullhornOutline class="h-5 w-5" />

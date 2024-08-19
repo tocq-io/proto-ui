@@ -60,7 +60,9 @@
 	"type": "module",
 	"dependencies": {
 		"@apache-arrow/ts": "^17.0.0",
+		"@codemirror/lang-sql": "^6.7.0",
 		"@xyflow/svelte": "^0.1.14",
+		"codemirror": "^6.0.1",
 		"proto-query-engine": "file:../proto-query-engine/pkg",
 		"surrealdb.wasm": "^1.0.0-beta"
 	}
