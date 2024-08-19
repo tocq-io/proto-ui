@@ -1,14 +1,6 @@
 <script lang="ts">
 	import { run_sql } from 'proto-query-engine';
-	import {
-		Alert,
-		Button,
-		ButtonGroup,
-		Modal,
-		Textarea,
-		Toolbar,
-		ToolbarButton
-	} from 'flowbite-svelte';
+	import { Alert, Button, ButtonGroup, Modal } from 'flowbite-svelte';
 	import {
 		BullhornOutline,
 		FloppyDiskAltOutline,
@@ -20,13 +12,15 @@
 	import { Table, tableFromIPC } from '@apache-arrow/ts';
 	import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
 	import CodeEditor from '$lib/ui/editor/code-editor.svelte';
+	import { writable } from 'svelte/store';
 
 	let dbResult = '...';
 	let errMsg: string = '';
 	let alertColor: FrameColor = 'green';
+	let codeText = writable('Select * from world');
 	async function getTables(): Promise<Set<string>> {
 		let tables = new Set<string>();
-		return run_sql('EXPLAIN ' + $sqlEditControl.sql).then((ipcResult) => {
+		return run_sql('EXPLAIN ' + $codeText).then((ipcResult) => {
 			const table = tableFromIPC(ipcResult);
 			for (const result of table.toArray()) {
 				const row = result.toArray();
@@ -48,7 +42,7 @@
 		});
 	}
 	async function runSql(): Promise<Table | undefined> {
-		return run_sql($sqlEditControl.sql)
+		return run_sql($codeText)
 			.then((ipcResult) => {
 				return tableFromIPC(ipcResult);
 			})
@@ -75,7 +69,7 @@
 	}
 	async function saveSqlNode() {
 		getTables().then((tableIds) =>
-			persistQuery($sqlEditControl.sql, tableIds).then((id) => {
+			persistQuery($codeText, tableIds).then((id) => {
 				runSql().then((tbl) => {
 					if (tbl) {
 						results.update((rslt) => {
@@ -90,7 +84,7 @@
 	}
 	async function updateSqlNode() {
 		getTables().then((tableIds) =>
-			updateQuery($sqlEditControl.sql, tableIds, $sqlEditControl.queryId).then((id) => {
+			updateQuery($codeText, tableIds, $sqlEditControl.queryId).then((id) => {
 				runSql().then((tbl) => {
 					if (tbl) {
 						results.update((rslt) => {
@@ -106,36 +100,38 @@
 	async function unload() {
 		dbResult = '...';
 		alertColor = 'green';
+		$sqlEditControl.sql = '';
 	}
 	$: dbResult;
 </script>
 
-<Modal
-	bind:open={$sqlEditControl.view}
-	on:close={() => unload()}
-	autoclose
-	class="min-w-full"
->
-	<div class="grid sm:grid-cols-2 pt-4">
+<Modal bind:open={$sqlEditControl.view} on:close={() => unload()} autoclose class="min-w-full">
+	<div class="grid pt-4 sm:grid-cols-2">
 		<div>
-			<p class="mt-1 text-lg font-semibold">Run a query on selected tables</p>
+			<p class="text-lg font-semibold">Run SQL on selected tables</p>
 		</div>
 		<div class="text-right">
 			<ButtonGroup>
 				<Button
-					on:click={() => (($sqlEditControl.sql = ''), (dbResult = '...'), (alertColor = 'green'))}
+					size="lg"
+					class="h-8 w-8"
+					on:click={() => (($codeText = ''), (dbResult = '...'), (alertColor = 'green'))}
 					><TrashBinOutline /></Button
 				>
 				{#if $sqlEditControl.queryId}
-					<Button on:click={() => updateSqlNode()}><FloppyDiskAltOutline /></Button>
+					<Button size="lg" class="h-8 w-8" on:click={() => updateSqlNode()}
+						><FloppyDiskAltOutline /></Button
+					>
 				{:else}
-					<Button on:click={() => saveSqlNode()}><FloppyDiskAltOutline /></Button>
+					<Button size="lg" class="h-8 w-8" on:click={() => saveSqlNode()}
+						><FloppyDiskAltOutline /></Button
+					>
 				{/if}
-				<Button on:click={() => showSql()}><RocketOutline /></Button>
+				<Button size="lg" class="h-8 w-8" on:click={() => showSql()}><RocketOutline /></Button>
 			</ButtonGroup>
 		</div>
 	</div>
-	<CodeEditor />
+	<CodeEditor {codeText} />
 	<Alert color={alertColor}>
 		<div class="flex items-center gap-3">
 			<BullhornOutline class="h-5 w-5" />
