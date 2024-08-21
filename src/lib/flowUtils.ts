@@ -1,9 +1,8 @@
 import { type Edge } from '@xyflow/svelte';
 import { getDataGraph, type DataFile, type Query, type InOutEdge } from '$lib/graphUtils';
-import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges, resetGraph, results } from '$lib/storeUtils';
-import { has_table, register_csv, run_sql } from 'proto-query-engine';
-import { tableFromIPC } from '@apache-arrow/ts';
-export function addDataNode(df: DataFile, shiftX: number = 0, shiftY: number = 0) {
+import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges, resetGraph } from '$lib/storeUtils';
+import { register_csv } from 'proto-query-engine';
+export async function addDataNode(df: DataFile, shiftX: number = 0, shiftY: number = 0) {
     let fileData = {} as DataFileNode;
     fileData.type = 'dataNode';
     fileData.id = df.id.id.toString();
@@ -20,14 +19,9 @@ export function addDataNode(df: DataFile, shiftX: number = 0, shiftY: number = 0
         nodeArr.push(fileData);
         return nodeArr;
     });
-    has_table(fileData.data.name)
-        .then((hasTable) => {
-            if (!hasTable) {
-                register_csv(fileData.id + '.csv', fileData.data.name);
-            }
-        });
+    await register_csv(fileData.id + '.csv', fileData.data.name);
 }
-export function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 0) {
+export async function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 0) {
     let queryData = {} as QueryNode;
     queryData.type = 'queryNode';
     queryData.id = query.id.id.toString();
@@ -42,13 +36,6 @@ export function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 
     nodes.update((nodeArr) => {
         nodeArr.push(queryData);
         return nodeArr;
-    });
-    run_sql(queryData.data.sql).then((ipcResult) => {
-        const table = tableFromIPC(ipcResult);
-        results.update((rslt) => {
-            rslt.set(queryData.id, table);
-            return rslt;
-        });
     });
 }
 export function addQueryDataEdge(edge: InOutEdge) {
@@ -73,22 +60,20 @@ export function addQueryDataEdge(edge: InOutEdge) {
 }
 export async function initFlow() {
     resetGraph();
-    getDataGraph().then(async (data) => {
-        let countData = 0;
-        let countQuery = 0;
-        for (const datum of data) {
-            for (const entry of datum) {
-                switch (entry.id.tb) {
-                    case 'data':
-                        addDataNode(<DataFile>entry, countData++ * 480, 0);
-                        break;
-                    case 'queries':
-                        addQueryNode(<Query>entry, countQuery++ * 640, 160);
-                        break;
-                    case 'import':
-                        addQueryDataEdge(<InOutEdge>entry);
-                        break;
-                }
+    let countData = 0;
+    let countQuery = 0;
+    (await getDataGraph()).forEach(async (data) => {
+        for (const entry of data) {
+            switch (entry.id.tb) {
+                case 'data':
+                    await addDataNode(<DataFile>entry, countData++ * 480, 0);
+                    break;
+                case 'queries':
+                    await addQueryNode(<Query>entry, countQuery++ * 640, 160);
+                    break;
+                case 'import':
+                    addQueryDataEdge(<InOutEdge>entry);
+                    break;
             }
         }
     });

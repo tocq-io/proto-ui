@@ -49,7 +49,6 @@ export let sqlEditControl: Writable<SqlEdit> = writable({
 export let showDataUpload = writable(false);
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
-export const results = writable<Map<string, Table>>(new Map());
 ///// HELPER FUNCTIONS
 export function resetGraph(){
     nodes.set([]);

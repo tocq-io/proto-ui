@@ -2,8 +2,10 @@
 	import { Handle, Position } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
 	import { CloseCircleOutline, EditOutline, TableRowOutline } from 'flowbite-svelte-icons';
-	import { type QueryProps, previewTable, results, sqlEditControl } from '$lib/storeUtils';
+	import { type QueryProps, previewTable, sqlEditControl } from '$lib/storeUtils';
 	import { deleteQuery } from '$lib/queryUtils';
+	import { run_sql } from 'proto-query-engine';
+	import { tableFromIPC } from '@apache-arrow/ts';
 
 	type $$Props = QueryProps;
 	$$restProps;
@@ -12,8 +14,10 @@
 	export let id: $$Props['id'];
 
 	async function setPreviewData() {
-		$previewTable.table = $results.get(id);
-		$previewTable.view = true;
+		run_sql(data.sql).then((ipcResult) => {
+			$previewTable.table = tableFromIPC(ipcResult);
+			$previewTable.view = true;
+		});
 	}
 	async function showEditView() {
 		sqlEditControl.set({
@@ -23,12 +27,7 @@
 		});
 	}
 	async function deleteSqlNode() {
-		deleteQuery(id).then(() => {
-			results.update((rslts) => {
-				rslts.delete(id);
-				return rslts;
-			});
-		});
+		deleteQuery(id);
 	}
 </script>
 

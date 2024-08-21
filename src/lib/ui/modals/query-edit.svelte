@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { run_sql } from 'proto-query-engine';
 	import { Alert, Button, ButtonGroup, Modal } from 'flowbite-svelte';
-	import {
-		BullhornOutline,
-		FloppyDiskAltOutline,
-		RocketOutline,
-		TrashBinOutline
-	} from 'flowbite-svelte-icons';
+	import { BullhornOutline, FloppyDiskAltOutline, RocketOutline } from 'flowbite-svelte-icons';
 	import { persistQuery, updateQuery } from '$lib/queryUtils';
 	import { sqlEditControl } from '$lib/storeUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
@@ -41,21 +36,26 @@
 		});
 	}
 	async function showSql() {
-		run_sql($codeText)
-			.then((ipcResult) => {
-				const tbl = tableFromIPC(ipcResult);
-				const result = tbl.toString();
-				dbResult = result.length > 1024 ? result.substring(0, 1024) + ' ... ... ...' : result;
-				alertColor = 'green';
-			})
-			.catch((e) => {
-				let errMsg = e.message;
-				if (errMsg.toLowerCase().includes('table') && errMsg.toLowerCase().includes('not found')) {
-					errMsg = errMsg.replace('datafusion.public.', '') + '. Please load a table.';
-				}
-				dbResult = errMsg;
-				alertColor = 'red';
-			});
+		if ($codeText) {
+			run_sql($codeText)
+				.then((ipcResult) => {
+					const tbl = tableFromIPC(ipcResult);
+					const result = tbl.toString();
+					dbResult = result.length > 1024 ? result.substring(0, 1024) + ' ... ... ...' : result;
+					alertColor = 'green';
+				})
+				.catch((e) => {
+					let errMsg = e.message;
+					if (
+						errMsg.toLowerCase().includes('table') &&
+						errMsg.toLowerCase().includes('not found')
+					) {
+						errMsg = errMsg.replace('datafusion.public.', '') + '. Please load a table.';
+					}
+					dbResult = errMsg;
+					alertColor = 'red';
+				});
+		}
 	}
 	async function saveSqlNode() {
 		getTables().then((tableIds) => persistQuery($codeText, tableIds));
@@ -80,12 +80,6 @@
 		</div>
 		<div class="text-right">
 			<ButtonGroup>
-				<Button
-					size="lg"
-					class="h-8 w-8"
-					on:click={() => (($codeText = ''), (dbResult = '...'), (alertColor = 'green'))}
-					><TrashBinOutline /></Button
-				>
 				{#if $sqlEditControl.queryId}
 					<Button size="lg" class="h-8 w-8" on:click={() => updateSqlNode()}
 						><FloppyDiskAltOutline /></Button
