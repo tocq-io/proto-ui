@@ -4,8 +4,7 @@
 		Background,
 		Controls,
 		MiniMap,
-		type EdgeTypes,
-		SvelteFlowProvider
+		type EdgeTypes
 	} from '@xyflow/svelte';
 	import { nodes, edges } from '$lib/storeUtils';
 	import DataFile from '$lib/ui/nodes/data-file.svelte';

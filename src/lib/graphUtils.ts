@@ -43,10 +43,10 @@ export async function openGraphDb() {
 	// 			))));
 }
 // Data Files
-export async function storeCsvFile(csvSize: number, csvName: string, csvId: string, salt: Uint8Array): Promise<DataFile> {
+export async function storeCsvFile(csvSize: number, csvName: string, digest: string, salt: Uint8Array): Promise<DataFile> {
 	// TODO use UPSERT with v2 of DB
 	const result = await db.create<DataFile>('data', {
-		id: new RecordId('data', csvId),
+		id: new RecordId('data', digest),
 		format: 'text/csv',
 		fileName: csvName,
 		size: csvSize,

@@ -3,7 +3,7 @@
 	import { Handle, Position } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
 	import { CloseCircleOutline, TableRowOutline } from 'flowbite-svelte-icons';
-	import { delete_table, run_sql } from 'proto-query-engine';
+	import { unegister_table, run_sql } from 'proto-query-engine';
 	import { tableFromIPC } from '@apache-arrow/ts';
 	import { deleteDataRecordAndEdges } from '$lib/queryUtils';
 
@@ -15,7 +15,7 @@
 
 	async function deleteDataNode() {
 		await deleteDataRecordAndEdges(id).then(() =>
-			delete_table(id, data.name));
+			unegister_table(data.name));
 	}
 	async function setPreviewData() {
 		const sql = `SELECT * FROM ${data.name} LIMIT 10`;

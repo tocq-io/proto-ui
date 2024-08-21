@@ -12,15 +12,15 @@ export async function getAvailableGb(): Promise<string> {
 }
 export async function getFileImportDir(): Promise<FileSystemDirectoryHandle> {
 	return navigator.storage.getDirectory().then(
-		(opfsRoot) => (opfsRoot.getDirectoryHandle('fileImport', { create: true })));
+		(opfsRoot) => (opfsRoot.getDirectoryHandle('data', { create: true })));
 }
 export async function resetImportDir() {
 	return navigator.storage.getDirectory().then(
-		(opfsRoot) => (opfsRoot.removeEntry('fileImport', { recursive: true })));
+		(opfsRoot) => (opfsRoot.removeEntry('data', { recursive: true })));
 }
 export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: File, tableName: string, shiftX: number) {
 	await digestFile(file)
-		.then(([digest, salt]) => (importDir.getFileHandle(digest, { create: true }))
+		.then(([digest, salt]) => (importDir.getFileHandle(digest + '.csv', { create: true }))
 			.then((importFile) => (importFile.createWritable())
 				.then((writable) => (writable.write(file))
 					.then(() => (writable.close())

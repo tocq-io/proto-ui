@@ -1,5 +1,5 @@
 <script lang="ts">
-	import init from 'proto-query-engine';
+	import init, {init_panic_hook} from 'proto-query-engine';
 	import { Button } from 'flowbite-svelte';
 	import { PlusOutline } from 'flowbite-svelte-icons';
 	import { writable, type Writable } from 'svelte/store';
@@ -24,6 +24,7 @@
 
 	onMount(async () => {
 		await init();
+		init_panic_hook();
 		openDB();
 		await openGraphDb();
 		initFlow();

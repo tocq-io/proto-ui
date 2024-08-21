@@ -1,7 +1,8 @@
 import { type Edge } from '@xyflow/svelte';
 import { getDataGraph, type DataFile, type Query, type InOutEdge } from '$lib/graphUtils';
-import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges, sqlEditControl, resetGraph } from '$lib/storeUtils';
-import { has_table, load_csv } from 'proto-query-engine';
+import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges, resetGraph, results } from '$lib/storeUtils';
+import { has_table, register_csv, run_sql } from 'proto-query-engine';
+import { tableFromIPC } from '@apache-arrow/ts';
 export function addDataNode(df: DataFile, shiftX: number = 0, shiftY: number = 0) {
     let fileData = {} as DataFileNode;
     fileData.type = 'dataNode';
@@ -20,7 +21,11 @@ export function addDataNode(df: DataFile, shiftX: number = 0, shiftY: number = 0
         return nodeArr;
     });
     has_table(fileData.data.name)
-        .then((hasTable) => {if (!hasTable) load_csv(fileData.id, fileData.data.name);});
+        .then((hasTable) => {
+            if (!hasTable) {
+                register_csv(fileData.id + '.csv', fileData.data.name);
+            }
+        });
 }
 export function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 0) {
     let queryData = {} as QueryNode;
@@ -37,6 +42,13 @@ export function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 
     nodes.update((nodeArr) => {
         nodeArr.push(queryData);
         return nodeArr;
+    });
+    run_sql(queryData.data.sql).then((ipcResult) => {
+        const table = tableFromIPC(ipcResult);
+        results.update((rslt) => {
+            rslt.set(queryData.id, table);
+            return rslt;
+        });
     });
 }
 export function addQueryDataEdge(edge: InOutEdge) {
@@ -61,7 +73,7 @@ export function addQueryDataEdge(edge: InOutEdge) {
 }
 export async function initFlow() {
     resetGraph();
-    await getDataGraph().then((data) => {
+    getDataGraph().then(async (data) => {
         let countData = 0;
         let countQuery = 0;
         for (const datum of data) {

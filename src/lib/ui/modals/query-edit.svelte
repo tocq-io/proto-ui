@@ -8,14 +8,13 @@
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 	import { persistQuery, updateQuery } from '$lib/queryUtils';
-	import { results, sqlEditControl } from '$lib/storeUtils';
-	import { Table, tableFromIPC } from '@apache-arrow/ts';
+	import { sqlEditControl } from '$lib/storeUtils';
+	import { tableFromIPC } from '@apache-arrow/ts';
 	import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
 	import CodeEditor from '$lib/ui/editor/code-editor.svelte';
 	import { writable } from 'svelte/store';
 
 	let dbResult = '...';
-	let errMsg: string = '';
 	let alertColor: FrameColor = 'green';
 	let codeText = writable('Select * from world');
 	async function getTables(): Promise<Set<string>> {
@@ -41,60 +40,29 @@
 			return tables;
 		});
 	}
-	async function runSql(): Promise<Table | undefined> {
-		return run_sql($codeText)
-			.then((ipcResult) => {
-				return tableFromIPC(ipcResult);
-			})
-			.catch((e) => {
-				errMsg = e.message;
-				return undefined;
-			});
-	}
 	async function showSql() {
-		runSql().then((tbl) => {
-			if (tbl) {
+		run_sql($codeText)
+			.then((ipcResult) => {
+				const tbl = tableFromIPC(ipcResult);
 				const result = tbl.toString();
 				dbResult = result.length > 1024 ? result.substring(0, 1024) + ' ... ... ...' : result;
 				alertColor = 'green';
-			} else {
+			})
+			.catch((e) => {
+				let errMsg = e.message;
 				if (errMsg.toLowerCase().includes('table') && errMsg.toLowerCase().includes('not found')) {
 					errMsg = errMsg.replace('datafusion.public.', '') + '. Please load a table.';
 				}
 				dbResult = errMsg;
 				alertColor = 'red';
-				errMsg = '';
-			}
-		});
+			});
 	}
 	async function saveSqlNode() {
-		getTables().then((tableIds) =>
-			persistQuery($codeText, tableIds).then((id) => {
-				runSql().then((tbl) => {
-					if (tbl) {
-						results.update((rslt) => {
-							rslt.set(id, tbl);
-							return rslt;
-						});
-					}
-				});
-			})
-		);
+		getTables().then((tableIds) => persistQuery($codeText, tableIds));
 		$sqlEditControl.view = false;
 	}
 	async function updateSqlNode() {
-		getTables().then((tableIds) =>
-			updateQuery($codeText, tableIds, $sqlEditControl.queryId).then((id) => {
-				runSql().then((tbl) => {
-					if (tbl) {
-						results.update((rslt) => {
-							rslt.set(id, tbl);
-							return rslt;
-						});
-					}
-				});
-			})
-		);
+		getTables().then((tableIds) => updateQuery($codeText, tableIds, $sqlEditControl.queryId));
 		$sqlEditControl.view = false;
 	}
 	async function unload() {
