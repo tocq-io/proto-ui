@@ -3,7 +3,7 @@
 	import { Button } from 'flowbite-svelte';
 	import { CloseCircleOutline, EditOutline, TableRowOutline } from 'flowbite-svelte-icons';
 	import { type QueryProps, previewTable, sqlEditControl } from '$lib/storeUtils';
-	import { deleteQuery } from '$lib/queryUtils';
+	import { deleteQuery } from '$lib/crudUtils';
 	import { run_sql } from 'proto-query-engine';
 	import { tableFromIPC } from '@apache-arrow/ts';
 

@@ -5,7 +5,7 @@
 	import { CloseCircleOutline, TableRowOutline } from 'flowbite-svelte-icons';
 	import { unegister_table, run_sql } from 'proto-query-engine';
 	import { tableFromIPC } from '@apache-arrow/ts';
-	import { deleteDataRecordAndEdges } from '$lib/queryUtils';
+	import { deleteDataRecordAndEdges } from '$lib/crudUtils';
 
 	type $$Props = DataFileProps;
 	$$restProps;

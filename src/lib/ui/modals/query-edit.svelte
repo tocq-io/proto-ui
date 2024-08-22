@@ -2,7 +2,7 @@
 	import { run_sql } from 'proto-query-engine';
 	import { Alert, Button, ButtonGroup, Modal } from 'flowbite-svelte';
 	import { BullhornOutline, FloppyDiskAltOutline, RocketOutline } from 'flowbite-svelte-icons';
-	import { persistQuery, updateQuery } from '$lib/queryUtils';
+	import { persistQuery, updateQuery } from '$lib/crudUtils';
 	import { sqlEditControl } from '$lib/storeUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
 	import type { FrameColor } from 'flowbite-svelte/Frame.svelte';

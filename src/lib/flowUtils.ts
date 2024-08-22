@@ -1,4 +1,4 @@
-import { type Edge } from '@xyflow/svelte';
+import { type Edge, type Node } from '@xyflow/svelte';
 import { getDataGraph, type DataFile, type Query, type InOutEdge } from '$lib/graphUtils';
 import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges, resetGraph } from '$lib/storeUtils';
 import { register_csv } from 'proto-query-engine';
@@ -27,7 +27,7 @@ export async function addQueryNode(query: Query, shiftX: number = 0, shiftY: num
     queryData.id = query.id.id.toString();
     queryData.deletable = false;
     queryData.connectable = false;
-    queryData.position = { x: 24 + shiftX, y: 24 + shiftY };
+    queryData.position = { x: 24 + shiftX, y: 36 + shiftY };
     queryData.style = 'border: 1px solid #777; padding: 10px; background: rgba(255, 255, 255, 0.65);';
     queryData.data = {
         sql: query.statement,
@@ -35,6 +35,19 @@ export async function addQueryNode(query: Query, shiftX: number = 0, shiftY: num
     } as QueryData;
     nodes.update((nodeArr) => {
         nodeArr.push(queryData);
+        return nodeArr;
+    });
+}
+export function updateQueryNode(query: Query) {
+    nodes.update((nodeArr) => {
+        for (const node of nodeArr) {
+            if (node.id === query.id.id.toString()) {
+                let dt = node.data;
+                dt.sql = query.statement;
+                node.data = { ...dt };
+                break;
+            }
+        }
         return nodeArr;
     });
 }
@@ -57,6 +70,26 @@ export function addQueryDataEdge(edge: InOutEdge) {
         edgeArr.push(queryDataEdge);
         return edgeArr;
     });
+}
+export function removeQueryDataEdges(queryId: string) {
+    edges.update((edgeArr) => {
+        return edgeArr.reduce((p: Edge[], c: Edge) => (c.target !== queryId && p.push(c), p), []);
+    });
+}
+export function removeDataQueryEdges(dataId: string) {
+    edges.update((edgeArr) => {
+        return edgeArr.reduce((p: Edge[], c: Edge) => (c.source !== dataId && p.push(c), p), []);
+    });
+}
+export function deleteQueryNode(queryId: string) {
+    nodes.update((nodesArr) => {
+        return nodesArr.reduce((p: Node[], c: Node) => (c.id !== queryId && p.push(c), p), []);
+    })
+}
+export function deleteDataNode(dataId: string) {
+    nodes.update((nodesArr) => {
+        return nodesArr.reduce((p: Node[], c: Node) => (c.id !== dataId && p.push(c), p), []);
+    })
 }
 export async function initFlow() {
     resetGraph();
