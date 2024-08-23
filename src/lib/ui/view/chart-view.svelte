@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { DEFAULT_CHART_TYPE, type ChartLocalData } from '$lib/storeUtils';
+	import { type ChartLocalData } from '$lib/storeUtils';
 	import { Chart, registerables, type ChartTypeRegistry } from 'chart.js';
 	import { onMount } from 'svelte';
 	import type { Writable } from 'svelte/store';
@@ -8,20 +8,20 @@
 	let chartType: string;
 	export let chartLocalData: Writable<ChartLocalData>;
 
-	function setCanvas(){
+	function setCanvas() {
 		const wrapperDiv = document.getElementById('canvasWrapper');
 		while (wrapperDiv?.firstChild) {
 			wrapperDiv?.removeChild(wrapperDiv?.firstChild);
 		}
-		const canvas = document.createElement("canvas");
-		canvas.setAttribute("style", "width: 100%");
-		canvas.setAttribute("id", "tocqCchart");
+		const canvas = document.createElement('canvas');
+		canvas.setAttribute('style', 'width: 100%');
+		canvas.setAttribute('id', 'tocqCchart');
 		wrapperDiv?.appendChild(canvas);
 	}
 
 	function setChart(type: keyof ChartTypeRegistry) {
 		setCanvas();
-		const chartElement = <HTMLCanvasElement>document.getElementById('tocqCchart')
+		const chartElement = <HTMLCanvasElement>document.getElementById('tocqCchart');
 		return new Chart(chartElement, {
 			type: type,
 			data: {
@@ -54,24 +54,50 @@
 				chartType = localData.type;
 				chart?.reset();
 			}
-			if (localData.data && chart) {
+			if (localData.dataId && chart) {
 				if (chart.data.labels) {
 					chart.data.labels.pop();
 					chart.data.datasets.forEach((dataset) => {
 						dataset.data.pop();
 					});
 				}
-				for (const dt of localData.data) {
-					if (chart.data.labels && dt.table && dt.x && dt.y) {
-						const tblArr = dt.table.toArray();
-						const x = dt.x;
-						const y = dt.y;
-						chart.data.labels = tblArr.map((row) => row[x]);
-						chart.data.datasets.forEach((dataset) => {
-							dataset.label = dt.y;
-							dataset.data = tblArr.map((row) => row[y]);
-						});
+				if (chart.data.labels && localData.table && localData.x) {
+					const tblArr = localData.table.toArray();
+					const x = localData.x;
+					const r = localData.r;
+					const y = localData.y;
+					chart.data.labels = tblArr.map((row) => row[x]);
+					let datasets: any[] = [];
+
+					switch (localData.type) {
+						case 'bar':
+						case 'line':
+							y?.forEach((s) => {
+								datasets.push({
+									label: s,
+									data: tblArr.map((row) => row[s])
+								});
+							});
+							break;
+						case 'bubble':
+							if (r && y) {
+								datasets.push({
+									label: y[0],
+									data: tblArr.map((row) => ({
+										x: row[x],
+										y: row[y[0]],
+										r: row[r]
+									}))
+								});
+							}
+							break;
+						case 'scatter':
+						case 'pie':
+						case 'doughnut':
+						case 'polarArea':
+						case 'radar':
 					}
+					chart.data.datasets = datasets;
 				}
 				chart?.update();
 			}

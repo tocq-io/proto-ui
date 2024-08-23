@@ -36,17 +36,14 @@ type PreviewTable = {
     view: boolean;
     table: Table | undefined;
 };
-export type ChartTableData = {
-    id: string;
-    name: string;
-    x?: string,
-    y?: string,
-    r?: string,
-    table?: Table;
-};
+
 export type ChartLocalData = {
     type: keyof ChartTypeRegistry;
-    data: ChartTableData[];
+    dataId?: string;
+    table?: Table;
+    x?: string;
+    y?: string[];
+    r?: string;
 };
 type SqlEdit = {
     view: boolean;
