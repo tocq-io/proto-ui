@@ -1,8 +1,12 @@
 import type { Table } from '@apache-arrow/ts';
 import { type NodeProps, type Edge, type Node } from '@xyflow/svelte';
+import type { ChartTypeRegistry } from 'chart.js';
 import { type Writable, writable } from 'svelte/store';
-
-///// TYPES
+///// CONSTANTS
+export const DATA_NODE_TYPE = 'dataNode';
+export const QUERY_NODE_TYPE = 'queryNode';
+export const DEFAULT_CHART_TYPE = 'bar';
+///// FLOW TYPES
 export type DataFileData = {
     name: string;
     size: number;
@@ -27,9 +31,22 @@ export type QueryProps = NodeProps & {
 export type QueryNode = Node & {
     data: QueryData;
 };
-export type PreviewTable = {
+//// DATA VIEW TYPES
+type PreviewTable = {
     view: boolean;
     table: Table | undefined;
+};
+export type ChartTableData = {
+    id: string;
+    name: string;
+    x?: string,
+    y?: string,
+    r?: string,
+    table?: Table;
+};
+export type ChartLocalData = {
+    type: keyof ChartTypeRegistry;
+    data: ChartTableData[];
 };
 type SqlEdit = {
     view: boolean;
@@ -47,6 +64,7 @@ export let sqlEditControl: Writable<SqlEdit> = writable({
     queryId: ''
 });
 export let showDataUpload = writable(false);
+export let showChartEditor = writable(false);
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
 ///// HELPER FUNCTIONS

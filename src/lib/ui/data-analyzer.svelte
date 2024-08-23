@@ -11,10 +11,11 @@
 	import Query from '$lib/ui/nodes/query.svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import FileSelect from './modals/file-select.svelte';
-	import QueryEdit from './modals/query-edit.svelte';
-	import TablePreview from './modals/table-preview.svelte';
-	import QueryDataEdge from './nodes/query-data-edge.svelte';
+	import FileSelect from '$lib/ui/modals/file-select.svelte';
+	import QueryEdit from '$lib/ui/modals/query-edit.svelte';
+	import TablePreview from '$lib/ui/modals/table-preview.svelte';
+	import QueryDataEdge from '$lib/ui/nodes/query-data-edge.svelte';
+	import ChartEdit from '$lib/ui/modals/chart-edit.svelte';
 
 	const nodeTypes = {
 		dataNode: DataFile,
@@ -28,6 +29,7 @@
 <section>
 	<FileSelect />
 	<QueryEdit />
+	<ChartEdit />
 	<TablePreview />
 </section>
 <section class="px-8" style="height: 70dvh">

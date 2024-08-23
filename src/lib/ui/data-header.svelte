@@ -8,7 +8,7 @@
 	import { onMount } from 'svelte';
 	import { openDB } from '$lib/signUtils';
 	import { openGraphDb } from '$lib/graphUtils';
-	import { sqlEditControl, showDataUpload } from '$lib/storeUtils';
+	import { sqlEditControl, showDataUpload, showChartEditor } from '$lib/storeUtils';
 
 	let gbPromise: Writable<Promise<string>>;
 
@@ -24,6 +24,7 @@
 
 	onMount(async () => {
 		await init();
+		// Debug only
 		init_panic_hook();
 		openDB();
 		await openGraphDb();
@@ -52,7 +53,7 @@
 			<Button class="h-2/3" on:click={() => setSqlControl()}>
 				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Query</span>
 			</Button>
-			<Button class="h-2/3" disabled>
+			<Button class="h-2/3" on:click={() => ($showChartEditor = true)}>
 				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">View</span>
 			</Button>
 			<Button class="h-2/3" disabled>

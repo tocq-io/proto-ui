@@ -6,7 +6,7 @@
 	import { sqlEditControl } from '$lib/storeUtils';
 	import { tableFromIPC } from '@apache-arrow/ts';
 	import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
-	import CodeEditor from '$lib/ui/editor/code-editor.svelte';
+	import CodeEditor from '$lib/ui/editor/sql-editor.svelte';
 	import { writable } from 'svelte/store';
 
 	let dbResult = '...';

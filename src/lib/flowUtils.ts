@@ -1,15 +1,16 @@
 import { type Edge, type Node } from '@xyflow/svelte';
 import { getDataGraph, type DataFile, type Query, type InOutEdge } from '$lib/graphUtils';
-import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges, resetGraph } from '$lib/storeUtils';
+import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges, resetGraph, DATA_NODE_TYPE, QUERY_NODE_TYPE } from '$lib/storeUtils';
 import { register_csv } from 'proto-query-engine';
+const nodeStyle = 'border: 1px solid #777; border-radius: 7px; padding: 10px; background: rgba(255, 255, 255, 0.65);';
 export async function addDataNode(df: DataFile, shiftX: number = 0, shiftY: number = 0) {
     let fileData = {} as DataFileNode;
-    fileData.type = 'dataNode';
+    fileData.type = DATA_NODE_TYPE;
     fileData.id = df.id.id.toString();
     fileData.deletable = false;
     fileData.connectable = false;
     fileData.position = { x: 24 + shiftX, y: 24 + shiftY };
-    fileData.style = 'border: 1px solid #777; padding: 10px;';
+    fileData.style = nodeStyle;
     fileData.data = {
         name: df.fileName,
         size: df.size,
@@ -23,12 +24,12 @@ export async function addDataNode(df: DataFile, shiftX: number = 0, shiftY: numb
 }
 export async function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 0) {
     let queryData = {} as QueryNode;
-    queryData.type = 'queryNode';
+    queryData.type = QUERY_NODE_TYPE;
     queryData.id = query.id.id.toString();
     queryData.deletable = false;
     queryData.connectable = false;
     queryData.position = { x: 24 + shiftX, y: 36 + shiftY };
-    queryData.style = 'border: 1px solid #777; padding: 10px; background: rgba(255, 255, 255, 0.65);';
+    queryData.style = nodeStyle;
     queryData.data = {
         sql: query.statement,
         format: query.format
