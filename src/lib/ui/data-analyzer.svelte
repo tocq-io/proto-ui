@@ -7,11 +7,10 @@
 		MiniMap,
 		type EdgeTypes,
 		useSvelteFlow,
-		type Node,
-		type Edge,
-		Panel
+		Panel,
+		type Node
 	} from '@xyflow/svelte';
-	import ELK, { type ElkNode, type LayoutOptions } from 'elkjs/lib/elk.bundled.js';
+	import ELK, { type ElkExtendedEdge, type ElkNode } from 'elkjs/lib/elk.bundled.js';
 	import { nodes, edges } from '$lib/storeUtils';
 	import DataFile from '$lib/ui/nodes/data-file.svelte';
 	import Query from '$lib/ui/nodes/query.svelte';
@@ -49,37 +48,51 @@
 		'elk.spacing.nodeNode': '640',
 		'elk.direction': 'DOWN'
 	};
-	function getLayoutedElements(nodes: Node[], edges: Edge[], options: LayoutOptions = {}) {
+	async function goLayout() {
+		let elkEdges: ElkExtendedEdge[] = [];
+		for (const edge of $edges) {
+			elkEdges.push({
+				id: edge.id,
+				sources: [edge.source],
+				targets: [edge.target]
+			});
+		}
+		let elkNodes: ElkNode[] = [];
+		for (const node of $nodes) {
+			elkNodes.push({
+				id: node.id,
+				x: node.position.x,
+				y: node.position.y
+			});
+		}
 		const graph: ElkNode = {
-			id: 'root',
-			layoutOptions: options,
-			children: nodes.map((node) => ({
-				...node
-			})),
-			edges: edges
+			id: 'tocq_root',
+			layoutOptions: elkOptions,
+			children: elkNodes,
+			edges: elkEdges
 		};
 
-		return elk
+		await elk
 			.layout(graph)
-			.then((layoutedGraph) => ({
-				nodes: layoutedGraph.children?.map((node) => ({
-					...node,
-					position: { x: node.x, y: node.y }
-				})),
-
-				edges: layoutedGraph.edges
-			}))
-			.catch(console.error);
-	}
-
-	function goLayout() {
-		//const opts = { 'elk.direction': 'DOWN', ...elkOptions };
-		getLayoutedElements($nodes, $edges, elkOptions).then(({ nodes: layoutedNodes, edges: layoutedEdges }) => {
-			$nodes = layoutedNodes;
-      		$edges = layoutedEdges;
-			fitView();
-			window.requestAnimationFrame(() => fitView());
-		});
+			.then((layoutedGraph) => {
+				if (layoutedGraph.children && layoutedGraph.edges) {
+					let layoutedNodes: Node[] = [];
+					// a bit robust 
+					for (const lNode of layoutedGraph.children) {
+						for (const node of $nodes) {
+							if (lNode.id === node.id && lNode.x && lNode.y) {
+								layoutedNodes.push({
+									...node,
+									position: { x: lNode.x, y: lNode.y }
+								});
+								break;
+							}
+						}
+					}
+					nodes.set(layoutedNodes);
+				}
+			})
+			.then(() => window.requestAnimationFrame(() => fitView()));
 	}
 
 	onMount(async () => {
@@ -88,8 +101,7 @@
 		await init_panic_hook();
 		openDB();
 		await openGraphDb();
-		await initFlow();
-		//goLayout();
+		initFlow().then(() => goLayout());
 	});
 </script>
 
