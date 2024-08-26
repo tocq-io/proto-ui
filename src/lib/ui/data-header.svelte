@@ -1,13 +1,8 @@
 <script lang="ts">
-	import init, {init_panic_hook} from 'proto-query-engine';
 	import { Button } from 'flowbite-svelte';
 	import { PlusOutline } from 'flowbite-svelte-icons';
 	import { writable, type Writable } from 'svelte/store';
 	import { getAvailableGb } from '$lib/fileUtils';
-	import { initFlow } from '$lib/flowUtils';
-	import { onMount } from 'svelte';
-	import { openDB } from '$lib/signUtils';
-	import { openGraphDb } from '$lib/graphUtils';
 	import { sqlEditControl, showDataUpload, showChartEditor } from '$lib/storeUtils';
 
 	let gbPromise: Writable<Promise<string>>;
@@ -21,15 +16,6 @@
 	}
 
 	$: gbPromise = writable(getAvailableGb());
-
-	onMount(async () => {
-		await init();
-		// Debug only
-		await init_panic_hook();
-		openDB();
-		await openGraphDb();
-		initFlow();
-	});
 </script>
 
 <header class="px-8 text-gray-900 dark:text-white">

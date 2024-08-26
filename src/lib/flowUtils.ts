@@ -167,10 +167,10 @@ export async function initFlow() {
                     await initChartNode(<Chart>entry, countChart++);
                     break;
                 case 'import':
-                    addQueryDataEdge(<InOutEdge>entry, 'import');
+                    await addQueryDataEdge(<InOutEdge>entry, 'import');
                     break;
                 case 'show':
-                    addQueryDataEdge(<InOutEdge>entry, 'show');
+                    await addQueryDataEdge(<InOutEdge>entry, 'show');
                     break;
             }
         }
