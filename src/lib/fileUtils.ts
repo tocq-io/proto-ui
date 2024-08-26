@@ -25,5 +25,5 @@ export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: F
 				.then((writable) => (writable.write(file))
 					.then(() => (writable.close())
 						.then(() => (storeCsvFile(file.size, tableName, digest, salt)
-							.then((fileData) => (addDataNode(fileData, shiftX, 0)))))))));
+							.then((fileData) => (addDataNode(fileData, shiftX)))))))));
 }

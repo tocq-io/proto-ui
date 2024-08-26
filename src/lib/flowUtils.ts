@@ -2,7 +2,7 @@ import { type Edge, type Node } from '@xyflow/svelte';
 import { getDataGraph, type DataFile, type Query, type InOutEdge, type Chart, getEdgeChartToData, type InEdges } from '$lib/graphUtils';
 import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges, resetGraph, DATA_NODE_TYPE, QUERY_NODE_TYPE, type ChartViewTable, type ChartNode, CHART_NODE_TYPE, tables } from '$lib/storeUtils';
 import { register_csv, run_sql } from 'proto-query-engine';
-import { writable, type Writable } from 'svelte/store';
+import { writable } from 'svelte/store';
 import { tableFromIPC } from '@apache-arrow/ts';
 
 const nodeStyle = 'border: 1px solid #777; border-radius: 7px; padding: 10px; background: rgba(255, 255, 255, 0.65);';

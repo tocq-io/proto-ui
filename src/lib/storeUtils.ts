@@ -1,6 +1,5 @@
 import type { Table } from '@apache-arrow/ts';
 import { type NodeProps, type Edge, type Node } from '@xyflow/svelte';
-import type { ChartTypeRegistry } from 'chart.js';
 import { type Writable, writable } from 'svelte/store';
 ///// CONSTANTS
 export const DATA_NODE_TYPE = 'dataNode';

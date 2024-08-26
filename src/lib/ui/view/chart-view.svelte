@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { CHART_TYPE, tables, type ChartViewTable } from '$lib/storeUtils';
-	import { Chart, registerables, type ChartTypeRegistry } from 'chart.js';
+	import { Chart, registerables } from 'chart.js';
 	import { onMount } from 'svelte';
 	import type { Writable } from 'svelte/store';
 
