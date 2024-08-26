@@ -35,6 +35,13 @@
 
 	const { fitView } = useSvelteFlow();
 
+	const fitViewOptions = {
+     padding: 0,
+     minZoom: 0,
+     maxZoom: 0.1,
+     duration: 0,
+    };
+
 	const elk = new ELK();
 
 	// Elk has a *huge* amount of options to configure. To see everything you can
@@ -44,7 +51,7 @@
 	// - https://www.eclipse.org/elk/reference/options.html
 	const elkOptions = {
 		'elk.algorithm': 'layered',
-		'elk.layered.spacing.nodeNodeBetweenLayers': '200',
+		'elk.layered.spacing.nodeNodeBetweenLayers': '240',
 		'elk.spacing.nodeNode': '640',
 		'elk.direction': 'DOWN'
 	};
@@ -75,39 +82,37 @@
 		await elk
 			.layout(graph)
 			.then((layoutedGraph) => {
-				if (layoutedGraph.children && layoutedGraph.edges) {
+				if (layoutedGraph.children) {
 					let layoutedNodes: Node[] = [];
-					// a bit robust 
-					for (const lNode of layoutedGraph.children) {
-						for (const node of $nodes) {
-							if (lNode.id === node.id && lNode.x && lNode.y) {
-								layoutedNodes.push({
-									...node,
-									position: { x: lNode.x, y: lNode.y }
-								});
-								break;
-							}
+					layoutedGraph.children.map((lNode) => {
+						const node = $nodes.find((node) => node.id === lNode.id);
+						if (node) {
+							layoutedNodes.push({
+								...node,
+								position: { x: lNode.x ? lNode.x : 0, y: lNode.y ? lNode.y : 0 }
+							});
 						}
-					}
+					});
 					nodes.set(layoutedNodes);
 				}
 			})
-			.then(() => window.requestAnimationFrame(() => fitView()));
+			.then(() => fitView());
 	}
 
 	onMount(async () => {
 		await init();
 		// Debug only
-		await init_panic_hook();
+		init_panic_hook();
 		openDB();
 		await openGraphDb();
-		initFlow().then(() => goLayout());
+		await initFlow()
+			.then(() => goLayout());
 	});
 </script>
 
 <section class="px-8">
-	<div class="overview h-full border-2 border-dotted border-slate-500" style="height: 70dvh">
-		<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes}>
+	<div class="overview h-full border-2 border-dotted border-slate-500" style="height: 70dvh;">
+		<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes} fitView {fitViewOptions}>
 			<Panel position="top-right">
 				<Button on:click={() => goLayout()} class="h-6 w-4/5"><nobr>Balance layout</nobr></Button>
 			</Panel>

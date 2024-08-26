@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { CHART_NODE_TYPE, CHART_TYPE, nodes, showChartEditor } from '$lib/storeUtils';
-	import { Button, Helper, Modal, Radio } from 'flowbite-svelte';
+	import { Alert, Button, Helper, Modal, Radio } from 'flowbite-svelte';
 	import ChartView from '$lib/ui/view/chart-view.svelte';
 	import type { Node } from '@xyflow/svelte';
 	import type { ChartViewTable } from '$lib/storeUtils';
 	import { writable, type Writable } from 'svelte/store';
-	import { FloppyDiskAltOutline } from 'flowbite-svelte-icons';
+	import { FloppyDiskAltOutline, InfoCircleSolid } from 'flowbite-svelte-icons';
 	import { persistChart } from '$lib/crudUtils';
 	import { browser } from '$app/environment';
 
@@ -70,25 +70,31 @@
 				><FloppyDiskAltOutline />Save</Button
 			>
 		</div>
-		<div class="flex w-max gap-3">
-			<span class="text-md font-semibold">Data table:</span>
-			{#each $nodes as node}
-				{#if node.type != CHART_NODE_TYPE}
-					<Radio
-						value={node.id}
-						id={node.type}
-						bind:group={$chartLocalData.tableId}
-						on:change={(e) => setTableData(e)}
-						><span class="text-sm font-normal text-gray-500">{initDataAndGetLabel(node)}</span
-						></Radio
-					>
-				{/if}
-			{/each}
+		<div class="flex">
+			<div class="pr-3"><span class="text-md font-semibold"><nobr>Data table:</nobr></span></div>
+			<div class="mt-0.5">
+				{#each $nodes as node}
+					{#if node.type != CHART_NODE_TYPE}
+						<Radio
+							value={node.id}
+							id={node.type}
+							bind:group={$chartLocalData.tableId}
+							on:change={(e) => setTableData(e)}
+							><span class="text-sm font-normal text-gray-500"
+								><nobr>{initDataAndGetLabel(node)}</nobr></span
+							></Radio
+						>
+					{/if}
+				{/each}
+			</div>
 		</div>
 	</div>
-	<Helper class="w-max"
-		>Chart of selected table with 1st column as x axis, up to 8 additional columns on y axis.</Helper
-	>
+	<Alert color="green">
+		<InfoCircleSolid slot="icon" class="h-5 w-5" />
+		<span class="font-medium"
+			>Charts selected table, 1st column as x axis, up to 8 additional columns on y axis.</span
+		>
+	</Alert>
 	<hr style="border-top: dotted 1px;" />
 	<ChartView {chartLocalData} {wrapperId} />
 </Modal>
