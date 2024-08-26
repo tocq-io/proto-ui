@@ -42,7 +42,7 @@
 				><span class="text-sm font-normal text-gray-500">Lines</span></Radio
 			>
 			<Radio value="bubble" bind:group={$chartData.type} disabled
-				><span class="text-sm font-normal text-gray-500"><nobr>Bubbles &#x1F37E;</nobr></span></Radio
+				><span class="text-sm font-normal text-gray-500"><nobr><s>Bubbles</s> &#x1F37E;</nobr></span></Radio
 			>
 		</div>
 	</div>
