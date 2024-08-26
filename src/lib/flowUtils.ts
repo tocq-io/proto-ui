@@ -4,14 +4,16 @@ import { type DataFileNode, type DataFileData, nodes, type QueryNode, type Query
 import { register_csv, run_sql } from 'proto-query-engine';
 import { writable, type Writable } from 'svelte/store';
 import { tableFromIPC } from '@apache-arrow/ts';
+
 const nodeStyle = 'border: 1px solid #777; border-radius: 7px; padding: 10px; background: rgba(255, 255, 255, 0.65);';
-export async function addDataNode(df: DataFile, shiftX: number = 0, shiftY: number = 0) {
+
+export async function addDataNode(df: DataFile, itemNo: number = 0) {
     let fileData = {} as DataFileNode;
     fileData.type = DATA_NODE_TYPE;
     fileData.id = df.id.id.toString();
     fileData.deletable = false;
     fileData.connectable = false;
-    fileData.position = { x: 24 + shiftX, y: 24 + shiftY };
+    fileData.position = { x: 24 + itemNo * 160, y: 24 };
     fileData.style = nodeStyle;
     fileData.data = {
         name: df.tableName,
@@ -30,13 +32,13 @@ export async function addDataNode(df: DataFile, shiftX: number = 0, shiftY: numb
         });
     });
 }
-export async function addQueryNode(query: Query, shiftX: number = 0, shiftY: number = 0) {
+export async function addQueryNode(query: Query, itemNo: number = 0) {
     let queryData = {} as QueryNode;
     queryData.type = QUERY_NODE_TYPE;
     queryData.id = query.id.id.toString();
     queryData.deletable = false;
     queryData.connectable = false;
-    queryData.position = { x: 24 + shiftX, y: 36 + shiftY };
+    queryData.position = { x: 124 + itemNo * 640, y: 176 };
     queryData.style = nodeStyle;
     queryData.data = {
         sql: query.statement,
@@ -53,13 +55,13 @@ export async function addQueryNode(query: Query, shiftX: number = 0, shiftY: num
         })
     });
 }
-export async function addChartNode(id: string, localChartData: ChartViewTable, shiftX: number = 0, shiftY: number = 0) {
+export async function addChartNode(id: string, localChartData: ChartViewTable, itemNo: number = 0) {
     let chartData = {} as ChartNode;
     chartData.type = CHART_NODE_TYPE;
     chartData.id = id;
     chartData.deletable = false;
     chartData.connectable = false;
-    chartData.position = { x: 24 + shiftX, y: 36 + shiftY };
+    chartData.position = { x: 24 + itemNo * 560, y: 356 };
     chartData.style = nodeStyle;
     chartData.data = { chartData: writable(localChartData) }
     nodes.update((nodeArr) => {
@@ -67,24 +69,13 @@ export async function addChartNode(id: string, localChartData: ChartViewTable, s
         return nodeArr;
     });
 }
-export async function initChartNode(chart: Chart, shiftX: number = 0, shiftY: number = 0) {
-    let chartData = {} as ChartNode;
-    chartData.type = CHART_NODE_TYPE;
-    chartData.id = chart.id.id.toString();
-    chartData.deletable = false;
-    chartData.connectable = false;
-    chartData.position = { x: 24 + shiftX, y: 36 + shiftY };
-    chartData.style = nodeStyle;
-    let dataEdge = await getEdgeChartToData(chartData.id);
-    let chartLocalData: Writable<ChartViewTable> = writable({
-		type: chart.type,
+export async function initChartNode(chart: Chart, itemNo: number = 0) {
+    let dataEdge = await getEdgeChartToData(chart.id.id.toString());
+    let chartLocalData: ChartViewTable = {
+        type: chart.type,
         tableId: dataEdge.out[0].id.toString(),
-	});
-    chartData.data = { chartData: chartLocalData }
-    nodes.update((nodeArr) => {
-        nodeArr.push(chartData);
-        return nodeArr;
-    });
+    };
+    await addChartNode(chart.id.id.toString(), chartLocalData, itemNo);
 }
 export async function updateQueryNode(query: Query, charts: InEdges[]) {
     const queryId = query.id.id.toString();
@@ -103,14 +94,14 @@ export async function updateQueryNode(query: Query, charts: InEdges[]) {
             } else if (node.type === CHART_NODE_TYPE) {
                 for (const chart of charts) {
                     for (const inEdge of chart.in) {
-                    if(inEdge.tb === 'charts' && inEdge.id.toString() === node.id) {
-                        const chartNode = <ChartNode> node;
-                        chartNode.data.chartData.update((chD) => {
-                            chD.tableId = queryId;
-                            return chD;
-                        });
+                        if (inEdge.tb === 'charts' && inEdge.id.toString() === node.id) {
+                            const chartNode = <ChartNode>node;
+                            chartNode.data.chartData.update((chD) => {
+                                chD.tableId = queryId;
+                                return chD;
+                            });
+                        }
                     }
-                }
                 }
             }
         }
@@ -161,22 +152,23 @@ export async function initFlow() {
     resetGraph();
     let countData = 0;
     let countQuery = 0;
+    let countChart = 0;
     let allData = await getDataGraph();
     for (const data of allData) {
         for (const entry of data) {
             switch (entry.id.tb) {
                 case 'data':
-                    await addDataNode(<DataFile>entry, countData++ * 480, 0);
+                    await addDataNode(<DataFile>entry, countData++);
                     break;
                 case 'queries':
-                    await addQueryNode(<Query>entry, countQuery++ * 640, 160);
+                    await addQueryNode(<Query>entry, countQuery++);
                     break;
                 case 'charts':
-                    await initChartNode(<Chart>entry, countData++ * 480, 0);
+                    await initChartNode(<Chart>entry, countChart++);
                     break;
-                case 'import':   
+                case 'import':
                     addQueryDataEdge(<InOutEdge>entry, 'import');
-                    break;         
+                    break;
                 case 'show':
                     addQueryDataEdge(<InOutEdge>entry, 'show');
                     break;

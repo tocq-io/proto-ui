@@ -58,7 +58,9 @@
 						><span class="text-sm font-normal text-gray-500">Lines</span></Radio
 					>
 					<Radio value="bubble" bind:group={$chartLocalData.type} disabled
-						><span class="text-sm font-normal text-gray-500"><nobr><s>Bubbles</s> &#x1F37E;</nobr></span></Radio
+						><span class="text-sm font-normal text-gray-500"
+							><nobr><s>Bubbles</s> &#x1F37E;</nobr></span
+						></Radio
 					>
 				</div>
 			</div>
@@ -68,26 +70,25 @@
 				><FloppyDiskAltOutline />Save</Button
 			>
 		</div>
-	<div class="flex gap-3 w-max">
-		<span class="text-md font-semibold">Data table:</span>
-		{#each $nodes as node}
-			{#if node.type != CHART_NODE_TYPE}
-				<Radio
-					value={node.id}
-					id={node.type}
-					bind:group={$chartLocalData.tableId}
-					on:change={(e) => setTableData(e)}
-					><span class="text-sm font-normal text-gray-500">{initDataAndGetLabel(node)}</span></Radio
-				>
-			{/if}
-		{/each}
+		<div class="flex w-max gap-3">
+			<span class="text-md font-semibold">Data table:</span>
+			{#each $nodes as node}
+				{#if node.type != CHART_NODE_TYPE}
+					<Radio
+						value={node.id}
+						id={node.type}
+						bind:group={$chartLocalData.tableId}
+						on:change={(e) => setTableData(e)}
+						><span class="text-sm font-normal text-gray-500">{initDataAndGetLabel(node)}</span
+						></Radio
+					>
+				{/if}
+			{/each}
+		</div>
 	</div>
-	<div></div>
-	<Helper class="w-max pt-3"
-		>Chart of selected table with 1st column as x axis, up to 8 additional columns on y
-		axis.</Helper
+	<Helper class="w-max"
+		>Chart of selected table with 1st column as x axis, up to 8 additional columns on y axis.</Helper
 	>
-</div>
 	<hr style="border-top: dotted 1px;" />
 	<ChartView {chartLocalData} {wrapperId} />
 </Modal>
