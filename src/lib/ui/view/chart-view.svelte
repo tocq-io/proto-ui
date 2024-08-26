@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type ChartLocalData } from '$lib/storeUtils';
+	import { CHART_TYPE, tables, type ChartLocalData } from '$lib/storeUtils';
 	import { Chart, registerables, type ChartTypeRegistry } from 'chart.js';
 	import { onMount } from 'svelte';
 	import type { Writable } from 'svelte/store';
@@ -7,23 +7,37 @@
 	let chart: Chart | undefined;
 	let chartType: string;
 	export let chartLocalData: Writable<ChartLocalData>;
+	export let wrapperId: string;
+	let chartId = 'init_cid';
 
 	function setCanvas() {
-		const wrapperDiv = document.getElementById('canvasWrapper');
+		const wrapperDiv = document.getElementById(wrapperId);
 		while (wrapperDiv?.firstChild) {
 			wrapperDiv?.removeChild(wrapperDiv?.firstChild);
 		}
 		const canvas = document.createElement('canvas');
 		canvas.setAttribute('style', 'width: 100%');
-		canvas.setAttribute('id', 'tocqCchart');
+		canvas.setAttribute('id', chartId);
 		wrapperDiv?.appendChild(canvas);
 	}
 
-	function setChart(type: keyof ChartTypeRegistry) {
+	function getChartType(type: string){
+		switch (type) {
+			case 'line':
+				return CHART_TYPE.Line;
+			case 'bubble':
+				return CHART_TYPE.Bubble;
+			case 'bar':
+			default:
+				return CHART_TYPE.Bar;
+		}
+	}
+
+	function setChart(type: string) {
 		setCanvas();
-		const chartElement = <HTMLCanvasElement>document.getElementById('tocqCchart');
+		const chartElement = <HTMLCanvasElement>document.getElementById(chartId);
 		return new Chart(chartElement, {
-			type: type,
+			type: getChartType(type),
 			data: {
 				labels: [],
 				datasets: [
@@ -45,6 +59,7 @@
 	}
 
 	onMount(async () => {
+		chartId = self.crypto.randomUUID();
 		Chart.register(...registerables);
 		chartType = $chartLocalData.type;
 		chart = setChart($chartLocalData.type);
@@ -61,8 +76,9 @@
 						dataset.data.pop();
 					});
 				}
-				if (chart.data.labels && localData.table && localData.x) {
-					const tblArr = localData.table.toArray();
+				const table = $tables.get(localData.dataId);
+				if (chart.data.labels && table && localData.x) {
+					const tblArr = table.toArray();
 					const x = localData.x;
 					const r = localData.r;
 					const y = localData.y;
@@ -105,4 +121,4 @@
 	});
 </script>
 
-<div id="canvasWrapper" />
+<div id={wrapperId} />

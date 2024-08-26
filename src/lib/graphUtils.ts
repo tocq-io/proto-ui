@@ -1,6 +1,7 @@
 import { Surreal, StringRecordId, RecordId } from 'surrealdb.js';
 import { surrealdbWasmEngines } from 'surrealdb.wasm';
 import { initKeyPair } from '$lib/signUtils';
+import { DATA_NODE_TYPE, QUERY_NODE_TYPE, type ChartLocalData } from './storeUtils';
 type User = {
 	scope: string;
 	identity: {
@@ -8,11 +9,17 @@ type User = {
 	};
 };
 export type DataFile = TocqNode & {
-	fileName: string;
+	tableName: string;
 	size: number;
 };
 export type Query = TocqNode & {
 	statement: string;
+};
+export type Chart = TocqNode & {
+	type: string;
+	x: string;
+	y: string[];
+	r: string;
 };
 export type InOutEdge = GeneralResult & {
 	in: RecordId;
@@ -42,13 +49,50 @@ export async function openGraphDb() {
 	// 			(result) => (console.log(result)
 	// 			))));
 }
+// Charts
+export async function storeChart(digest: string, salt: Uint8Array, chartData: ChartLocalData): Promise<Chart> {
+	// TODO use UPSERT with v2 of DB
+	const result = await db.create<Chart>('charts', {
+		id: new RecordId('charts', digest),
+		format: 'vw/chart',
+		salt: salt,
+		type: chartData.type.toString(),
+		x: chartData.x ? chartData.x : '',
+		y: chartData.y,
+		r: chartData.r ? chartData.r : '',
+	});
+	return result[0];
+}
+
+export async function linkChartToNode(chartId: string, nodeId: string, nodeType: string): Promise<InOutEdge> {
+	let queryString: string;
+	if (nodeType === DATA_NODE_TYPE) {
+		queryString = 'RELATE charts:' + chartId + '->show->data:' + nodeId + ';';
+	} else {// if (nodeType === QUERY_NODE_TYPE) {
+		queryString = 'RELATE charts:' + chartId + '->show->queries:' + nodeId + ';';
+	}
+	const result = await db.query<InOutEdge[][]>(queryString);
+	return result[0][0];
+}
+export async function deleteChartRecord(chartId: string) {
+	await db.delete(new StringRecordId('charts:' + chartId));
+}
+export async function deleteAllChartToNode(chartId: string) {
+	const queryString = 'DELETE charts:' + chartId + '->show;';
+	await db.query(queryString);
+}
+export async function getEdgeChartToData(chartId: string): Promise<OutEdges> {
+	const queryString = 'SELECT ->show.out as out from charts:' + chartId + ';';
+	const result = await db.query<OutEdges[][]>(queryString);
+	return result[0][0];
+}
 // Data Files
 export async function storeCsvFile(csvSize: number, csvName: string, digest: string, salt: Uint8Array): Promise<DataFile> {
 	// TODO use UPSERT with v2 of DB
 	const result = await db.create<DataFile>('data', {
 		id: new RecordId('data', digest),
 		format: 'text/csv',
-		fileName: csvName,
+		tableName: csvName,
 		size: csvSize,
 		salt: salt,
 	});
@@ -58,7 +102,7 @@ export async function deleteDataRecord(dataId: string) {
 	await db.delete(new StringRecordId('data:' + dataId));
 }
 export async function deleteAllDataToQuery(dataId: string) {
-	const queryString = 'DELETE data:' + dataId + '<-import;';
+	const queryString = 'DELETE data:' + dataId + '<-import;DELETE data:' + dataId + '<-show;';
 	await db.query(queryString);
 }
 // Queries
@@ -67,21 +111,13 @@ export async function linkQueryToData(dataId: string, queryId: string): Promise<
 	const result = await db.query<InOutEdge[][]>(queryString);
 	return result[0][0];
 }
-export async function getEdgeQueryToData(queryId: string): Promise<OutEdges> {
-	const queryString = 'SELECT ->import.out as out from queries:' + queryId + ';';
-	const result = await db.query<OutEdges[][]>(queryString);
-	return result[0][0];
-}
-export async function deleteQueryToData(dataId: string, queryId: string) {
-	const queryString = 'DELETE queries:' + queryId + '->import WHERE out=data:' + dataId + ';';
-	await db.query(queryString);
-}
+
 export async function deleteAllQueryToData(queryId: string) {
-	const queryString = 'DELETE queries:' + queryId + '->import;';
+	const queryString = 'DELETE queries:' + queryId + '->import;DELETE queries:' + queryId + '<-show;';
 	await db.query(queryString);
 }
 export async function getDataGraph(): Promise<GeneralResult[][]> {
-	let result = await db.query<GeneralResult[][]>('SELECT * FROM data;SELECT * FROM queries;SELECT * FROM import;');
+	let result = await db.query<GeneralResult[][]>('SELECT * FROM data;SELECT * FROM queries;SELECT * FROM charts;SELECT * FROM import;SELECT * FROM show;');
 	return result;
 }
 export async function deleteItAll() {

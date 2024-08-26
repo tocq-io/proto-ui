@@ -1,79 +1,98 @@
 <script lang="ts">
-	import { DEFAULT_CHART_TYPE, nodes, showChartEditor } from '$lib/storeUtils';
-	import { Modal, Radio } from 'flowbite-svelte';
+	import { CHART_NODE_TYPE, CHART_TYPE, nodes, showChartEditor, tables } from '$lib/storeUtils';
+	import { Button, Modal, Radio } from 'flowbite-svelte';
 	import ChartView from '$lib/ui/view/chart-view.svelte';
 	import type { Node } from '@xyflow/svelte';
 	import type { ChartLocalData } from '$lib/storeUtils';
-	import { run_sql } from 'proto-query-engine';
-	import { tableFromIPC } from '@apache-arrow/ts';
 	import { writable, type Writable } from 'svelte/store';
+	import { FloppyDiskAltOutline } from 'flowbite-svelte-icons';
+	import { persistChart } from '$lib/crudUtils';
+	import type { Table } from '@apache-arrow/ts';
+	import { browser } from '$app/environment';
 
 	let chartLocalData: Writable<ChartLocalData> = writable({
-		type: DEFAULT_CHART_TYPE,
+		type: CHART_TYPE.Bar,
 		y: []
 	});
-	let sqlStatements = new Map<string, string>();
+	let nodeId: string;
+	let nodeType: string;
+	let table: Table | undefined;
+	let wrapperId = browser ? self.crypto.randomUUID() : "init_id";
 
 	async function setTableData(event: Event) {
 		let target = <HTMLInputElement>event.target;
-		const sql = sqlStatements.get(target.value) || 'SELECT * from world';
-		const tbl = await run_sql(sql).then((ipcResult) => {
-			return tableFromIPC(ipcResult);
-		});
+		nodeId = target.value;
+		nodeType = target.id;
+		table = $tables.get(target.value);
 		chartLocalData.update((tblD) => {
+			tblD.dataId = target.value;
 			tblD.x = undefined;
 			tblD.y = [];
-			tblD.table = tbl;
 			return tblD;
 		});
 	}
 	function initDataAndGetLabel(node: Node): string {
-		if (node.data.name) {
-			sqlStatements.set(node.id, 'SELECT * FROM ' + node.data.name.toString());
-			return node.data.name.toString();
-		} else if (node.data.sql) {
-			sqlStatements.set(node.id, node.data.sql.toString());
-			return node.data.sql.toString();
-		}
-		return 'no known type';
+		return node.data.name
+			? node.data.name.toString()
+			: node.data.sql
+				? node.data.sql.toString()
+				: 'no known type';
+	}
+	async function saveChart() {
+		persistChart($chartLocalData, nodeId, nodeType);
 	}
 	function unload() {
-		chartLocalData.set({ type: DEFAULT_CHART_TYPE, y: [] });
-		sqlStatements.clear();
+		chartLocalData.set({ type: CHART_TYPE.Bar, y: [] });
+		nodeId = '';
+		nodeType = '';
 	}
 </script>
 
 <Modal bind:open={$showChartEditor} on:close={() => unload()} autoclose class="min-w-full">
-	<div class="-py-4 flex">
+	<div class="grid pt-4 sm:grid-cols-2">
 		<div>
-			<span class="text-md font-semibold">Chart type:</span>
-		</div>
-		<div class="flex gap-3 pl-3">
-			<Radio value="bar" bind:group={$chartLocalData.type}
-				><span class="text-sm font-normal text-gray-500">Bars</span></Radio
-			>
-			<Radio value="line" bind:group={$chartLocalData.type}
-				><span class="text-sm font-normal text-gray-500">Lines</span></Radio
-			>
-			<!--Radio value="bubble" bind:group={$chartLocalData.type}
+			<div class="flex">
+				<div>
+					<span class="text-md font-semibold">Chart type:</span>
+				</div>
+				<div class="flex gap-3 pl-3">
+					<Radio value="bar" bind:group={$chartLocalData.type}
+						><span class="text-sm font-normal text-gray-500">Bars</span></Radio
+					>
+					<Radio value="line" bind:group={$chartLocalData.type}
+						><span class="text-sm font-normal text-gray-500">Lines</span></Radio
+					>
+					<!--Radio value="bubble" bind:group={$chartLocalData.type}
 				><span class="text-sm font-normal text-gray-500">Bubbles &#x1F37E;</span></Radio
 			-->
+				</div>
+			</div>
+		</div>
+		<div class="text-right">
+			<Button size="sm" class="h-4/5" on:click={() => saveChart()}
+				><FloppyDiskAltOutline />Save</Button
+			>
 		</div>
 	</div>
-	<hr style="border-top: dotted 1px;" />
 	<div class="flex gap-3">
 		<span class="text-md font-semibold">Data source:</span>
 		{#each $nodes as node}
-			<Radio value={node.id} bind:group={$chartLocalData.dataId} on:change={(e) => setTableData(e)}
-				><span class="text-sm font-normal text-gray-500">{initDataAndGetLabel(node)}</span></Radio
-			>
+			{#if node.type != CHART_NODE_TYPE}
+				<Radio
+					value={node.id}
+					id={node.type}
+					bind:group={$chartLocalData.dataId}
+					on:change={(e) => setTableData(e)}
+					><span class="text-sm font-normal text-gray-500">{initDataAndGetLabel(node)}</span></Radio
+				>
+			{/if}
 		{/each}
 	</div>
 	<div class="-py-4">
-		{#if $chartLocalData.table}
+		{#if table}
 			<div class="mb-1 flex gap-4">
 				<span class="text-sm font-semibold">x:</span>
-				{#each $chartLocalData.table.schema.fields as field}
+				{#each table.schema.fields as field}
 					{#if field.name === $chartLocalData.r || ($chartLocalData.y && $chartLocalData.y?.indexOf(field.name) >= 0)}
 						<Radio value={field.name} bind:group={$chartLocalData.x} disabled
 							><span class="text-xs font-normal text-gray-500"><nobr>{field.name}</nobr></span
@@ -89,7 +108,7 @@
 			</div>
 			<div class="flex gap-4">
 				<span class="-mt-1 text-sm font-semibold">y:</span>
-				{#each $chartLocalData.table.schema.fields as field}
+				{#each table.schema.fields as field}
 					{#if field.name === $chartLocalData.x || field.name === $chartLocalData.r}
 						<input
 							id="default-checkbox"
@@ -118,7 +137,7 @@
 			{#if $chartLocalData.type === 'bubble'}
 				<div class="mt-1 flex gap-4">
 					<span class="text-sm font-semibold">r:</span>
-					{#each $chartLocalData.table.schema.fields as field}
+					{#each table.schema.fields as field}
 						{#if field.name === $chartLocalData.x || ($chartLocalData.y && $chartLocalData.y.indexOf(field.name) >= 0)}
 							<Radio value={field.name} bind:group={$chartLocalData.r} disabled
 								><span class="text-xs font-normal text-gray-500"><nobr>{field.name}</nobr></span
@@ -136,5 +155,5 @@
 		{/if}
 	</div>
 	<hr style="border-top: dotted 1px;" />
-	<ChartView {chartLocalData} />
+	<ChartView {chartLocalData} {wrapperId} />
 </Modal>

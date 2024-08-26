@@ -5,7 +5,15 @@ import { type Writable, writable } from 'svelte/store';
 ///// CONSTANTS
 export const DATA_NODE_TYPE = 'dataNode';
 export const QUERY_NODE_TYPE = 'queryNode';
-export const DEFAULT_CHART_TYPE = 'bar';
+export const CHART_NODE_TYPE = 'chartNode';
+// export const BAR_CHART_TYPE = 'bar';
+// export const LINE_CHART_TYPE = 'line';
+// export const BUBBLE_CHART_TYPE = 'bubble';
+export enum CHART_TYPE {
+    Bar = "bar",
+    Line = "line",
+    Bubble = "bubble",
+  }
 ///// FLOW TYPES
 export type DataFileData = {
     name: string;
@@ -31,18 +39,26 @@ export type QueryProps = NodeProps & {
 export type QueryNode = Node & {
     data: QueryData;
 };
+export type ChartData = {
+    chartData: Writable<ChartLocalData>;
+};
+export type ChartProps = NodeProps & {
+    data: ChartData;
+};
+export type ChartNode = Node & {
+    data: ChartData;
+};
 //// DATA VIEW TYPES
 type PreviewTable = {
     view: boolean;
-    table: Table | undefined;
+    tableId: string | undefined;
 };
 
 export type ChartLocalData = {
-    type: keyof ChartTypeRegistry;
+    type: string;
     dataId?: string;
-    table?: Table;
     x?: string;
-    y?: string[];
+    y: string[];
     r?: string;
 };
 type SqlEdit = {
@@ -53,7 +69,7 @@ type SqlEdit = {
 ///// SVELTE STORES
 export let previewTable: Writable<PreviewTable> = writable({
     view: false,
-    table: undefined
+    tableId: undefined
 });
 export let sqlEditControl: Writable<SqlEdit> = writable({
     view: false,
@@ -64,6 +80,7 @@ export let showDataUpload = writable(false);
 export let showChartEditor = writable(false);
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
+export const tables = writable<Map<string, Table>>(new Map());
 ///// HELPER FUNCTIONS
 export function resetGraph(){
     nodes.set([]);

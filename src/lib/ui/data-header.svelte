@@ -25,7 +25,7 @@
 	onMount(async () => {
 		await init();
 		// Debug only
-		init_panic_hook();
+		await init_panic_hook();
 		openDB();
 		await openGraphDb();
 		initFlow();

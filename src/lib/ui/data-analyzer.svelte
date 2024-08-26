@@ -16,10 +16,12 @@
 	import TablePreview from '$lib/ui/modals/table-preview.svelte';
 	import QueryDataEdge from '$lib/ui/nodes/query-data-edge.svelte';
 	import ChartEdit from '$lib/ui/modals/chart-edit.svelte';
+	import Chart from './nodes/chart.svelte';
 
 	const nodeTypes = {
 		dataNode: DataFile,
-		queryNode: Query
+		queryNode: Query,
+		chartNode: Chart
 	};
 	const edgeTypes: EdgeTypes = {
 		queryDataEdge: QueryDataEdge

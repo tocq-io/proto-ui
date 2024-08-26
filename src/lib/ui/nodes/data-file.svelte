@@ -1,10 +1,8 @@
 <script lang="ts">
-	import { type DataFileProps, previewTable, sqlEditControl } from '$lib/storeUtils';
+	import { type DataFileProps, previewTable } from '$lib/storeUtils';
 	import { Handle, Position } from '@xyflow/svelte';
 	import { Button } from 'flowbite-svelte';
 	import { CloseCircleOutline, TableRowOutline } from 'flowbite-svelte-icons';
-	import { unegister_table, run_sql } from 'proto-query-engine';
-	import { tableFromIPC } from '@apache-arrow/ts';
 	import { deleteDataRecordAndEdges } from '$lib/crudUtils';
 
 	type $$Props = DataFileProps;
@@ -14,15 +12,11 @@
 	export let id: $$Props['id'];
 
 	async function deleteDataNode() {
-		await deleteDataRecordAndEdges(id).then(() =>
-			unegister_table(data.name));
+		await deleteDataRecordAndEdges(id, data.name);
 	}
 	async function setPreviewData() {
-		const sql = `SELECT * FROM ${data.name} LIMIT 10`;
-		run_sql(sql).then((ipcResult) => {
-			$previewTable.table = tableFromIPC(ipcResult);
-			$previewTable.view = true;
-		});
+		$previewTable.tableId = id;
+		$previewTable.view = true;
 	}
 </script>
 

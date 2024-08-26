@@ -4,8 +4,6 @@
 	import { CloseCircleOutline, EditOutline, TableRowOutline } from 'flowbite-svelte-icons';
 	import { type QueryProps, previewTable, sqlEditControl } from '$lib/storeUtils';
 	import { deleteQuery } from '$lib/crudUtils';
-	import { run_sql } from 'proto-query-engine';
-	import { tableFromIPC } from '@apache-arrow/ts';
 
 	type $$Props = QueryProps;
 	$$restProps;
@@ -14,10 +12,8 @@
 	export let id: $$Props['id'];
 
 	async function setPreviewData() {
-		run_sql(data.sql).then((ipcResult) => {
-			$previewTable.table = tableFromIPC(ipcResult);
-			$previewTable.view = true;
-		});
+		$previewTable.tableId = id;
+		$previewTable.view = true;
 	}
 	async function showEditView() {
 		sqlEditControl.set({
@@ -56,3 +52,4 @@
 		<p class="text-right text-xs">[{id}]</p>
 	</div>
 </div>
+<Handle type="source" position={Position.Bottom} />

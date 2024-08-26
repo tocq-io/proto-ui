@@ -1,28 +1,33 @@
 <script lang="ts">
 	import {
 		Modal,
-		Table,
+		Table as ViewTable,
 		TableBody,
 		TableBodyCell,
 		TableBodyRow,
 		TableHead,
 		TableHeadCell
 	} from 'flowbite-svelte';
-	import { previewTable } from '$lib/storeUtils';
+	import { previewTable, tables } from '$lib/storeUtils';
+	import type { Table } from '@apache-arrow/ts';
 
 	let viewTable: any[] = [];
+	let table: Table | undefined;
 
 	previewTable.subscribe((prvw) => {
 		viewTable = [];
-		if (prvw.table) {
+		if (prvw.tableId) {
 			let maxLength = 10;
-			for (const row of prvw.table.toArray()) {
-				let rowArr = [];
-				for (const value of row.toArray()) {
-					rowArr.push(value);
+			table = $tables.get(prvw.tableId);
+			if (table) {
+				for (const row of table.toArray()) {
+					let rowArr = [];
+					for (const value of row.toArray()) {
+						rowArr.push(value);
+					}
+					viewTable.push(rowArr);
+					if (--maxLength === 0) break;
 				}
-				viewTable.push(rowArr);
-				if (--maxLength === 0) break;
 			}
 		}
 	});
@@ -31,10 +36,10 @@
 
 <Modal bind:open={$previewTable.view} class="text-xs">
 	<div class="pt-4">
-		{#if $previewTable.table}
-			<Table>
+		{#if table}
+			<ViewTable>
 				<TableHead>
-					{#each $previewTable.table.schema.fields as field}
+					{#each table.schema.fields as field}
 						<TableHeadCell padding="px-2 py-1 text-center" scope="col"
 							><nobr>{field.name} ({field.type})</nobr></TableHeadCell
 						>
@@ -49,7 +54,7 @@
 						</TableBodyRow>
 					{/each}
 				</TableBody>
-			</Table>
+			</ViewTable>
 		{/if}
 	</div>
 	<div class="text-center">
