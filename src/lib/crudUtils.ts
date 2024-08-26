@@ -1,7 +1,7 @@
-import { addQueryDataEdge, addQueryNode, removeTargetEdges, updateQueryNode, removeSourceEdges, addChartNode, deleteNode, removeChartNodeEdges } from "$lib/flowUtils";
+import { addQueryDataEdge, addQueryNode, removeSpecificTargetEdges, updateQueryNode, removeSourceEdges, addChartNode, deleteNode, removeAllTargetEdges } from "$lib/flowUtils";
 import { digestString } from "$lib/signUtils";
-import { deleteAllChartToNode, deleteAllDataToQuery, deleteAllQueryToData, deleteChartRecord, deleteDataRecord, deleteDfSqlFile, linkChartToNode, linkQueryToData, storeChart, storeDfSqlFile, updateDfSqlFile } from "$lib/graphUtils";
-import type { ChartLocalData } from "./storeUtils";
+import { deleteAllChartToNode, deleteAllDataToQuery, deleteQueryToDataImport, deleteChartRecord, deleteDataRecord, deleteDfSqlFile, linkChartToNode, linkQueryToData, storeChart, storeDfSqlFile, updateDfSqlFile, getEdgeChartToQuery } from "$lib/graphUtils";
+import type { ChartViewTable } from "./storeUtils";
 import { unegister_table } from "proto-query-engine";
 
 export async function persistQuery(sql: string, tableIds: Set<string>) {
@@ -12,15 +12,17 @@ export async function persistQuery(sql: string, tableIds: Set<string>) {
     }
     return digest;
 }
-export async function persistChart(chartData: ChartLocalData, sourceId: string, sourceNodeType: string) {
-    const [digest, salt] = await digestString(sourceId + chartData.type + chartData.x + chartData.y + chartData.r);
+export async function persistChart(chartData: ChartViewTable, sourceId: string, sourceNodeType: string) {
+    const [digest, salt] = await digestString(sourceId + chartData.type);
     await storeChart(digest, salt, chartData).then((chart) => addChartNode(chart.id.id.toString(), chartData));
     await linkChartToNode(digest, sourceId, sourceNodeType).then((edge) => addQueryDataEdge(edge, 'show'));
     return digest;
 }
 export async function updateQuery(sql: string, tableIds: Set<string>, queryId: string) {
-    await updateDfSqlFile(sql, queryId).then((query) => updateQueryNode(query));
-    await deleteAllQueryToData(queryId).then(() => removeTargetEdges(queryId));
+    await updateDfSqlFile(sql, queryId)
+        .then((query) => getEdgeChartToQuery(query.id.id.toString())
+        .then((chart) => updateQueryNode(query, chart)));
+    await deleteQueryToDataImport(queryId).then(() => removeSpecificTargetEdges(queryId, 'import'));
     for (const tableId of tableIds) {
         await linkQueryToData(tableId, queryId).then((edge) => addQueryDataEdge(edge, 'import'));
     }
@@ -29,13 +31,13 @@ export async function deleteChart(queryId: string) {
     await deleteChartRecord(queryId)
         .then(() => deleteNode(queryId))
         .then(() => deleteAllChartToNode(queryId))
-        .then(() => removeTargetEdges(queryId));
+        .then(() => removeSpecificTargetEdges(queryId, 'show'));
 }
 export async function deleteQuery(queryId: string) {
     await deleteDfSqlFile(queryId)
         .then(() => deleteNode(queryId))
-        .then(() => deleteAllQueryToData(queryId))
-        .then(() => removeTargetEdges(queryId));
+        .then(() => deleteQueryToDataImport(queryId))
+        .then(() => removeAllTargetEdges(queryId));
 }
 export async function deleteDataRecordAndEdges(dataId: string, tableName: string) {
     await deleteDataRecord(dataId)

@@ -54,7 +54,7 @@
 				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Query</span>
 			</Button>
 			<Button class="h-2/3" on:click={() => ($showChartEditor = true)}>
-				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">View</span>
+				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Chart</span>
 			</Button>
 			<Button class="h-2/3" disabled>
 				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Service</span>

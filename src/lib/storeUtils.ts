@@ -40,7 +40,7 @@ export type QueryNode = Node & {
     data: QueryData;
 };
 export type ChartData = {
-    chartData: Writable<ChartLocalData>;
+    chartData: Writable<ChartViewTable>;
 };
 export type ChartProps = NodeProps & {
     data: ChartData;
@@ -54,12 +54,9 @@ type PreviewTable = {
     tableId: string | undefined;
 };
 
-export type ChartLocalData = {
+export type ChartViewTable = {
     type: string;
-    dataId?: string;
-    x?: string;
-    y: string[];
-    r?: string;
+    tableId?: string;
 };
 type SqlEdit = {
     view: boolean;

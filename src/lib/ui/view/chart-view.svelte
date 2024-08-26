@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { CHART_TYPE, tables, type ChartLocalData } from '$lib/storeUtils';
+	import { CHART_TYPE, tables, type ChartViewTable } from '$lib/storeUtils';
 	import { Chart, registerables, type ChartTypeRegistry } from 'chart.js';
 	import { onMount } from 'svelte';
 	import type { Writable } from 'svelte/store';
 
 	let chart: Chart | undefined;
 	let chartType: string;
-	export let chartLocalData: Writable<ChartLocalData>;
+	export let chartLocalData: Writable<ChartViewTable>;
 	export let wrapperId: string;
 	let chartId = 'init_cid';
 
@@ -16,7 +16,7 @@
 			wrapperDiv?.removeChild(wrapperDiv?.firstChild);
 		}
 		const canvas = document.createElement('canvas');
-		canvas.setAttribute('style', 'width: 100%');
+		canvas.setAttribute('class', 'w-full');
 		canvas.setAttribute('id', chartId);
 		wrapperDiv?.appendChild(canvas);
 	}
@@ -67,21 +67,19 @@
 			if (localData.type != chartType) {
 				chart = setChart(localData.type);
 				chartType = localData.type;
-				chart?.reset();
 			}
-			if (localData.dataId && chart) {
+			if (localData.tableId && chart) {
 				if (chart.data.labels) {
 					chart.data.labels.pop();
 					chart.data.datasets.forEach((dataset) => {
 						dataset.data.pop();
 					});
 				}
-				const table = $tables.get(localData.dataId);
-				if (chart.data.labels && table && localData.x) {
+				const table = $tables.get(localData.tableId);
+				if (chart.data.labels && table) {
 					const tblArr = table.toArray();
-					const x = localData.x;
-					const r = localData.r;
-					const y = localData.y;
+					const x = table.schema.fields[0].name;
+					const y = table.schema.fields.slice(1, 9);
 					chart.data.labels = tblArr.map((row) => row[x]);
 					let datasets: any[] = [];
 
@@ -90,23 +88,12 @@
 						case 'line':
 							y?.forEach((s) => {
 								datasets.push({
-									label: s,
-									data: tblArr.map((row) => row[s])
+									label: s.name,
+									data: tblArr.map((row) => row[s.name])
 								});
 							});
 							break;
 						case 'bubble':
-							if (r && y) {
-								datasets.push({
-									label: y[0],
-									data: tblArr.map((row) => ({
-										x: row[x],
-										y: row[y[0]],
-										r: row[r]
-									}))
-								});
-							}
-							break;
 						case 'scatter':
 						case 'pie':
 						case 'doughnut':
@@ -121,4 +108,4 @@
 	});
 </script>
 
-<div id={wrapperId} />
+<div id={wrapperId} class="min-h-64 max-h-80" />

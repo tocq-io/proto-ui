@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Handle, Position } from '@xyflow/svelte';
-	import { Button } from 'flowbite-svelte';
-	import { CloseCircleOutline, EditOutline } from 'flowbite-svelte-icons';
+	import { Button, Radio } from 'flowbite-svelte';
+	import { CloseCircleOutline } from 'flowbite-svelte-icons';
 	import { type ChartProps } from '$lib/storeUtils';
 	import ChartView from '$lib/ui/view/chart-view.svelte';
 	import { deleteChart } from '$lib/crudUtils';
@@ -13,6 +13,7 @@
 	export let data: $$Props['data'];
 	export let id: $$Props['id'];
 	let wrapperId = browser ? self.crypto.randomUUID() : "init_id";
+	let chartData = data.chartData;
 
 	async function showEditView() {}
 	async function deleteChartNode() {
@@ -33,12 +34,18 @@
 				><CloseCircleOutline color="white" size="lg" strokeWidth="3" /></Button
 			><span class="text-xl font-semibold">Chart</span>
 		</div>
-		<div class="text-right">
-			<Button class="h-3/5 w-1/2" on:click={() => showEditView()}
-				><EditOutline /><span class="pl-1.5 text-sm">Edit</span></Button
+		<div class="flex gap-3 pl-3">
+			<Radio value="bar" bind:group={$chartData.type}
+				><span class="text-sm font-normal text-gray-500">Bars</span></Radio
+			>
+			<Radio value="line" bind:group={$chartData.type}
+				><span class="text-sm font-normal text-gray-500">Lines</span></Radio
+			>
+			<Radio value="bubble" bind:group={$chartData.type} disabled
+				><span class="text-sm font-normal text-gray-500"><nobr>Bubbles &#x1F37E;</nobr></span></Radio
 			>
 		</div>
 	</div>
-	<hr />
-	<ChartView chartLocalData={data.chartData} {wrapperId} />
+	<hr style="border-top: dotted 1px;" class="mt-3"/>
+	<ChartView chartLocalData={chartData} {wrapperId} />
 </div>

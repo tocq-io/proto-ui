@@ -34,7 +34,7 @@
 		</div>
 		<div class="text-right">
 			<Button class="h-3/5 w-1/2" on:click={() => setPreviewData()}
-				><TableRowOutline /><span class="pl-1.5 text-sm">View</span></Button
+				><TableRowOutline /><span class="pl-1.5 text-sm">Peek</span></Button
 			>
 		</div>
 	</div>

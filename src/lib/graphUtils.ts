@@ -1,7 +1,7 @@
 import { Surreal, StringRecordId, RecordId } from 'surrealdb.js';
 import { surrealdbWasmEngines } from 'surrealdb.wasm';
 import { initKeyPair } from '$lib/signUtils';
-import { DATA_NODE_TYPE, QUERY_NODE_TYPE, type ChartLocalData } from './storeUtils';
+import { DATA_NODE_TYPE, type ChartViewTable } from './storeUtils';
 type User = {
 	scope: string;
 	identity: {
@@ -17,9 +17,6 @@ export type Query = TocqNode & {
 };
 export type Chart = TocqNode & {
 	type: string;
-	x: string;
-	y: string[];
-	r: string;
 };
 export type InOutEdge = GeneralResult & {
 	in: RecordId;
@@ -27,6 +24,9 @@ export type InOutEdge = GeneralResult & {
 };
 export type OutEdges = GeneralResult & {
 	out: RecordId[];
+};
+export type InEdges = GeneralResult & {
+	in: RecordId[];
 };
 export type TocqNode = GeneralResult & {
 	format: string;
@@ -50,16 +50,13 @@ export async function openGraphDb() {
 	// 			))));
 }
 // Charts
-export async function storeChart(digest: string, salt: Uint8Array, chartData: ChartLocalData): Promise<Chart> {
+export async function storeChart(digest: string, salt: Uint8Array, chartData: ChartViewTable): Promise<Chart> {
 	// TODO use UPSERT with v2 of DB
 	const result = await db.create<Chart>('charts', {
 		id: new RecordId('charts', digest),
 		format: 'vw/chart',
 		salt: salt,
 		type: chartData.type.toString(),
-		x: chartData.x ? chartData.x : '',
-		y: chartData.y,
-		r: chartData.r ? chartData.r : '',
 	});
 	return result[0];
 }
@@ -112,8 +109,8 @@ export async function linkQueryToData(dataId: string, queryId: string): Promise<
 	return result[0][0];
 }
 
-export async function deleteAllQueryToData(queryId: string) {
-	const queryString = 'DELETE queries:' + queryId + '->import;DELETE queries:' + queryId + '<-show;';
+export async function deleteQueryToDataImport(queryId: string) {
+	const queryString = 'DELETE queries:' + queryId + '->import;';
 	await db.query(queryString);
 }
 export async function getDataGraph(): Promise<GeneralResult[][]> {
@@ -139,6 +136,11 @@ export async function updateDfSqlFile(sqlStatement: string, queryId: string): Pr
 		statement: sqlStatement,
 	});
 	return result;
+}
+export async function getEdgeChartToQuery(queryId: string): Promise<InEdges[]> {
+	const queryString = 'SELECT <-show.in as in from queries:' + queryId + ';';
+	const result = await db.query<InEdges[][]>(queryString);
+	return result[0];
 }
 export async function deleteDfSqlFile(queryId: string) {
 	await db.delete(new StringRecordId('queries:' + queryId));
