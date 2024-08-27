@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
-		"dev": "vite dev && npm surreal-fix",
+		"dev": "npm run surreal-fix && vite dev",
 		"build": "vite build",
 		"preview-all": "npm run wasm && npm run build && wrangler pages dev",
 		"preview": "npm run build && wrangler pages dev",
