@@ -19,7 +19,11 @@ function updateNodeStore(node: Node, id: string, data: any, x: number = 0){
         return nodeArr;
     });
 }
+
 export async function addDataNode(df: DataFile) {
+    let dataId = df.id.id.toString();
+    await register_csv(dataId + '.csv', df.tableName);
+    await updateArrowTables('SELECT * FROM ' + df.tableName, dataId);
     let fileNode = {} as DataFileNode;
     fileNode.type = DATA_NODE_TYPE;
     let data = {
@@ -27,10 +31,7 @@ export async function addDataNode(df: DataFile) {
         size: df.size,
         format: df.format
     } as DataFileData;
-    let dataId = df.id.id.toString();
     updateNodeStore(fileNode, dataId, data);
-    await register_csv(dataId + '.csv', df.tableName);
-    await updateArrowTables('SELECT * FROM ' + df.tableName, dataId);
 }
 export async function addEmptyQueryNode() {
     let queryNode = {} as QueryNode;
@@ -58,15 +59,15 @@ export async function updateEmptyQueryNode(query: Query) {
     });
 }
 export async function addQueryNode(query: Query) {
+    const queryId = query.id.id.toString();
+    await updateArrowTables(query.statement, queryId);
     let queryNode = {} as QueryNode;
     queryNode.type = QUERY_NODE_TYPE;
     let data = {
         sql: query.statement,
         format: query.format
     } as QueryData;
-    const queryId = query.id.id.toString();
     updateNodeStore(queryNode, queryId, data);
-    await updateArrowTables(query.statement, queryId);
 }
 export async function addChartNode(id: string, localChartData: ChartViewTable) {
     let chartNode = {} as ChartNode;

@@ -52,7 +52,7 @@
 	// - https://www.eclipse.org/elk/reference/options.html
 	const elkOptions = {
 		'elk.algorithm': 'layered',
-		'elk.layered.spacing.nodeNodeBetweenLayers': '240',
+		'elk.layered.spacing.nodeNodeBetweenLayers': '280',
 		'elk.spacing.nodeNode': '640',
 		'elk.direction': 'DOWN'
 	};
