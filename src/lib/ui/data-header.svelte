@@ -36,7 +36,7 @@
 				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Model</span>
 			</Button>
 			<Button class="h-2/3" disabled>
-				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Service</span>
+				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Function</span>
 			</Button>
 		</div>
 	</div>

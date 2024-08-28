@@ -67,16 +67,14 @@
 			</ButtonGroup>
 		</div>
 	</div>
-
 	<Alert color="blue" class="py-2">
 		<CodeEditor {codeText} {editorElementId} />
 	</Alert>
-
-	<Alert color="light" class="p-2">
-	<div class="grid pt-1.5 sm:grid-cols-2">
-		<p class="text-xs">[format: {data.format}]</p>
-		<p class="text-right text-xs">[{id}]</p>
-	</div>
+	<Alert color="light" class="p-2 mt-1">
+		<div class="grid pt-1.5 sm:grid-cols-2">
+			<p class="text-xs">[format: {data.format}]</p>
+			<p class="text-right text-xs">[{id}]</p>
+		</div>
 	</Alert>
 </div>
 <Handle type="source" position={Position.Bottom} />
