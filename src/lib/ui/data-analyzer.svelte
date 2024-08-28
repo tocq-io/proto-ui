@@ -53,7 +53,7 @@
 	// - https://www.eclipse.org/elk/reference/options.html
 	const elkOptions = {
 		'elk.algorithm': 'layered',
-		'elk.layered.spacing.nodeNodeBetweenLayers': '280',
+		'elk.layered.spacing.nodeNodeBetweenLayers': '260',
 		'elk.spacing.nodeNode': '640',
 		'elk.direction': 'DOWN'
 	};
@@ -102,11 +102,13 @@
 	}
 
 	async function resetLocalData() {
-		resetImportDir().then(()=>deleteItAll().then(()=>{
-			resetKeys();
-			resetGraph();
-			window.location.reload();
-		}));
+		resetImportDir().then(() =>
+			deleteItAll().then(() => {
+				resetKeys();
+				resetGraph();
+				window.location.reload();
+			})
+		);
 	}
 
 	onMount(async () => {
