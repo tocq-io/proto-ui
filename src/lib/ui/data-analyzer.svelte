@@ -11,19 +11,20 @@
 		type Node
 	} from '@xyflow/svelte';
 	import ELK, { type ElkExtendedEdge, type ElkNode } from 'elkjs/lib/elk.bundled.js';
-	import { nodes, edges, errorView } from '$lib/storeUtils';
+	import { nodes, edges, errorView, resetGraph } from '$lib/storeUtils';
 	import DataFile from '$lib/ui/nodes/data-file.svelte';
 	import Query from '$lib/ui/nodes/query.svelte';
 	import QueryDataEdge from '$lib/ui/nodes/query-data-edge.svelte';
 	import Chart from '$lib/ui/nodes/chart.svelte';
-
-	import '@xyflow/svelte/dist/style.css';
+	import { showDataUpload } from '$lib/storeUtils';
 	import { onMount } from 'svelte';
-	import { initFlow } from '$lib/flowUtils';
-	import { openDB } from '$lib/signUtils';
-	import { openGraphDb } from '$lib/graphUtils';
-	import { Alert, Button } from 'flowbite-svelte';
-	import { BullhornOutline } from 'flowbite-svelte-icons';
+	import { addEmptyQueryNode, initFlow } from '$lib/flowUtils';
+	import { openDB, resetKeys } from '$lib/signUtils';
+	import { deleteItAll, openGraphDb } from '$lib/graphUtils';
+	import { Alert, Button, ButtonGroup } from 'flowbite-svelte';
+	import { BullhornOutline, PlayOutline, PlusOutline } from 'flowbite-svelte-icons';
+	import '@xyflow/svelte/dist/style.css';
+	import { resetImportDir } from '$lib/fileUtils';
 
 	const nodeTypes = {
 		dataNode: DataFile,
@@ -100,6 +101,14 @@
 			.then(() => window.requestAnimationFrame(() => fitView()));
 	}
 
+	async function resetLocalData() {
+		resetImportDir().then(()=>deleteItAll().then(()=>{
+			resetKeys();
+			resetGraph();
+			window.location.reload();
+		}));
+	}
+
 	onMount(async () => {
 		await init();
 		// Debug only
@@ -111,10 +120,38 @@
 </script>
 
 <section class="px-8">
-	<div class="overview h-full border-2 border-dotted border-slate-500" style="height: 70dvh;">
+	<div class="overview h-full border-2 border-dotted border-slate-500" style="height: 85dvh;">
 		<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes} fitView {fitViewOptions}>
 			<Panel position="top-right">
-				<Button on:click={() => goLayout()} class="h-6 w-4/5"><nobr>Layout</nobr></Button>
+				<ButtonGroup>
+					<Button class="h-6" on:click={() => ($showDataUpload = true)}>
+						<PlusOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Data</span>
+					</Button>
+					<Button class="h-6" on:click={() => addEmptyQueryNode()}>
+						<PlusOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Query</span>
+					</Button>
+					<Button class="h-6" disabled>
+						<PlusOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Model</span>
+					</Button>
+					<Button class="h-6" disabled>
+						<PlusOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Function</span>
+					</Button>
+					<Button class="h-6" disabled>
+						<PlayOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Publish</span>
+					</Button>
+					<Button class="h-6" disabled>
+						<PlayOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Share</span>
+					</Button>
+					<Button class="h-6" disabled>
+						<PlayOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Deploy</span>
+					</Button>
+					<Button class="h-6" on:click={() => resetLocalData()}>
+						<PlayOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Reset</span>
+					</Button>
+					<Button on:click={() => goLayout()} class="h-6"
+						><span class="text-md">Layout</span></Button
+					>
+				</ButtonGroup>
 			</Panel>
 			<Panel position="top-left" style="visibility: {$errorView.visibility}; width: 75%;">
 				<Alert color={$errorView.color}>
