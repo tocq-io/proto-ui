@@ -18,12 +18,12 @@ export async function resetImportDir() {
 	return navigator.storage.getDirectory().then(
 		(opfsRoot) => (opfsRoot.removeEntry('data', { recursive: true })));
 }
-export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: File, tableName: string, shiftX: number) {
+export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: File, tableName: string) {
 	await digestFile(file)
 		.then(([digest, salt]) => (importDir.getFileHandle(digest + '.csv', { create: true }))
 			.then((importFile) => (importFile.createWritable())
 				.then((writable) => (writable.write(file))
 					.then(() => (writable.close())
 						.then(() => (storeCsvFile(file.size, tableName, digest, salt)
-							.then((fileData) => (addDataNode(fileData, shiftX)))))))));
+							.then((fileData) => (addDataNode(fileData)))))))));
 }

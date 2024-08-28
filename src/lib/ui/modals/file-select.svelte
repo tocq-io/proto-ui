@@ -11,7 +11,7 @@
 		let count = 0;
 		for (const file of files) {
 			const tableName = file.name.replace(/\.[^/.]+$/, '');
-			await writeCsvFile(importDir, file, tableName, count++ * 360);
+			await writeCsvFile(importDir, file, tableName);
 		}
 	}
 </script>
