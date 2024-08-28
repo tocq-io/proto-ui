@@ -52,7 +52,7 @@
 	<div>
 		{#if myTable}
 			<Alert color="light" class="p-2">
-				<div class="grid grid-cols-6 gap-0.5">
+				<div class="grid grid-cols-5 gap-1">
 					{#each myTable.schema.fields as field}
 						<nobr>{field}</nobr>
 					{/each}
@@ -61,12 +61,10 @@
 		{/if}
 	</div>
 	<Alert color="light" class="p-2 mt-1">
-		<div class="mt-1 grid sm:grid-cols-2">
-			<span class="text-xs">[format: {data.format}]</span>
-			<span class="text-right text-xs">[size: {data.size}]</span>
-		</div>
-		<div>
-			<span class="text-xs">[{id}]</span>
+		<div class="flex gap-0.5 text-xs">
+			<span class="w-28"><nobr>[format: {data.format}]</nobr></span>
+			<span class="w-28 text-center">[size: {data.size}]</span>
+			<span class="w-full text-right">[{id}]</span>
 		</div>
 	</Alert>
 </div>

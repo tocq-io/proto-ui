@@ -114,7 +114,7 @@
 	<div class="overview h-full border-2 border-dotted border-slate-500" style="height: 70dvh;">
 		<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes} fitView {fitViewOptions}>
 			<Panel position="top-right">
-				<Button on:click={() => goLayout()} class="h-6 w-4/5"><nobr>Balance layout</nobr></Button>
+				<Button on:click={() => goLayout()} class="h-6 w-4/5"><nobr>Layout</nobr></Button>
 			</Panel>
 			<Panel position="top-left" style="visibility: {$errorView.visibility}; width: 75%;">
 				<Alert color={$errorView.color}>

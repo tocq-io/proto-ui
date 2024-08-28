@@ -71,9 +71,9 @@
 		<CodeEditor {codeText} {editorElementId} />
 	</Alert>
 	<Alert color="light" class="p-2 mt-1">
-		<div class="grid pt-1.5 sm:grid-cols-2">
-			<p class="text-xs">[format: {data.format}]</p>
-			<p class="text-right text-xs">[{id}]</p>
+		<div class="flex gap-0.5 text-xs">
+			<span class="w-28"><nobr>[format: {data.format}]</nobr></span>
+			<span class="text-right w-full">[{id}]</span>
 		</div>
 	</Alert>
 </div>
