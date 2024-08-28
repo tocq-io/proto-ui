@@ -3,8 +3,6 @@
 	import DataAnalyzer from '$lib/ui/data-analyzer.svelte';
 	import DataFooter from '$lib/ui/data-footer.svelte';
 	import FileSelect from '$lib/ui/modals/file-select.svelte';
-	import QueryEdit from '$lib/ui/modals/query-edit.svelte';
-	import ChartEdit from '$lib/ui/modals/chart-edit.svelte';
 	import TablePreview from '$lib/ui/modals/table-preview.svelte';
 	import { SvelteFlowProvider } from '@xyflow/svelte';
 </script>
@@ -13,8 +11,6 @@
 	<DataHeader />
 	<section>
 		<FileSelect />
-		<QueryEdit />
-		<ChartEdit />
 		<TablePreview />
 	</section>
 	<SvelteFlowProvider>

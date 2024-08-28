@@ -11,7 +11,7 @@
 		type Node
 	} from '@xyflow/svelte';
 	import ELK, { type ElkExtendedEdge, type ElkNode } from 'elkjs/lib/elk.bundled.js';
-	import { nodes, edges } from '$lib/storeUtils';
+	import { nodes, edges, errorView } from '$lib/storeUtils';
 	import DataFile from '$lib/ui/nodes/data-file.svelte';
 	import Query from '$lib/ui/nodes/query.svelte';
 	import QueryDataEdge from '$lib/ui/nodes/query-data-edge.svelte';
@@ -22,7 +22,8 @@
 	import { initFlow } from '$lib/flowUtils';
 	import { openDB } from '$lib/signUtils';
 	import { openGraphDb } from '$lib/graphUtils';
-	import { Button } from 'flowbite-svelte';
+	import { Alert, Button } from 'flowbite-svelte';
+	import { BullhornOutline } from 'flowbite-svelte-icons';
 
 	const nodeTypes = {
 		dataNode: DataFile,
@@ -36,11 +37,11 @@
 	const { fitView } = useSvelteFlow();
 
 	const fitViewOptions = {
-     padding: 0,
-     minZoom: 0,
-     maxZoom: 0.1,
-     duration: 0,
-    };
+		padding: 0,
+		minZoom: 0,
+		maxZoom: 0.1,
+		duration: 0
+	};
 
 	const elk = new ELK();
 
@@ -96,7 +97,7 @@
 					nodes.set(layoutedNodes);
 				}
 			})
-			.then(() => fitView());
+			.then(() => window.requestAnimationFrame(() => fitView()));
 	}
 
 	onMount(async () => {
@@ -105,8 +106,7 @@
 		init_panic_hook();
 		openDB();
 		await openGraphDb();
-		await initFlow()
-			.then(() => goLayout());
+		await initFlow().then(() => goLayout());
 	});
 </script>
 
@@ -115,6 +115,12 @@
 		<SvelteFlow {nodes} {edges} {nodeTypes} {edgeTypes} fitView {fitViewOptions}>
 			<Panel position="top-right">
 				<Button on:click={() => goLayout()} class="h-6 w-4/5"><nobr>Balance layout</nobr></Button>
+			</Panel>
+			<Panel position="top-left" style="visibility: {$errorView.visibility}; width: 75%;">
+				<Alert color={$errorView.color}>
+					<BullhornOutline slot="icon" class="h-5 w-5" />
+					<span class="text-sm font-medium">{$errorView.msg}</span>
+				</Alert>
 			</Panel>
 			<Background />
 			<Controls />

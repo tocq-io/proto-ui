@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Handle, Position } from '@xyflow/svelte';
-	import { Button, Radio } from 'flowbite-svelte';
-	import { CloseCircleOutline } from 'flowbite-svelte-icons';
+	import { Alert, Button, Radio } from 'flowbite-svelte';
+	import { CloseCircleOutline, InfoCircleSolid } from 'flowbite-svelte-icons';
 	import { type ChartProps } from '$lib/storeUtils';
 	import ChartView from '$lib/ui/view/chart-view.svelte';
 	import { deleteChart } from '$lib/crudUtils';
@@ -12,7 +12,7 @@
 
 	export let data: $$Props['data'];
 	export let id: $$Props['id'];
-	let wrapperId = browser ? self.crypto.randomUUID() : "init_id";
+	let wrapperId = browser ? self.crypto.randomUUID() : 'init_id';
 	let chartData = data.chartData;
 
 	async function showEditView() {}
@@ -23,7 +23,7 @@
 
 <Handle type="target" position={Position.Top} />
 <div>
-	<div class="-mb-2 grid sm:grid-cols-2">
+	<div class="mb-2 grid sm:grid-cols-2">
 		<div class="flex gap-2">
 			<Button
 				class="mt-0.5 h-6 w-6"
@@ -42,10 +42,16 @@
 				><span class="text-sm font-normal text-gray-500">Lines</span></Radio
 			>
 			<Radio value="bubble" bind:group={$chartData.type} disabled
-				><span class="text-sm font-normal text-gray-500"><nobr><s>Bubbles</s> &#x1F37E;</nobr></span></Radio
+				><span class="text-sm font-normal text-gray-500"><nobr><s>Bubbles</s> &#x1F37E;</nobr></span
+				></Radio
 			>
 		</div>
 	</div>
-	<hr style="border-top: dotted 1px;" class="mt-3"/>
 	<ChartView chartLocalData={chartData} {wrapperId} />
+	<div>
+		<Alert color="green" class="p-1.5">
+			<InfoCircleSolid slot="icon" class="h-5 w-5" />
+			<span class="font-medium">Charts 1st column as x-axis, up to 8 columns on y-axis.</span>
+		</Alert>
+	</div>
 </div>

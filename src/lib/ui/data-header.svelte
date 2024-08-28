@@ -3,17 +3,10 @@
 	import { PlusOutline } from 'flowbite-svelte-icons';
 	import { writable, type Writable } from 'svelte/store';
 	import { getAvailableGb } from '$lib/fileUtils';
-	import { sqlEditControl, showDataUpload, showChartEditor } from '$lib/storeUtils';
+	import { showDataUpload } from '$lib/storeUtils';
+	import { addEmptyQueryNode } from '$lib/flowUtils';
 
 	let gbPromise: Writable<Promise<string>>;
-
-	function setSqlControl() {
-		sqlEditControl.set({
-			view: true,
-			queryId: '',
-			sql: '',
-		});
-	}
 
 	$: gbPromise = writable(getAvailableGb());
 </script>
@@ -36,11 +29,11 @@
 			<Button class="h-2/3" on:click={() => ($showDataUpload = true)}>
 				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Data</span>
 			</Button>
-			<Button class="h-2/3" on:click={() => setSqlControl()}>
+			<Button class="h-2/3" on:click={() => addEmptyQueryNode()}>
 				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Query</span>
 			</Button>
-			<Button class="h-2/3" on:click={() => ($showChartEditor = true)}>
-				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Chart</span>
+			<Button class="h-2/3" disabled>
+				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Model</span>
 			</Button>
 			<Button class="h-2/3" disabled>
 				<PlusOutline strokeWidth="4" class="mr-2 h-3.5 w-3.5" /><span class="text-lg">Service</span>

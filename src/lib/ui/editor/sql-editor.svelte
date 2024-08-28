@@ -3,14 +3,14 @@
 	import { basicSetup, EditorView } from 'codemirror';
     import { sql } from '@codemirror/lang-sql';
 	import { type Writable } from 'svelte/store';
-	import { sqlEditControl } from '$lib/storeUtils';
 
     let view: EditorView;
     export let codeText: Writable<string>;
+    export let editorElementId: string;
 
     onMount(async () => {
-        const targetElement = document.querySelector('#editor')!;
-        $codeText = $sqlEditControl.sql;
+        const targetElement = document.getElementById(editorElementId)!;
+        //$codeText = $sqlEditControl.sql;
         view = new EditorView({
             doc: $codeText,
             extensions: [basicSetup, sql(), 
@@ -24,4 +24,4 @@
         });
     });
 </script>
-<div id="editor"></div>
+<div id={editorElementId}></div>
