@@ -42,7 +42,7 @@ export async function addEmptyQueryNode() {
         chartType: 'bar',
         nodeView: 3
     });
-    updateNodeStore('empty_query', QUERY_NODE_TYPE, data, 720);
+    updateNodeStore('empty_query', QUERY_NODE_TYPE, data, 480);
 }
 export async function updateEmptyQueryNode(query: QueryRecord) {
     const queryId = query.id.id.toString();

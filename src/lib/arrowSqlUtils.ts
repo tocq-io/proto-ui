@@ -41,10 +41,11 @@ export async function getTables(sqlStatement: string): Promise<Set<string>> {
 }
 
 export async function updateArrowTables(sqlStatement: string, id: string) {
-    await run_sql(sqlStatement)
+    run_sql(sqlStatement)
         .then((reslt) => {
+            let table = tableFromIPC(reslt);
             tables.update((tblMp) => {
-                tblMp.set(id, tableFromIPC(reslt));
+                tblMp.set(id, table);
                 return tblMp;
             });
             errorView.update((errV) => {

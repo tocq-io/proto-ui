@@ -72,11 +72,11 @@ export async function updateDataFile(fileData: DataFile, digest: string): Promis
 	return result;
 }
 export async function deleteDataRecord(digest: string) {
-	db.delete(new StringRecordId('data:' + digest));
+	return db.delete(new StringRecordId('data:' + digest));
 }
 export async function deleteAllDataToQuery(digest: string) {
 	const queryString = 'DELETE data:' + digest + '<-import;DELETE data:' + digest + '<-show;';
-	db.query(queryString);
+	return db.query(queryString);
 }
 // Queries
 export async function linkQueryToData(dataId: string, digest: string): Promise<InOutEdge> {
@@ -87,14 +87,14 @@ export async function linkQueryToData(dataId: string, digest: string): Promise<I
 
 export async function deleteQueryToDataImport(digest: string) {
 	const queryString = 'DELETE queries:' + digest + '->import;';
-	await db.query(queryString);
+	return db.query(queryString);
 }
 export async function getDataGraph(): Promise<GeneralResult[][]> {
 	let result = db.query<GeneralResult[][]>('SELECT * FROM data;SELECT * FROM queries;SELECT * FROM import;');
 	return result;
 }
 export async function deleteItAll() {
-	await db.query('REMOVE DATABASE proto;');
+	return db.query('REMOVE DATABASE proto;');
 }
 export async function storeDfSqlFile(queryData: QueryData, digest: string): Promise<QueryRecord> {
 	// TODO use UPSERT with v2 of DB
@@ -118,7 +118,7 @@ export async function updateDfSqlFile(queryData: QueryData, digest: string): Pro
 	return result;
 }
 export async function deleteDfSqlFile(digest: string) {
-	db.delete(new StringRecordId('queries:' + digest));
+	return db.delete(new StringRecordId('queries:' + digest));
 }
 // User
 export async function getUserId(): Promise<string> {

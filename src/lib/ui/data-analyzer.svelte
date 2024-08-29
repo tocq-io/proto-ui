@@ -38,7 +38,7 @@
 	const fitViewOptions = {
 		padding: 0,
 		minZoom: 0,
-		maxZoom: 0.1,
+		maxZoom: 1,
 		duration: 0
 	};
 
@@ -51,11 +51,13 @@
 	// - https://www.eclipse.org/elk/reference/options.html
 	const elkOptions = {
 		'elk.algorithm': 'layered',
-		'elk.layered.spacing.nodeNodeBetweenLayers': '260',
+		'elk.layered.spacing.nodeNodeBetweenLayers': '360',
 		'elk.spacing.nodeNode': '640',
 		'elk.direction': 'DOWN'
 	};
 	async function goLayout() {
+		if ($nodes.length === 0 || $edges.length === 0) return;
+		console.log("really trying here")
 		let elkEdges: ElkExtendedEdge[] = [];
 		for (const edge of $edges) {
 			elkEdges.push({
@@ -96,7 +98,7 @@
 					nodes.set(layoutedNodes);
 				}
 			})
-			.then(() => window.requestAnimationFrame(() => fitView()));
+			.then(() => (window.requestAnimationFrame(() => fitView())));
 	}
 
 	async function resetLocalData() {

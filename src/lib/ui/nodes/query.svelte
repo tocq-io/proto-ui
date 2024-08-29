@@ -9,7 +9,7 @@
 		FloppyDiskOutline,
 		InfoCircleOutline
 	} from 'flowbite-svelte-icons';
-	import { type QueryProps } from '$lib/storeUtils';
+	import { tables, type QueryProps } from '$lib/storeUtils';
 	import CodeEditor from '$lib/ui/editor/sql-editor.svelte';
 	import { deleteQuery, persistQuery, updateQuery } from '$lib/crudUtils';
 	import { writable } from 'svelte/store';
@@ -18,6 +18,7 @@
 	import { onMount } from 'svelte';
 	import { updateDfSqlFile } from '$lib/graphUtils';
 	import { updateArrowTables } from '$lib/arrowSqlUtils';
+	import { stringHash } from '$lib/signUtils';
 
 	type $$Props = QueryProps;
 	$$restProps;
@@ -51,16 +52,15 @@
 		return id === 'empty_query';
 	}
 
-	data.subscribe((dt) => {
+	data.subscribe(async (dt) => {
 		if (!loading && !isEmpty()) {
-			console.log($data.nodeView);
-			if ($data.nodeView !== DetailView.ViewEditor) {
-				updateArrowTables($codeText, id);
-				//TODO save new SQL stament too...
-				dt.statement = $codeText;
+			if ($data.nodeView === DetailView.ViewChart || $data.nodeView === DetailView.ViewTable) {
+				if ((await stringHash(dt.statement)) !== (await stringHash($codeText))){
+					updateArrowTables($codeText, id);
+					dt.statement = $codeText;
+				}
 			}
 			updateDfSqlFile(dt, id);
-			console.log(dt);
 		}
 	});
 

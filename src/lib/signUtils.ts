@@ -64,6 +64,11 @@ export async function digestString(data: string): Promise<[string, Uint8Array]> 
 	const dataUint8 = enc.encode(data); // encode as (utf-8) Uint8Array
 	return getUserId().then((userId) => digestBuffer(dataUint8, userId));
 }
+export async function stringHash(str: string): Promise<string> {
+	const enc = new TextEncoder();
+	const dataUint8 = enc.encode(str); // encode as (utf-8) Uint8Array
+	return quickHash(dataUint8); // convert bytes to hex string
+}
 async function quickHash(value: ArrayBuffer): Promise<string> {
 	const hashBuffer = await crypto.subtle.digest('SHA-1', value); // quickly hash the value
 	const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
