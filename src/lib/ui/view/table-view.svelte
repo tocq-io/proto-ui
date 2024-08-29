@@ -7,30 +7,24 @@
 		TableHead,
 		TableHeadCell
 	} from 'flowbite-svelte';
-	import type { Table } from '@apache-arrow/ts';
-	import { tables } from '$lib/storeUtils';
-	import { onMount } from 'svelte';
-	export let tableId;
-	let table: Table | undefined;
 
-	onMount(async () => {
-		table = $tables.get(tableId);
-		tables.subscribe((tbls) => (table = tbls.get(tableId)));
-	});
+	import type { Table } from '@apache-arrow/ts';
+	import type { Writable } from 'svelte/store';
+	export let table: Writable<Table | undefined>;
 </script>
 
 <div class="max-w-4xl text-xs">
-	{#if table}
+	{#if $table}
 		<ViewTable>
 			<TableHead>
-				{#each table.schema.fields as field}
+				{#each $table.schema.fields as field}
 					<TableHeadCell padding="px-2 py-1 text-center" scope="col"
 						><nobr>{field.name} ({field.type})</nobr></TableHeadCell
 					>
 				{/each}
 			</TableHead>
 			<TableBody>
-				{#each table.toArray().slice(0, 10) as row}
+				{#each $table.toArray().slice(0, 10) as row}
 					<TableBodyRow>
 						{#each row.toArray() as value}
 							<TableBodyCell tdClass="px-2 py-1 text-center">{value}</TableBodyCell>

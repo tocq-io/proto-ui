@@ -15,12 +15,13 @@
 	import TableView from '$lib/ui/view/table-view.svelte';
 	import ChartView from '$lib/ui/view/chart-view.svelte';
 	import { updateDataFile } from '$lib/graphUtils';
+	import { writable, type Writable } from 'svelte/store';
 
 	type $$Props = DataFileProps;
 	$$restProps;
 
 	export let data: $$Props['data'];
-	export let id: $$Props['id'];	
+	export let id: $$Props['id'];
 	let loading = true;
 	enum DetailView {
 		ViewTable = 1,
@@ -28,19 +29,20 @@
 		ViewSchema = 3,
 		ViewBasic = 0
 	}
-	let table: Table | undefined;
+	let table: Writable<Table | undefined> = writable($tables.get(id));
 
 	function deleteDataNode() {
 		deleteDataRecordAndEdges(id, $data.tableName);
 	}
-	data.subscribe((dt)=>{
+	data.subscribe((dt) => {
 		if (!loading) {
 			updateDataFile($data, id);
 		}
-	})
+	});
 	onMount(async () => {
-		table = $tables.get(id);
-		loading = false;
+		tables.subscribe((tbl) => {
+			table.set(tbl.get(id));
+		});
 	});
 </script>
 
@@ -74,23 +76,23 @@
 		</div>
 	</div>
 	<div>
-		{#if $data.nodeView === DetailView.ViewSchema && table}
+		{#if $data.nodeView === DetailView.ViewSchema && $table}
 			<Alert color="light" class="p-2">
 				<div class="grid grid-cols-5 gap-1">
-					{#each table.schema.fields as field}
+					{#each $table.schema.fields as field}
 						<nobr>{field}</nobr>
 					{/each}
 				</div>
 			</Alert>
 		{:else if $data.nodeView === DetailView.ViewTable}
-			<TableView tableId={id} />
+			<TableView {table} />
 		{:else if $data.nodeView === DetailView.ViewChart}
-			<ChartView tableId={id} {data} />
+			<ChartView tableId={id} {table} {data} />
 		{:else}
 			<Alert color="light" class="mt-1 p-2">
 				<div class="flex gap-1.5 text-xs">
 					<span><nobr>[format: {$data.format}]</nobr></span>
-					<span><nobr>[size: {$data.size}]<nobr></nobr></span>
+					<span><nobr>[size: {$data.size}]<nobr></nobr></nobr></span>
 					<span class="w-full text-right">[{id}]</span>
 				</div>
 			</Alert>

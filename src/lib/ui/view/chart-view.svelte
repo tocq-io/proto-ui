@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { TocqNode } from '$lib/graphUtils';
-	import { tables } from '$lib/storeUtils';
 	import type { Table } from '@apache-arrow/ts';
 	import { Chart, registerables } from 'chart.js';
 	import { Alert, Radio } from 'flowbite-svelte';
@@ -9,10 +8,9 @@
 	import { type Writable } from 'svelte/store';
 
 	export let data: Writable<TocqNode>;
-	let table: Table | undefined;
+	export let table: Writable<Table | undefined>;
 	export let tableId: string;
 	let chartId = 'init_cid';
-	//let chart: Chart | undefined;
 	enum CHART_TYPE {
 		Bar = 'bar',
 		Line = 'line',
@@ -45,11 +43,11 @@
 		}
 	}
 	function setChart(chartType: string) {
-		if (!table) return;
+		if (!$table) return;
 
-		const tblArr = table.toArray();
-		const x = table.schema.fields[0].name;
-		const y = table.schema.fields.slice(1, 9);
+		const tblArr = $table.toArray();
+		const x = $table.schema.fields[0].name;
+		const y = $table.schema.fields.slice(1, 9);
 		let datasets: any[] = [];
 
 		switch (chartType) {
@@ -88,8 +86,8 @@
 	onMount(async () => {
 		chartId = self.crypto.randomUUID();
 		Chart.register(...registerables);
-		tables.subscribe((tbls) => {
-			table = tbls.get(tableId);
+		table.subscribe(() => {
+			// TODO prevent redraw if its data did not change
 			setChart($data.chartType);
 		});
 	});
@@ -102,7 +100,7 @@
 			<span class="text-xs">Charts 1st column as x-axis, up to 8 columns on y-axis.</span>
 		</Alert>
 	</div>
-	<div id={tableId} class="max-h-80 min-h-48" />
+	<div id={tableId} class="max-h-80 min-h-52" />
 	<div class="flex gap-3 pl-6">
 		<Radio value="bar" bind:group={$data.chartType} on:click={() => setChart('bar')}
 			><span class="text-sm font-normal text-gray-500">Bars</span></Radio

@@ -12,13 +12,14 @@
 	import { tables, type QueryProps } from '$lib/storeUtils';
 	import CodeEditor from '$lib/ui/editor/sql-editor.svelte';
 	import { deleteQuery, persistQuery, updateQuery } from '$lib/crudUtils';
-	import { writable } from 'svelte/store';
+	import { writable, type Writable } from 'svelte/store';
 	import TableView from '../view/table-view.svelte';
 	import ChartView from '../view/chart-view.svelte';
 	import { onMount } from 'svelte';
 	import { updateDfSqlFile } from '$lib/graphUtils';
 	import { updateArrowTables } from '$lib/arrowSqlUtils';
 	import { stringHash } from '$lib/signUtils';
+	import type { Table } from '@apache-arrow/ts';
 
 	type $$Props = QueryProps;
 	$$restProps;
@@ -35,6 +36,7 @@
 	}
 	let loading = true;
 	let codeText = writable($data.statement);
+	let table: Writable<Table | undefined> = writable($tables.get(id));
 
 	function deleteSqlNode() {
 		deleteQuery(id);
@@ -55,7 +57,7 @@
 	data.subscribe(async (dt) => {
 		if (!loading && !isEmpty()) {
 			if ($data.nodeView === DetailView.ViewChart || $data.nodeView === DetailView.ViewTable) {
-				if ((await stringHash(dt.statement)) !== (await stringHash($codeText))){
+				if ((await stringHash(dt.statement)) !== (await stringHash($codeText))) {
 					updateArrowTables($codeText, id);
 					dt.statement = $codeText;
 				}
@@ -67,6 +69,9 @@
 	onMount(async () => {
 		wrapperId = self.crypto.randomUUID();
 		editorElementId = self.crypto.randomUUID();
+		tables.subscribe((tbl) => {
+			table.set(tbl.get(id));
+		});
 		loading = false;
 	});
 </script>
@@ -110,9 +115,9 @@
 			<CodeEditor {codeText} {editorElementId} />
 		</Alert>
 	{:else if $data.nodeView === DetailView.ViewTable && !isEmpty()}
-		<TableView tableId={id} />
+		<TableView {table} />
 	{:else if $data.nodeView === DetailView.ViewChart && !isEmpty()}
-		<ChartView tableId={id} {data} />
+		<ChartView tableId={id} {table} {data} />
 	{:else}
 		<Alert color="light" class="mt-1 p-2">
 			<div class="flex gap-0.5 text-xs">
