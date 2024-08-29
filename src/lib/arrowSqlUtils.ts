@@ -23,6 +23,7 @@ export async function getTables(sqlStatement: string): Promise<Set<string>> {
                     }
                 }
             }
+            // TODO this is a bit odd
             errorView.update((errV) => {
                 errV.visibility = 'hidden';
                 return errV;

@@ -1,5 +1,5 @@
 import { digestFile } from '$lib/signUtils';
-import { storeCsvFile } from '$lib/graphUtils';
+import { storeDataFile, type DataFile } from '$lib/graphUtils';
 import { addDataNode } from '$lib/flowUtils';
 
 export async function getAvailableGb(): Promise<string> {
@@ -18,12 +18,23 @@ export async function resetImportDir() {
 	return navigator.storage.getDirectory().then(
 		(opfsRoot) => (opfsRoot.removeEntry('data', { recursive: true })));
 }
-export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: File, tableName: string) {
+export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: File) {
+	const tableName = file.name.replace(/\.[^/.]+$/, '');
 	await digestFile(file)
 		.then(([digest, salt]) => (importDir.getFileHandle(digest + '.csv', { create: true }))
 			.then((importFile) => (importFile.createWritable())
 				.then((writable) => (writable.write(file))
 					.then(() => (writable.close())
-						.then(() => (storeCsvFile(file.size, tableName, digest, salt)
-							.then((fileData) => (addDataNode(fileData)))))))));
+						.then(() => {
+							let dataFile = {
+								tableName: tableName,
+								format: 'text/csv',
+								size: file.size,
+								salt: salt,
+								nodeView: 0,
+								chartType: 'bar'
+							} as DataFile;
+							storeDataFile(dataFile, digest)
+								.then((fileData) => (addDataNode(fileData)));
+						})))));
 }

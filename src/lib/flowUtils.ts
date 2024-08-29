@@ -1,13 +1,15 @@
 import { type Edge, type Node } from '@xyflow/svelte';
-import { getDataGraph, type DataFile, type Query, type InOutEdge, type Chart, getEdgeChartToData, type InEdges } from '$lib/graphUtils';
-import { type DataFileNode, type DataFileData, nodes, type QueryNode, type QueryData, edges, resetGraph, DATA_NODE_TYPE, QUERY_NODE_TYPE, type ChartViewTable, type ChartNode, CHART_NODE_TYPE } from '$lib/storeUtils';
+import { getDataGraph, type QueryRecord, type InOutEdge, type InEdges, type DataFileRecord } from '$lib/graphUtils';
+import { nodes, edges, resetGraph, DATA_NODE_TYPE, QUERY_NODE_TYPE } from '$lib/storeUtils';
 import { register_csv } from 'proto-query-engine';
-import { writable } from 'svelte/store';
 import { updateArrowTables } from '$lib/arrowSqlUtils';
+import { writable } from 'svelte/store';
 
 const nodeStyle = 'border: 1px solid #777; border-radius: 7px; padding: 10px; background: rgba(255, 255, 255, 0.65);';
 
-function updateNodeStore(node: Node, id: string, data: any, x: number = 0){
+function updateNodeStore(id: string, type: string, data: any, x: number = 0){
+    let node = {} as Node;
+    node.type = type;
     node.id = id;
     node.deletable = false;
     node.connectable = false;
@@ -20,29 +22,29 @@ function updateNodeStore(node: Node, id: string, data: any, x: number = 0){
     });
 }
 
-export async function addDataNode(df: DataFile) {
+export async function addDataNode(df: DataFileRecord) {
     let dataId = df.id.id.toString();
     await register_csv(dataId + '.csv', df.tableName);
     await updateArrowTables('SELECT * FROM ' + df.tableName, dataId);
-    let fileNode = {} as DataFileNode;
-    fileNode.type = DATA_NODE_TYPE;
-    let data = {
-        name: df.tableName,
+    let data = writable({
+        tableName: df.tableName,
         size: df.size,
-        format: df.format
-    } as DataFileData;
-    updateNodeStore(fileNode, dataId, data);
+        format: df.format,
+        chartType: df.chartType,
+        nodeView: df.nodeView
+    });
+    updateNodeStore(dataId, DATA_NODE_TYPE, data);
 }
 export async function addEmptyQueryNode() {
-    let queryNode = {} as QueryNode;
-    queryNode.type = QUERY_NODE_TYPE;
-    let data = {
-        sql: '',
-        format: 'df/sql'
-    } as QueryData;
-    updateNodeStore(queryNode, 'empty_query', data, 720);
+    let data = writable({
+        statement: '',
+        format: 'df/sql',
+        chartType: 'bar',
+        nodeView: 3
+    });
+    updateNodeStore('empty_query', QUERY_NODE_TYPE, data, 720);
 }
-export async function updateEmptyQueryNode(query: Query) {
+export async function updateEmptyQueryNode(query: QueryRecord) {
     const queryId = query.id.id.toString();
     await updateArrowTables(query.statement, queryId);
     nodes.update((nodeArr) => {
@@ -58,32 +60,18 @@ export async function updateEmptyQueryNode(query: Query) {
         return nodeArr;
     });
 }
-export async function addQueryNode(query: Query) {
+export async function addQueryNode(query: QueryRecord) {
     const queryId = query.id.id.toString();
     await updateArrowTables(query.statement, queryId);
-    let queryNode = {} as QueryNode;
-    queryNode.type = QUERY_NODE_TYPE;
-    let data = {
-        sql: query.statement,
-        format: query.format
-    } as QueryData;
-    updateNodeStore(queryNode, queryId, data);
+    let data = writable({
+        statement: query.statement,
+        format: query.format,
+        chartType: query.chartType,
+        nodeView: query.nodeView,
+    });
+    updateNodeStore(queryId, QUERY_NODE_TYPE, data);
 }
-export async function addChartNode(id: string, localChartData: ChartViewTable) {
-    let chartNode = {} as ChartNode;
-    chartNode.type = CHART_NODE_TYPE;
-    let data = { chartData: writable(localChartData) }
-    updateNodeStore(chartNode, id, data);
-}
-export async function initChartNode(chart: Chart) {
-    let dataEdge = await getEdgeChartToData(chart.id.id.toString());
-    let chartLocalData: ChartViewTable = {
-        type: chart.type,
-        tableId: dataEdge.out[0].id.toString(),
-    };
-    addChartNode(chart.id.id.toString(), chartLocalData);
-}
-export async function updateQueryNode(query: Query, charts: InEdges[]) {
+export async function updateQueryNode(query: QueryRecord) {
     const queryId = query.id.id.toString();
     await updateArrowTables(query.statement, queryId);
     nodes.update((nodeArr) => {
@@ -92,19 +80,8 @@ export async function updateQueryNode(query: Query, charts: InEdges[]) {
                 let dt = node.data;
                 dt.sql = query.statement;
                 node.data = { ...dt };
-            } else if (node.type === CHART_NODE_TYPE) {
-                for (const chart of charts) {
-                    for (const inEdge of chart.in) {
-                        if (inEdge.tb === 'charts' && inEdge.id.toString() === node.id) {
-                            const chartNode = <ChartNode>node;
-                            chartNode.data.chartData.update((chD) => {
-                                chD.tableId = queryId;
-                                return chD;
-                            });
-                        }
-                    }
-                }
-            }
+                break;
+            } 
         }
         return nodeArr;
     });
@@ -156,13 +133,10 @@ export async function initFlow() {
         for (const entry of data) {
             switch (entry.id.tb) {
                 case 'data':
-                    await addDataNode(<DataFile>entry);
+                    await addDataNode(<DataFileRecord>entry);
                     break;
                 case 'queries':
-                    await addQueryNode(<Query>entry);
-                    break;
-                case 'charts':
-                    await initChartNode(<Chart>entry);
+                    await addQueryNode(<QueryRecord>entry);
                     break;
                 case 'import':
                     addQueryDataEdge(<InOutEdge>entry, 'import');

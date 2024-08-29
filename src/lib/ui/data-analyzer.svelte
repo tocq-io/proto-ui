@@ -15,7 +15,6 @@
 	import DataFile from '$lib/ui/nodes/data-file.svelte';
 	import Query from '$lib/ui/nodes/query.svelte';
 	import QueryDataEdge from '$lib/ui/nodes/query-data-edge.svelte';
-	import Chart from '$lib/ui/nodes/chart.svelte';
 	import { showDataUpload } from '$lib/storeUtils';
 	import { onMount } from 'svelte';
 	import { addEmptyQueryNode, initFlow } from '$lib/flowUtils';
@@ -28,8 +27,7 @@
 
 	const nodeTypes = {
 		dataNode: DataFile,
-		queryNode: Query,
-		chartNode: Chart
+		queryNode: Query
 	};
 	const edgeTypes: EdgeTypes = {
 		queryDataEdge: QueryDataEdge
@@ -155,7 +153,7 @@
 					>
 				</ButtonGroup>
 			</Panel>
-			<Panel position="top-left" style="visibility: {$errorView.visibility}; width: 75%;">
+			<Panel position="top-left" style="visibility: {$errorView.visibility}; width: 50%;">
 				<Alert color={$errorView.color}>
 					<BullhornOutline slot="icon" class="h-5 w-5" />
 					<span class="text-sm font-medium">{$errorView.msg}</span>

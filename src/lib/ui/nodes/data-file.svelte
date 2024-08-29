@@ -2,25 +2,45 @@
 	import { tables, type DataFileProps } from '$lib/storeUtils';
 	import { Handle, Position } from '@xyflow/svelte';
 	import { Alert, Button, ButtonGroup } from 'flowbite-svelte';
-	import { ChartMixedOutline, CloseCircleOutline, EyeOutline } from 'flowbite-svelte-icons';
+	import {
+		ChartMixedOutline,
+		CloseCircleOutline,
+		EyeOutline,
+		InfoCircleOutline,
+		TableRowOutline
+	} from 'flowbite-svelte-icons';
 	import { deleteDataRecordAndEdges } from '$lib/crudUtils';
-	import { addChart, setPreviewData } from '$lib/nodesUtils';
 	import type { Table } from '@apache-arrow/ts';
 	import { onMount } from 'svelte';
+	import TableView from '$lib/ui/view/table-view.svelte';
+	import ChartView from '$lib/ui/view/chart-view.svelte';
+	import { updateDataFile } from '$lib/graphUtils';
 
 	type $$Props = DataFileProps;
 	$$restProps;
 
 	export let data: $$Props['data'];
-	export let id: $$Props['id'];
-	export let type: $$Props['type'];
-	let myTable: Table | undefined;
-
-	async function deleteDataNode() {
-		await deleteDataRecordAndEdges(id, data.name);
+	export let id: $$Props['id'];	
+	let loading = true;
+	enum DetailView {
+		ViewTable = 1,
+		ViewChart = 2,
+		ViewSchema = 3,
+		ViewBasic = 0
 	}
+	let table: Table | undefined;
+
+	function deleteDataNode() {
+		deleteDataRecordAndEdges(id, $data.tableName);
+	}
+	data.subscribe((dt)=>{
+		if (!loading) {
+			updateDataFile($data, id);
+		}
+	})
 	onMount(async () => {
-		myTable = $tables.get(id);
+		table = $tables.get(id);
+		loading = false;
 	});
 </script>
 
@@ -34,38 +54,47 @@
 				color="primary"
 				on:click={() => deleteDataNode()}
 				><CloseCircleOutline color="white" size="lg" strokeWidth="3" /></Button
-			><span class="text-xl font-semibold">TABLE [{data.name}]</span>
+			><span class="text-xl font-semibold">TABLE [{$data.tableName}]</span>
 		</div>
 		<div class="text-right">
 			<ButtonGroup>
-				<Button size="lg" class="h-8 w-8" on:click={() => setPreviewData(id)}><EyeOutline /></Button
+				<Button size="lg" class="h-8 w-8" on:click={() => ($data.nodeView = DetailView.ViewBasic)}
+					><InfoCircleOutline /></Button
 				>
-				<Button
-					size="lg"
-					class="h-8 w-8"
-					on:click={() => addChart(id, type)}
-					disabled={id === 'empty_query'}><ChartMixedOutline /></Button
+				<Button size="lg" class="h-8 w-8" on:click={() => ($data.nodeView = DetailView.ViewSchema)}
+					><TableRowOutline /></Button
+				>
+				<Button size="lg" class="h-8 w-8" on:click={() => ($data.nodeView = DetailView.ViewTable)}
+					><EyeOutline /></Button
+				>
+				<Button size="lg" class="h-8 w-8" on:click={() => ($data.nodeView = DetailView.ViewChart)}
+					><ChartMixedOutline /></Button
 				>
 			</ButtonGroup>
 		</div>
 	</div>
 	<div>
-		{#if myTable}
+		{#if $data.nodeView === DetailView.ViewSchema && table}
 			<Alert color="light" class="p-2">
 				<div class="grid grid-cols-5 gap-1">
-					{#each myTable.schema.fields as field}
+					{#each table.schema.fields as field}
 						<nobr>{field}</nobr>
 					{/each}
 				</div>
 			</Alert>
+		{:else if $data.nodeView === DetailView.ViewTable}
+			<TableView tableId={id} />
+		{:else if $data.nodeView === DetailView.ViewChart}
+			<ChartView tableId={id} {data} />
+		{:else}
+			<Alert color="light" class="mt-1 p-2">
+				<div class="flex gap-1.5 text-xs">
+					<span><nobr>[format: {$data.format}]</nobr></span>
+					<span><nobr>[size: {$data.size}]<nobr></nobr></span>
+					<span class="w-full text-right">[{id}]</span>
+				</div>
+			</Alert>
 		{/if}
 	</div>
-	<Alert color="light" class="p-2 mt-1">
-		<div class="flex gap-0.5 text-xs">
-			<span class="w-28"><nobr>[format: {data.format}]</nobr></span>
-			<span class="w-28 text-center">[size: {data.size}]</span>
-			<span class="w-full text-right">[{id}]</span>
-		</div>
-	</Alert>
 </div>
 <Handle type="source" position={Position.Bottom} />

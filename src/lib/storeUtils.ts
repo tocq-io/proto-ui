@@ -2,68 +2,24 @@ import type { Table } from '@apache-arrow/ts';
 import { type NodeProps, type Edge, type Node } from '@xyflow/svelte';
 import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
 import { type Writable, writable } from 'svelte/store';
+import type { DataFile, QueryData } from './graphUtils';
 ///// CONSTANTS
 export const DATA_NODE_TYPE = 'dataNode';
 export const QUERY_NODE_TYPE = 'queryNode';
-export const CHART_NODE_TYPE = 'chartNode';
-export enum CHART_TYPE {
-    Bar = "bar",
-    Line = "line",
-    Bubble = "bubble",
-  }
 ///// FLOW TYPES
-export type DataFileData = {
-    name: string;
-    size: number;
-    schema: string[];
-    format: string;
-};
 export type DataFileProps = NodeProps & {
-    data: DataFileData;
-};
-export type DataFileNode = Node & {
-    data: DataFileData;
-};
-export type QueryData = {
-    sql: string;
-    format: string;
-    edgeTables: Set<string>;
-    initPhase: boolean;
+    data: Writable<DataFile>
 };
 export type QueryProps = NodeProps & {
-    data: QueryData;
-};
-export type QueryNode = Node & {
-    data: QueryData;
-};
-export type ChartData = {
-    chartData: Writable<ChartViewTable>;
-};
-export type ChartProps = NodeProps & {
-    data: ChartData;
-};
-export type ChartNode = Node & {
-    data: ChartData;
+    data: Writable<QueryData>;
 };
 //// DATA VIEW TYPES
-type PreviewTable = {
-    view: boolean;
-    tableId: string | undefined;
-};
-export type ChartViewTable = {
-    type: string;
-    tableId: string;
-};
 export type ErrorView = {
     color: FrameColor;
     visibility: string;
     msg: string;
 };
 ///// SVELTE STORES
-export let previewTable: Writable<PreviewTable> = writable({
-    view: false,
-    tableId: undefined
-});
 export let errorView: Writable<ErrorView> = writable({
     color: 'yellow',
     visibility: 'hidden',

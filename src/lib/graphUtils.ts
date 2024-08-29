@@ -1,22 +1,20 @@
 import { Surreal, StringRecordId, RecordId } from 'surrealdb.js';
 import { surrealdbWasmEngines } from 'surrealdb.wasm';
 import { initKeyPair } from '$lib/signUtils';
-import { DATA_NODE_TYPE, type ChartViewTable } from './storeUtils';
 type User = {
 	scope: string;
 	identity: {
 		key: string;
 	};
 };
+export type DataFileRecord = DataFile & GeneralResult;
 export type DataFile = TocqNode & {
 	tableName: string;
 	size: number;
 };
-export type Query = TocqNode & {
+export type QueryRecord = QueryData & GeneralResult;
+export type QueryData = TocqNode & {
 	statement: string;
-};
-export type Chart = TocqNode & {
-	type: string;
 };
 export type InOutEdge = GeneralResult & {
 	in: RecordId;
@@ -28,9 +26,11 @@ export type OutEdges = GeneralResult & {
 export type InEdges = GeneralResult & {
 	in: RecordId[];
 };
-export type TocqNode = GeneralResult & {
+export type TocqNode = {
 	format: string;
-	salt: Uint8Array;
+	chartType: string;
+	nodeView: number;
+	salt?: Uint8Array;
 };
 export type GeneralResult = {
 	id: RecordId;
@@ -49,101 +49,76 @@ export async function openGraphDb() {
 	// 			(result) => (console.log(result)
 	// 			))));
 }
-// Charts
-export async function storeChart(digest: string, salt: Uint8Array, chartData: ChartViewTable): Promise<Chart> {
-	// TODO use UPSERT with v2 of DB
-	const result = await db.create<Chart>('charts', {
-		id: new RecordId('charts', digest),
-		format: 'vw/chart',
-		salt: salt,
-		type: chartData.type.toString(),
-	});
-	return result[0];
-}
-
-export async function linkChartToNode(chartId: string, nodeId: string, nodeType: string): Promise<InOutEdge> {
-	let queryString: string;
-	if (nodeType === DATA_NODE_TYPE) {
-		queryString = 'RELATE charts:' + chartId + '->show->data:' + nodeId + ';';
-	} else {// if (nodeType === QUERY_NODE_TYPE) {
-		queryString = 'RELATE charts:' + chartId + '->show->queries:' + nodeId + ';';
-	}
-	const result = await db.query<InOutEdge[][]>(queryString);
-	return result[0][0];
-}
-export async function deleteChartRecord(chartId: string) {
-	await db.delete(new StringRecordId('charts:' + chartId));
-}
-export async function deleteAllChartToNode(chartId: string) {
-	const queryString = 'DELETE charts:' + chartId + '->show;';
-	await db.query(queryString);
-}
-export async function getEdgeChartToData(chartId: string): Promise<OutEdges> {
-	const queryString = 'SELECT ->show.out as out from charts:' + chartId + ';';
-	const result = await db.query<OutEdges[][]>(queryString);
-	return result[0][0];
-}
 // Data Files
-export async function storeCsvFile(csvSize: number, csvName: string, digest: string, salt: Uint8Array): Promise<DataFile> {
+export async function storeDataFile(dataFile: DataFile, digest: string): Promise<DataFileRecord> {
 	// TODO use UPSERT with v2 of DB
-	const result = await db.create<DataFile>('data', {
+	const result = await db.create<DataFileRecord>('data', {
 		id: new RecordId('data', digest),
-		format: 'text/csv',
-		tableName: csvName,
-		size: csvSize,
-		salt: salt,
+		format: dataFile.format,
+		tableName: dataFile.tableName,
+		size: dataFile.size,
+		chartType: dataFile.chartType,
+		nodeView: dataFile.nodeView,
+		salt: dataFile.salt,
 	});
 	return result[0];
 }
-export async function deleteDataRecord(dataId: string) {
-	await db.delete(new StringRecordId('data:' + dataId));
+export async function updateDataFile(fileData: DataFile, digest: string): Promise<DataFileRecord> {
+	// TODO use UPSERT with v2 of DB
+	const result = db.merge<DataFileRecord>(new StringRecordId('data:' + digest), {
+		chartType: fileData.chartType,
+		nodeView: fileData.nodeView,
+	});
+	return result;
 }
-export async function deleteAllDataToQuery(dataId: string) {
-	const queryString = 'DELETE data:' + dataId + '<-import;DELETE data:' + dataId + '<-show;';
-	await db.query(queryString);
+export async function deleteDataRecord(digest: string) {
+	db.delete(new StringRecordId('data:' + digest));
+}
+export async function deleteAllDataToQuery(digest: string) {
+	const queryString = 'DELETE data:' + digest + '<-import;DELETE data:' + digest + '<-show;';
+	db.query(queryString);
 }
 // Queries
-export async function linkQueryToData(dataId: string, queryId: string): Promise<InOutEdge> {
-	const queryString = 'RELATE queries:' + queryId + '->import->data:' + dataId + ';';
+export async function linkQueryToData(dataId: string, digest: string): Promise<InOutEdge> {
+	const queryString = 'RELATE queries:' + digest + '->import->data:' + dataId + ';';
 	const result = await db.query<InOutEdge[][]>(queryString);
 	return result[0][0];
 }
 
-export async function deleteQueryToDataImport(queryId: string) {
-	const queryString = 'DELETE queries:' + queryId + '->import;';
+export async function deleteQueryToDataImport(digest: string) {
+	const queryString = 'DELETE queries:' + digest + '->import;';
 	await db.query(queryString);
 }
 export async function getDataGraph(): Promise<GeneralResult[][]> {
-	let result = await db.query<GeneralResult[][]>('SELECT * FROM data;SELECT * FROM queries;SELECT * FROM charts;SELECT * FROM import;SELECT * FROM show;');
+	let result = db.query<GeneralResult[][]>('SELECT * FROM data;SELECT * FROM queries;SELECT * FROM import;');
 	return result;
 }
 export async function deleteItAll() {
 	await db.query('REMOVE DATABASE proto;');
 }
-export async function storeDfSqlFile(sqlStatement: string, queryId: string, salt: Uint8Array): Promise<Query> {
+export async function storeDfSqlFile(queryData: QueryData, digest: string): Promise<QueryRecord> {
 	// TODO use UPSERT with v2 of DB
-	const result = await db.create<Query>('queries', {
-		id: new RecordId('queries', queryId),
-		format: 'df/sql',
-		statement: sqlStatement,
-		salt: salt,
+	const result = await db.create<QueryRecord>('queries', {
+		id: new RecordId('queries', digest),
+		format: queryData.format,
+		statement: queryData.statement,
+		chartType: queryData.chartType,
+		nodeView: queryData.nodeView,
+		salt: queryData.salt,
 	});
 	return result[0];
 }
-export async function updateDfSqlFile(sqlStatement: string, queryId: string): Promise<Query> {
+export async function updateDfSqlFile(queryData: QueryData, digest: string): Promise<QueryRecord> {
 	// TODO use UPSERT with v2 of DB
-	const result = await db.merge<Query>(new StringRecordId('queries:' + queryId), {
-		statement: sqlStatement,
+	const result = db.merge<QueryRecord>(new StringRecordId('queries:' + digest), {
+		statement: queryData.statement,
+		chartType: queryData.chartType,
+		nodeView: queryData.nodeView
 	});
 	return result;
 }
-export async function getEdgeChartToQuery(queryId: string): Promise<InEdges[]> {
-	const queryString = 'SELECT <-show.in as in from queries:' + queryId + ';';
-	const result = await db.query<InEdges[][]>(queryString);
-	return result[0];
-}
-export async function deleteDfSqlFile(queryId: string) {
-	await db.delete(new StringRecordId('queries:' + queryId));
+export async function deleteDfSqlFile(digest: string) {
+	db.delete(new StringRecordId('queries:' + digest));
 }
 // User
 export async function getUserId(): Promise<string> {
