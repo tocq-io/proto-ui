@@ -13,13 +13,13 @@
 	import CodeEditor from '$lib/ui/editor/sql-editor.svelte';
 	import { deleteQuery, persistQuery, updateQuery } from '$lib/crudUtils';
 	import { writable, type Unsubscriber, type Writable } from 'svelte/store';
-	import TableView from '../view/table-view.svelte';
+	import TableView from '$lib/ui/view/table-view.svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { updateDfSqlFile } from '$lib/graphUtils';
 	import { updateArrowTables } from '$lib/arrowSqlUtils';
 	import { stringHash } from '$lib/signUtils';
 	import type { Table } from '@apache-arrow/ts';
-	import ChartWrapper from '../view/chart-wrapper.svelte';
+	import ChartWrapper from '$lib/ui/view/chart-wrapper.svelte';
 
 	type $$Props = QueryProps;
 	$$restProps;
@@ -37,7 +37,8 @@
 	let loading = true;
 	let codeText = writable($data.statement);
 	let table: Writable<Table | undefined> = writable($tables.get(id));
-	let unsubscribe: Unsubscriber;
+	let tableUnsubscribe: Unsubscriber;
+	let dataUnsubscribe: Unsubscriber;
 
 	function deleteSqlNode() {
 		deleteQuery(id);
@@ -55,25 +56,26 @@
 		return id === 'empty_query';
 	}
 
-	data.subscribe(async (dt) => {
-		if (!loading && !isEmpty()) {
-			if ($data.nodeView === DetailView.ViewChart || $data.nodeView === DetailView.ViewTable) {
-				if ((await stringHash(dt.statement)) !== (await stringHash($codeText))) {
-					updateArrowTables($codeText, id);
-					dt.statement = $codeText;
-				}
-			}
-			updateDfSqlFile(dt, id);
-		}
-	});
 	onDestroy(async () => {
-		unsubscribe();
+		tableUnsubscribe();
+		dataUnsubscribe();
 	});
 	onMount(async () => {
 		wrapperDivId = window.crypto.randomUUID();
 		editorElementId = self.crypto.randomUUID();
-		unsubscribe = tables.subscribe((tbl) => {
+		tableUnsubscribe = tables.subscribe((tbl) => {
 			table.set(tbl.get(id));
+		});
+		dataUnsubscribe = data.subscribe(async (dt) => {
+			if (!loading && !isEmpty()) {
+				if ($data.nodeView === DetailView.ViewChart || $data.nodeView === DetailView.ViewTable) {
+					if ((await stringHash(dt.statement)) !== (await stringHash($codeText))) {
+						updateArrowTables($codeText, id);
+						dt.statement = $codeText;
+					}
+				}
+				updateDfSqlFile(dt, id);
+			}
 		});
 		loading = false;
 	});

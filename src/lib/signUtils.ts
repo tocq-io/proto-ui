@@ -52,7 +52,7 @@ export async function initKeyPair(): Promise<string> {
 	const pubKey = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
 	const enc = new TextEncoder();
 	const pubKeyString = await quickHash(enc.encode(pubKey.n));
-	await storeKeyPair(pubKeyString, keyPair);
+	storeKeyPair(pubKeyString, keyPair);
 	return pubKeyString;
 }
 export async function digestFile(file: File): Promise<[string, Uint8Array]> {

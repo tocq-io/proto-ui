@@ -10,7 +10,6 @@
 
     onMount(async () => {
         const targetElement = document.getElementById(editorElementId)!;
-        //$codeText = $sqlEditControl.sql;
         view = new EditorView({
             doc: $codeText,
             extensions: [basicSetup, sql(), 

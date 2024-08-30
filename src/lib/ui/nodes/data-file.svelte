@@ -13,10 +13,9 @@
 	import type { Table } from '@apache-arrow/ts';
 	import { onDestroy, onMount } from 'svelte';
 	import TableView from '$lib/ui/view/table-view.svelte';
-	import ChartView from '$lib/ui/view/chart-view.svelte';
 	import { updateDataFile } from '$lib/graphUtils';
 	import { writable, type Unsubscriber, type Writable } from 'svelte/store';
-	import ChartWrapper from '../view/chart-wrapper.svelte';
+	import ChartWrapper from '$lib/ui/view/chart-wrapper.svelte';
 
 	type $$Props = DataFileProps;
 	$$restProps;
