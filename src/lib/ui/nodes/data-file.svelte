@@ -11,11 +11,12 @@
 	} from 'flowbite-svelte-icons';
 	import { deleteDataRecordAndEdges } from '$lib/crudUtils';
 	import type { Table } from '@apache-arrow/ts';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import TableView from '$lib/ui/view/table-view.svelte';
 	import ChartView from '$lib/ui/view/chart-view.svelte';
 	import { updateDataFile } from '$lib/graphUtils';
-	import { writable, type Writable } from 'svelte/store';
+	import { writable, type Unsubscriber, type Writable } from 'svelte/store';
+	import ChartWrapper from '../view/chart-wrapper.svelte';
 
 	type $$Props = DataFileProps;
 	$$restProps;
@@ -30,19 +31,26 @@
 		ViewBasic = 0
 	}
 	let table: Writable<Table | undefined> = writable($tables.get(id));
+	let wrapperDivId: string;
+	let unsubscribe: Unsubscriber;
 
 	function deleteDataNode() {
 		deleteDataRecordAndEdges(id, $data.tableName);
 	}
-	data.subscribe((dt) => {
-		if (!loading) {
-			updateDataFile($data, id);
-		}
+	onDestroy(async () => {
+		unsubscribe();
 	});
 	onMount(async () => {
+		wrapperDivId = window.crypto.randomUUID();
 		tables.subscribe((tbl) => {
 			table.set(tbl.get(id));
 		});
+		unsubscribe = data.subscribe((dt) => {
+			if (!loading) {
+				updateDataFile($data, id);
+			}
+		});
+		loading = false;
 	});
 </script>
 
@@ -87,7 +95,7 @@
 		{:else if $data.nodeView === DetailView.ViewTable}
 			<TableView {table} />
 		{:else if $data.nodeView === DetailView.ViewChart}
-			<ChartView tableId={id} {table} {data} />
+			<ChartWrapper {table} {data} {wrapperDivId} />
 		{:else}
 			<Alert color="light" class="mt-1 p-2">
 				<div class="flex gap-1.5 text-xs">

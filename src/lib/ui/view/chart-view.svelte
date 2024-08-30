@@ -1,38 +1,37 @@
 <script lang="ts">
-	import type { TocqNode } from '$lib/graphUtils';
 	import type { Table } from '@apache-arrow/ts';
 	import { Chart, registerables } from 'chart.js';
-	import { Alert, Radio } from 'flowbite-svelte';
-	import { InfoCircleSolid } from 'flowbite-svelte-icons';
-	import { onMount } from 'svelte';
-	import { type Writable } from 'svelte/store';
+	import { onDestroy, onMount } from 'svelte';
+	import { type Unsubscriber, type Writable } from 'svelte/store';
 
-	export let data: Writable<TocqNode>;
 	export let table: Writable<Table | undefined>;
-	export let tableId: string;
-	let chartId = 'init_cid';
+	export let chartType: Writable<string>;
+	export let wrapperDivId: string;
+	let canvasElId: string;
+	let canvas: HTMLCanvasElement;
+	let chart: Chart | undefined;
+	let typeUnsubscribe: Unsubscriber;
+	let tableUnsubscribe: Unsubscriber;
 	enum CHART_TYPE {
 		Bar = 'bar',
 		Line = 'line',
 		Bubble = 'bubble'
 	}
 
-	function getCanvas() {
-		const chart = Chart.getChart(chartId);
-		chart?.destroy();
-		const wrapperDiv = document.getElementById(tableId);
-		while (wrapperDiv?.firstChild) {
-			wrapperDiv?.removeChild(wrapperDiv?.firstChild);
+	function setCanvas() {
+		const host = document.getElementById(wrapperDivId);
+		const shadow = host?.shadowRoot || host?.attachShadow({ mode: 'open' });
+		while (shadow?.firstChild) {
+			shadow?.removeChild(shadow.firstChild);
 		}
-		const canvas = document.createElement('canvas');
+		canvas = document.createElement('canvas');
 		canvas.setAttribute('class', 'w-full');
-		canvas.setAttribute('id', chartId);
-		wrapperDiv?.appendChild(canvas);
-		return canvas;
+		canvas.setAttribute('id', canvasElId);
+		shadow?.appendChild(canvas);
 	}
 
-	function getChartType(chartType: string) {
-		switch (chartType) {
+	function getChartType() {
+		switch ($chartType) {
 			case 'line':
 				return CHART_TYPE.Line;
 			case 'bubble':
@@ -42,33 +41,36 @@
 				return CHART_TYPE.Bar;
 		}
 	}
-	function setChart(chartType: string) {
-		if (!$table) return;
-
-		const tblArr = $table.toArray();
-		const x = $table.schema.fields[0].name;
-		const y = $table.schema.fields.slice(1, 9);
+	function setChart() {
+		chart?.destroy();
+		setCanvas();
 		let datasets: any[] = [];
-
-		switch (chartType) {
-			case 'bar':
-			case 'line':
-				y?.forEach((s) => {
-					datasets.push({
-						label: s.name,
-						data: tblArr.map((row) => row[s.name])
+		let tblArr: any[] = [];
+		let x = '';
+		if ($table) {
+			tblArr = $table.toArray();
+			x = $table.schema.fields[0].name;
+			const y = $table.schema.fields.slice(1, 9);
+			switch ($chartType) {
+				case 'bar':
+				case 'line':
+					y?.forEach((s) => {
+						datasets.push({
+							label: s.name,
+							data: tblArr.map((row) => row[s.name])
+						});
 					});
-				});
-				break;
-			case 'bubble':
-			case 'scatter':
-			case 'pie':
-			case 'doughnut':
-			case 'polarArea':
-			case 'radar':
+					break;
+				case 'bubble':
+				case 'scatter':
+				case 'pie':
+				case 'doughnut':
+				case 'polarArea':
+				case 'radar':
+			}
 		}
-		new Chart(getCanvas(), {
-			type: getChartType(chartType),
+		chart = new Chart(canvas, {
+			type: getChartType(),
 			data: {
 				labels: tblArr.map((row) => row[x]),
 				datasets: datasets
@@ -83,34 +85,22 @@
 		});
 	}
 
+	onDestroy(async () => {
+		typeUnsubscribe();
+		tableUnsubscribe();
+	});
+
 	onMount(async () => {
-		chartId = self.crypto.randomUUID();
+		canvasElId = window.crypto.randomUUID();
 		Chart.register(...registerables);
-		table.subscribe(() => {
-			// TODO prevent redraw if its data did not change
-			setChart($data.chartType);
+
+		typeUnsubscribe = chartType.subscribe(() => {
+			setChart();
+		});
+		tableUnsubscribe = table.subscribe(() => {
+			setChart();
 		});
 	});
 </script>
 
-<div>
-	<div>
-		<Alert color="green" class="my-3 p-0.5 pl-6">
-			<InfoCircleSolid slot="icon" class="h-4 w-4" />
-			<span class="text-xs">Charts 1st column as x-axis, up to 8 columns on y-axis.</span>
-		</Alert>
-	</div>
-	<div id={tableId} class="max-h-80 min-h-52" />
-	<div class="flex gap-3 pl-6">
-		<Radio value="bar" bind:group={$data.chartType} on:click={() => setChart('bar')}
-			><span class="text-sm font-normal text-gray-500">Bars</span></Radio
-		>
-		<Radio value="line" bind:group={$data.chartType} on:click={() => setChart('line')}
-			><span class="text-sm font-normal text-gray-500">Lines</span></Radio
-		>
-		<Radio value="bubble" bind:group={$data.chartType} on:click={() => setChart('bubble')} disabled
-			><span class="text-sm font-normal text-gray-500"><nobr><s>Bubbles</s> &#x1F37E;</nobr></span
-			></Radio
-		>
-	</div>
-</div>
+<div id={wrapperDivId} class="max-h-80 min-h-52" />

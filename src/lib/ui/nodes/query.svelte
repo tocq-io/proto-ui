@@ -12,14 +12,14 @@
 	import { tables, type QueryProps } from '$lib/storeUtils';
 	import CodeEditor from '$lib/ui/editor/sql-editor.svelte';
 	import { deleteQuery, persistQuery, updateQuery } from '$lib/crudUtils';
-	import { writable, type Writable } from 'svelte/store';
+	import { writable, type Unsubscriber, type Writable } from 'svelte/store';
 	import TableView from '../view/table-view.svelte';
-	import ChartView from '../view/chart-view.svelte';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { updateDfSqlFile } from '$lib/graphUtils';
 	import { updateArrowTables } from '$lib/arrowSqlUtils';
 	import { stringHash } from '$lib/signUtils';
 	import type { Table } from '@apache-arrow/ts';
+	import ChartWrapper from '../view/chart-wrapper.svelte';
 
 	type $$Props = QueryProps;
 	$$restProps;
@@ -27,7 +27,7 @@
 	export let data: $$Props['data'];
 	export let id: $$Props['id'];
 	let editorElementId = 'init_eid';
-	let wrapperId = 'init_wid';
+	let wrapperDivId: string;
 	enum DetailView {
 		ViewTable = 1,
 		ViewChart = 2,
@@ -37,6 +37,7 @@
 	let loading = true;
 	let codeText = writable($data.statement);
 	let table: Writable<Table | undefined> = writable($tables.get(id));
+	let unsubscribe: Unsubscriber;
 
 	function deleteSqlNode() {
 		deleteQuery(id);
@@ -65,11 +66,13 @@
 			updateDfSqlFile(dt, id);
 		}
 	});
-
+	onDestroy(async () => {
+		unsubscribe();
+	});
 	onMount(async () => {
-		wrapperId = self.crypto.randomUUID();
+		wrapperDivId = window.crypto.randomUUID();
 		editorElementId = self.crypto.randomUUID();
-		tables.subscribe((tbl) => {
+		unsubscribe = tables.subscribe((tbl) => {
 			table.set(tbl.get(id));
 		});
 		loading = false;
@@ -117,7 +120,7 @@
 	{:else if $data.nodeView === DetailView.ViewTable && !isEmpty()}
 		<TableView {table} />
 	{:else if $data.nodeView === DetailView.ViewChart && !isEmpty()}
-		<ChartView tableId={id} {table} {data} />
+		<ChartWrapper {table} {data} {wrapperDivId} />
 	{:else}
 		<Alert color="light" class="mt-1 p-2">
 			<div class="flex gap-0.5 text-xs">

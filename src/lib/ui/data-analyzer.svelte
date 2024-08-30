@@ -57,7 +57,6 @@
 	};
 	async function goLayout() {
 		if ($nodes.length === 0 || $edges.length === 0) return;
-		console.log("really trying here")
 		let elkEdges: ElkExtendedEdge[] = [];
 		for (const edge of $edges) {
 			elkEdges.push({
