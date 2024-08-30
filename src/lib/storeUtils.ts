@@ -8,7 +8,6 @@ export const DATA_NODE_TYPE = 'dataNode';
 export const QUERY_NODE_TYPE = 'queryNode';
 ///// FLOW TYPES
 export type DataFileProps = NodeProps & {
-    // TODO remove the writable as it is not necessary
     data: Writable<DataFile>;
 };
 export type QueryProps = NodeProps & {

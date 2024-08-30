@@ -89,4 +89,4 @@
 	$: table && setChart()
 	$: chartType && setChart()
 </script>
-<div id={wrapperDivId} class="max-h-80 min-h-52">{setChart()}</div>
+<div id={wrapperDivId} class="max-h-80 min-h-52" />
