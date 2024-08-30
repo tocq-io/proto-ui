@@ -30,24 +30,26 @@
 		ViewBasic = 0
 	}
 	let table: Writable<Table | undefined> = writable($tables.get(id));
+	let chartType: Writable<string> = writable($data.chartType);
 	let wrapperDivId: string;
-	let unsubscribe: Unsubscriber;
+	let tableUnsubscribe: Unsubscriber;
+	let chartUnsubscribe: Unsubscriber;
 
 	function deleteDataNode() {
 		deleteDataRecordAndEdges(id, $data.tableName);
 	}
 	onDestroy(async () => {
-		unsubscribe();
+		tableUnsubscribe();
+		chartUnsubscribe();
 	});
 	onMount(async () => {
 		wrapperDivId = window.crypto.randomUUID();
-		tables.subscribe((tbl) => {
+		tableUnsubscribe = tables.subscribe((tbl) => {
 			table.set(tbl.get(id));
 		});
-		unsubscribe = data.subscribe((dt) => {
-			if (!loading) {
-				updateDataFile($data, id);
-			}
+		chartUnsubscribe = chartType.subscribe((cht) => {
+			$data.chartType = cht;
+			if (!loading) updateDataFile($data, id);
 		});
 		loading = false;
 	});
@@ -67,16 +69,28 @@
 		</div>
 		<div class="text-right">
 			<ButtonGroup>
-				<Button size="lg" class="h-8 w-8" on:click={() => ($data.nodeView = DetailView.ViewBasic)}
+				<Button
+					size="lg"
+					class="h-8 w-8"
+					on:click={() => (($data.nodeView = DetailView.ViewBasic), updateDataFile($data, id))}
 					><InfoCircleOutline /></Button
 				>
-				<Button size="lg" class="h-8 w-8" on:click={() => ($data.nodeView = DetailView.ViewSchema)}
+				<Button
+					size="lg"
+					class="h-8 w-8"
+					on:click={() => (($data.nodeView = DetailView.ViewSchema), updateDataFile($data, id))}
 					><TableRowOutline /></Button
 				>
-				<Button size="lg" class="h-8 w-8" on:click={() => ($data.nodeView = DetailView.ViewTable)}
+				<Button
+					size="lg"
+					class="h-8 w-8"
+					on:click={() => (($data.nodeView = DetailView.ViewTable), updateDataFile($data, id))}
 					><EyeOutline /></Button
 				>
-				<Button size="lg" class="h-8 w-8" on:click={() => ($data.nodeView = DetailView.ViewChart)}
+				<Button
+					size="lg"
+					class="h-8 w-8"
+					on:click={() => (($data.nodeView = DetailView.ViewChart), updateDataFile($data, id))}
 					><ChartMixedOutline /></Button
 				>
 			</ButtonGroup>
@@ -94,7 +108,7 @@
 		{:else if $data.nodeView === DetailView.ViewTable}
 			<TableView {table} />
 		{:else if $data.nodeView === DetailView.ViewChart}
-			<ChartWrapper {table} {data} {wrapperDivId} />
+			<ChartWrapper {table} {chartType} {wrapperDivId} />
 		{:else}
 			<Alert color="light" class="mt-1 p-2">
 				<div class="flex gap-1.5 text-xs">

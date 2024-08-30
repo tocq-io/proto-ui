@@ -37,8 +37,9 @@
 	let loading = true;
 	let codeText = writable($data.statement);
 	let table: Writable<Table | undefined> = writable($tables.get(id));
+	let chartType: Writable<string> = writable($data.chartType);
 	let tableUnsubscribe: Unsubscriber;
-	let dataUnsubscribe: Unsubscriber;
+	let chartUnsubscribe: Unsubscriber;
 
 	function deleteSqlNode() {
 		deleteQuery(id);
@@ -51,6 +52,15 @@
 			updateQuery($data, id);
 		}
 	}
+	async function safeState() {
+		if ($data.nodeView === DetailView.ViewChart || $data.nodeView === DetailView.ViewTable) {
+			if ((await stringHash($data.statement)) !== (await stringHash($codeText))) {
+				updateArrowTables($codeText, id);
+				$data.statement = $codeText;
+			}
+		}
+		updateDfSqlFile($data, id);
+	}
 
 	function isEmpty() {
 		return id === 'empty_query';
@@ -58,7 +68,7 @@
 
 	onDestroy(async () => {
 		tableUnsubscribe();
-		dataUnsubscribe();
+		chartUnsubscribe();
 	});
 	onMount(async () => {
 		wrapperDivId = window.crypto.randomUUID();
@@ -66,16 +76,9 @@
 		tableUnsubscribe = tables.subscribe((tbl) => {
 			table.set(tbl.get(id));
 		});
-		dataUnsubscribe = data.subscribe(async (dt) => {
-			if (!loading && !isEmpty()) {
-				if ($data.nodeView === DetailView.ViewChart || $data.nodeView === DetailView.ViewTable) {
-					if ((await stringHash(dt.statement)) !== (await stringHash($codeText))) {
-						updateArrowTables($codeText, id);
-						dt.statement = $codeText;
-					}
-				}
-				updateDfSqlFile(dt, id);
-			}
+		chartUnsubscribe = chartType.subscribe((cht) => {
+			$data.chartType = cht;
+			if (!loading) safeState();
 		});
 		loading = false;
 	});
@@ -91,22 +94,28 @@
 		</div>
 		<div class="text-right">
 			<ButtonGroup>
-				<Button size="lg" class="h-8 w-8" on:click={() => ($data.nodeView = DetailView.ViewBasic)}
+				<Button
+					size="lg"
+					class="h-8 w-8"
+					on:click={() => (($data.nodeView = DetailView.ViewBasic), safeState())}
 					><InfoCircleOutline /></Button
 				>
 				<Button
 					size="lg"
 					class="h-8 w-8"
-					on:click={() => ($data.nodeView = DetailView.ViewTable)}
+					on:click={() => (($data.nodeView = DetailView.ViewTable), safeState())}
 					disabled={isEmpty()}><EyeOutline /></Button
 				>
 				<Button
 					size="lg"
 					class="h-8 w-8"
-					on:click={() => ($data.nodeView = DetailView.ViewChart)}
+					on:click={() => (($data.nodeView = DetailView.ViewChart), safeState())}
 					disabled={isEmpty()}><ChartMixedOutline /></Button
 				>
-				<Button size="lg" class="h-8 w-8" on:click={() => ($data.nodeView = DetailView.ViewEditor)}
+				<Button
+					size="lg"
+					class="h-8 w-8"
+					on:click={() => (($data.nodeView = DetailView.ViewEditor), safeState())}
 					><EditOutline /></Button
 				>
 				<Button size="lg" class="h-8 w-8" on:click={() => saveSqlNode()}
@@ -122,7 +131,7 @@
 	{:else if $data.nodeView === DetailView.ViewTable && !isEmpty()}
 		<TableView {table} />
 	{:else if $data.nodeView === DetailView.ViewChart && !isEmpty()}
-		<ChartWrapper {table} {data} {wrapperDivId} />
+		<ChartWrapper {table} {chartType} {wrapperDivId} />
 	{:else}
 		<Alert color="light" class="mt-1 p-2">
 			<div class="flex gap-0.5 text-xs">

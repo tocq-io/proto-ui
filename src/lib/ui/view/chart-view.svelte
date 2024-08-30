@@ -19,11 +19,9 @@
 	}
 
 	function setCanvas() {
+		canvas?.remove();
 		const host = document.getElementById(wrapperDivId);
 		const shadow = host?.shadowRoot || host?.attachShadow({ mode: 'open' });
-		while (shadow?.firstChild) {
-			shadow?.removeChild(shadow.firstChild);
-		}
 		canvas = document.createElement('canvas');
 		canvas.setAttribute('class', 'w-full');
 		canvas.setAttribute('id', canvasElId);
