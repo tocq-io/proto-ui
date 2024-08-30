@@ -2,7 +2,6 @@ import { type Edge, type Node } from '@xyflow/svelte';
 import { getDataGraph, type QueryRecord, type InOutEdge, type InEdges, type DataFileRecord } from '$lib/graphUtils';
 import { nodes, edges, resetGraph, DATA_NODE_TYPE, QUERY_NODE_TYPE } from '$lib/storeUtils';
 import { register_csv } from 'proto-query-engine';
-import { updateArrowTables } from '$lib/arrowSqlUtils';
 import { writable } from 'svelte/store';
 
 const nodeStyle = 'border: 1px solid #777; border-radius: 7px; padding: 10px; background: rgba(255, 255, 255, 0.65);';
@@ -24,8 +23,8 @@ function updateNodeStore(id: string, type: string, data: any, x: number = 0){
 
 export async function addDataNode(df: DataFileRecord) {
     let dataId = df.id.id.toString();
+    // TODO this should maybe be done during init in the query-engine
     await register_csv(dataId + '.csv', df.tableName);
-    await updateArrowTables('SELECT * FROM ' + df.tableName, dataId);
     let data = writable({
         tableName: df.tableName,
         size: df.size,
@@ -46,7 +45,6 @@ export async function addEmptyQueryNode() {
 }
 export async function updateEmptyQueryNode(query: QueryRecord) {
     const queryId = query.id.id.toString();
-    await updateArrowTables(query.statement, queryId);
     nodes.update((nodeArr) => {
         for (const node of nodeArr) {
             if (node.id === 'empty_query') {
@@ -62,7 +60,6 @@ export async function updateEmptyQueryNode(query: QueryRecord) {
 }
 export async function addQueryNode(query: QueryRecord) {
     const queryId = query.id.id.toString();
-    await updateArrowTables(query.statement, queryId);
     let data = writable({
         statement: query.statement,
         format: query.format,
@@ -73,7 +70,6 @@ export async function addQueryNode(query: QueryRecord) {
 }
 export async function updateQueryNode(query: QueryRecord) {
     const queryId = query.id.id.toString();
-    await updateArrowTables(query.statement, queryId);
     nodes.update((nodeArr) => {
         for (const node of nodeArr) {
             if (node.id === queryId) {

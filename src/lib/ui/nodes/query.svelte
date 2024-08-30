@@ -9,14 +9,14 @@
 		FloppyDiskOutline,
 		InfoCircleOutline
 	} from 'flowbite-svelte-icons';
-	import { tables, type QueryProps } from '$lib/storeUtils';
+	import { type QueryProps } from '$lib/storeUtils';
 	import CodeEditor from '$lib/ui/editor/sql-editor.svelte';
 	import { deleteQuery, persistQuery, updateQuery } from '$lib/crudUtils';
-	import { writable, type Unsubscriber, type Writable } from 'svelte/store';
+	import { readable, writable, type Readable, type Unsubscriber, type Writable } from 'svelte/store';
 	import TableView from '$lib/ui/view/table-view.svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { updateDfSqlFile } from '$lib/graphUtils';
-	import { updateArrowTables } from '$lib/arrowSqlUtils';
+	import { getArrowTable } from '$lib/arrowSqlUtils';
 	import { stringHash } from '$lib/signUtils';
 	import type { Table } from '@apache-arrow/ts';
 	import ChartWrapper from '$lib/ui/view/chart-wrapper.svelte';
@@ -36,26 +36,28 @@
 	}
 	let loading = true;
 	let codeText = writable($data.statement);
-	let table: Writable<Table | undefined> = writable($tables.get(id));
+	// TODO let this exist only during the lifetime of the query node
+	let table: Readable<Table | undefined>;
 	let chartType: Writable<string> = writable($data.chartType);
-	let tableUnsubscribe: Unsubscriber;
+	let dataUnsubscribe: Unsubscriber;
 	let chartUnsubscribe: Unsubscriber;
 
 	function deleteSqlNode() {
 		deleteQuery(id);
 	}
-	function saveSqlNode() {
+	async function saveSqlNode() {
 		$data.statement = $codeText;
 		if (id === 'empty_query') {
 			persistQuery($data);
 		} else {
 			updateQuery($data, id);
 		}
+		table = readable((await getArrowTable($codeText, id)));
 	}
 	async function safeState() {
 		if ($data.nodeView === DetailView.ViewChart || $data.nodeView === DetailView.ViewTable) {
-			if ((await stringHash($data.statement)) !== (await stringHash($codeText))) {
-				updateArrowTables($codeText, id);
+			if ($data.statement !==$codeText) {
+				table = readable((await getArrowTable($codeText, id)));
 				$data.statement = $codeText;
 			}
 		}
@@ -67,15 +69,13 @@
 	}
 
 	onDestroy(async () => {
-		tableUnsubscribe();
+		dataUnsubscribe();
 		chartUnsubscribe();
 	});
 	onMount(async () => {
 		wrapperDivId = window.crypto.randomUUID();
-		editorElementId = self.crypto.randomUUID();
-		tableUnsubscribe = tables.subscribe((tbl) => {
-			table.set(tbl.get(id));
-		});
+		editorElementId = window.crypto.randomUUID();
+		dataUnsubscribe = data.subscribe(async (dt) => (table = readable((await getArrowTable(dt.statement, id)))));
 		chartUnsubscribe = chartType.subscribe((cht) => {
 			$data.chartType = cht;
 			if (!loading) safeState();

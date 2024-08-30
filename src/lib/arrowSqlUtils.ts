@@ -1,6 +1,6 @@
-import { tableFromIPC } from "@apache-arrow/ts";
+import { Table, tableFromIPC } from "@apache-arrow/ts";
 import { run_sql } from "proto-query-engine";
-import { errorView, tables } from "$lib/storeUtils";
+import { errorView } from "$lib/storeUtils";
 
 export async function getTables(sqlStatement: string): Promise<Set<string>> {
     let tables = new Set<string>();
@@ -40,18 +40,14 @@ export async function getTables(sqlStatement: string): Promise<Set<string>> {
         });
 }
 
-export async function updateArrowTables(sqlStatement: string, id: string) {
-    run_sql(sqlStatement)
+export async function getArrowTable(sqlStatement: string, id: string): Promise<Table | undefined> {
+    return run_sql(sqlStatement)
         .then((reslt) => {
-            let table = tableFromIPC(reslt);
-            tables.update((tblMp) => {
-                tblMp.set(id, table);
-                return tblMp;
-            });
             errorView.update((errV) => {
                 errV.visibility = 'hidden';
                 return errV;
             });
+            return tableFromIPC(reslt);
         })
         .catch((e) => {
             errorView.set({
@@ -59,5 +55,6 @@ export async function updateArrowTables(sqlStatement: string, id: string) {
                 visibility: 'visible',
                 msg: e.message
             });
+            return undefined
         });
 }

@@ -9,8 +9,8 @@
 	} from 'flowbite-svelte';
 
 	import type { Table } from '@apache-arrow/ts';
-	import type { Writable } from 'svelte/store';
-	export let table: Writable<Table | undefined>;
+	import type { Readable } from 'svelte/store';
+	export let table: Readable<Table | undefined>;
 </script>
 
 <div class="max-w-4xl text-xs">

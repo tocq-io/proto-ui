@@ -8,7 +8,8 @@ export const DATA_NODE_TYPE = 'dataNode';
 export const QUERY_NODE_TYPE = 'queryNode';
 ///// FLOW TYPES
 export type DataFileProps = NodeProps & {
-    data: Writable<DataFile>
+    // TODO remove the writable as it is not necessary
+    data: Writable<DataFile>;
 };
 export type QueryProps = NodeProps & {
     data: Writable<QueryData>;
@@ -28,7 +29,6 @@ export let errorView: Writable<ErrorView> = writable({
 export let showDataUpload = writable(false);
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
-export const tables = writable<Map<string, Table>>(new Map());
 ///// HELPER FUNCTIONS
 export function resetGraph(){
     nodes.set([]);

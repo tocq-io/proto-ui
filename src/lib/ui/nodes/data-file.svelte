@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tables, type DataFileProps } from '$lib/storeUtils';
+	import { type DataFileProps } from '$lib/storeUtils';
 	import { Handle, Position } from '@xyflow/svelte';
 	import { Alert, Button, ButtonGroup } from 'flowbite-svelte';
 	import {
@@ -14,8 +14,15 @@
 	import { onDestroy, onMount } from 'svelte';
 	import TableView from '$lib/ui/view/table-view.svelte';
 	import { updateDataFile } from '$lib/graphUtils';
-	import { writable, type Unsubscriber, type Writable } from 'svelte/store';
+	import {
+		readable,
+		writable,
+		type Readable,
+		type Unsubscriber,
+		type Writable
+	} from 'svelte/store';
 	import ChartWrapper from '$lib/ui/view/chart-wrapper.svelte';
+	import { getArrowTable } from '$lib/arrowSqlUtils';
 
 	type $$Props = DataFileProps;
 	$$restProps;
@@ -29,24 +36,24 @@
 		ViewSchema = 3,
 		ViewBasic = 0
 	}
-	let table: Writable<Table | undefined> = writable($tables.get(id));
+	let table: Readable<Table | undefined>;
 	let chartType: Writable<string> = writable($data.chartType);
 	let wrapperDivId: string;
-	let tableUnsubscribe: Unsubscriber;
 	let chartUnsubscribe: Unsubscriber;
+	let dataUnsubscribe: Unsubscriber;
 
 	function deleteDataNode() {
 		deleteDataRecordAndEdges(id, $data.tableName);
 	}
 	onDestroy(async () => {
-		tableUnsubscribe();
+		dataUnsubscribe();
 		chartUnsubscribe();
 	});
 	onMount(async () => {
 		wrapperDivId = window.crypto.randomUUID();
-		tableUnsubscribe = tables.subscribe((tbl) => {
-			table.set(tbl.get(id));
-		});
+		dataUnsubscribe = data.subscribe(
+			async (dt) => (table = readable(await getArrowTable('SELECT * FROM ' + dt.tableName, id)))
+		);
 		chartUnsubscribe = chartType.subscribe((cht) => {
 			$data.chartType = cht;
 			if (!loading) updateDataFile($data, id);

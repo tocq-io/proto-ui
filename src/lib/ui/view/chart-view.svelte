@@ -1,17 +1,15 @@
 <script lang="ts">
 	import type { Table } from '@apache-arrow/ts';
 	import { Chart, registerables } from 'chart.js';
-	import { onDestroy, onMount } from 'svelte';
-	import { type Unsubscriber, type Writable } from 'svelte/store';
+	import {onMount } from 'svelte';
+	import { type Readable } from 'svelte/store';
 
-	export let table: Writable<Table | undefined>;
-	export let chartType: Writable<string>;
+	export let table: Readable<Table | undefined>;
+	export let chartType: Readable<string>;
 	export let wrapperDivId: string;
 	let canvasElId: string;
 	let canvas: HTMLCanvasElement;
 	let chart: Chart | undefined;
-	let typeUnsubscribe: Unsubscriber;
-	let tableUnsubscribe: Unsubscriber;
 	enum CHART_TYPE {
 		Bar = 'bar',
 		Line = 'line',
@@ -81,24 +79,14 @@
 				}
 			}
 		});
+		return '';
 	}
-
-	onDestroy(async () => {
-		typeUnsubscribe();
-		tableUnsubscribe();
-	});
 
 	onMount(async () => {
 		canvasElId = window.crypto.randomUUID();
 		Chart.register(...registerables);
-
-		typeUnsubscribe = chartType.subscribe(() => {
-			setChart();
-		});
-		tableUnsubscribe = table.subscribe(() => {
-			setChart();
-		});
 	});
+	$: table && setChart()
+	$: chartType && setChart()
 </script>
-
-<div id={wrapperDivId} class="max-h-80 min-h-52" />
+<div id={wrapperDivId} class="max-h-80 min-h-52">{setChart()}</div>

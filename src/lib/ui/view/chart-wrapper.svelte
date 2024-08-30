@@ -3,9 +3,9 @@
 	import { InfoCircleSolid } from 'flowbite-svelte-icons';
 	import type { Table } from '@apache-arrow/ts';
 	import ChartView from './chart-view.svelte';
-	import { type Writable } from 'svelte/store';
+	import { type Readable, type Writable } from 'svelte/store';
 	export let chartType: Writable<string>;
-	export let table: Writable<Table | undefined>;
+	export let table: Readable<Table | undefined>;
 	export let wrapperDivId: string;
 </script>
 
