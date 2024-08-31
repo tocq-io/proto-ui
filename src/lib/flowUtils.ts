@@ -1,5 +1,5 @@
 import { type Edge, type Node } from '@xyflow/svelte';
-import { getDataGraph, type QueryRecord, type InOutEdge, type InEdges, type DataFileRecord } from '$lib/graphUtils';
+import { getDataGraph, type QueryRecord, type InOutEdge, type DataFileRecord } from '$lib/graphUtils';
 import { nodes, edges, resetGraph, DATA_NODE_TYPE, QUERY_NODE_TYPE } from '$lib/storeUtils';
 import { register_csv } from 'proto-query-engine';
 import { writable } from 'svelte/store';

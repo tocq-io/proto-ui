@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Table } from '@apache-arrow/ts';
 	import { Chart, registerables } from 'chart.js';
-	import {onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { type Readable } from 'svelte/store';
 
 	export let table: Readable<Table | undefined>;
@@ -86,7 +86,8 @@
 		canvasElId = window.crypto.randomUUID();
 		Chart.register(...registerables);
 	});
-	$: table && setChart()
-	$: chartType && setChart()
+	$: table && setChart();
+	$: chartType && setChart();
 </script>
+
 <div id={wrapperDivId} class="max-h-80 min-h-52" />

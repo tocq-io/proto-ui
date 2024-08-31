@@ -12,7 +12,13 @@
 	import { type QueryProps } from '$lib/storeUtils';
 	import CodeEditor from '$lib/ui/editor/sql-editor.svelte';
 	import { deleteQuery, persistQuery, updateQuery } from '$lib/crudUtils';
-	import { readable, writable, type Readable, type Unsubscriber, type Writable } from 'svelte/store';
+	import {
+		readable,
+		writable,
+		type Readable,
+		type Unsubscriber,
+		type Writable
+	} from 'svelte/store';
 	import TableView from '$lib/ui/view/table-view.svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { updateDfSqlFile } from '$lib/graphUtils';
@@ -52,12 +58,12 @@
 		} else {
 			updateQuery($data, id);
 		}
-		table = readable((await getArrowTable($codeText, id)));
+		table = readable(await getArrowTable($codeText, id));
 	}
 	async function safeState() {
 		if ($data.nodeView === DetailView.ViewChart || $data.nodeView === DetailView.ViewTable) {
-			if ($data.statement !==$codeText) {
-				table = readable((await getArrowTable($codeText, id)));
+			if ($data.statement !== $codeText) {
+				table = readable(await getArrowTable($codeText, id));
 				$data.statement = $codeText;
 			}
 		}
@@ -75,7 +81,9 @@
 	onMount(async () => {
 		wrapperDivId = window.crypto.randomUUID();
 		editorElementId = window.crypto.randomUUID();
-		dataUnsubscribe = data.subscribe(async (dt) => (table = readable((await getArrowTable(dt.statement, id)))));
+		dataUnsubscribe = data.subscribe(
+			async (dt) => (table = readable(await getArrowTable(dt.statement, id)))
+		);
 		chartUnsubscribe = chartType.subscribe((cht) => {
 			$data.chartType = cht;
 			if (!loading) safeState();
