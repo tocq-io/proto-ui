@@ -22,6 +22,7 @@
 		type Writable
 	} from 'svelte/store';
 	import ChartWrapper from '$lib/ui/view/chart-wrapper.svelte';
+	import { browser } from '$app/environment';
 	import { getArrowTable } from '$lib/arrowSqlUtils';
 
 	type $$Props = DataFileProps;
@@ -36,9 +37,9 @@
 		ViewSchema = 3,
 		ViewBasic = 0
 	}
-	let table: Readable<Table | undefined>;
+	let table: Readable<Table>;
 	let chartType: Writable<string> = writable($data.chartType);
-	let wrapperDivId: string;
+	let wrapperDivId: string = browser ? window.crypto.randomUUID() : '';
 	let chartUnsubscribe: Unsubscriber;
 	let dataUnsubscribe: Unsubscriber;
 
@@ -50,9 +51,9 @@
 		chartUnsubscribe();
 	});
 	onMount(async () => {
-		wrapperDivId = window.crypto.randomUUID();
 		dataUnsubscribe = data.subscribe(
-			async (dt) => (table = readable(await getArrowTable('SELECT * FROM ' + dt.tableName, id)))
+			async (dt) =>
+				(table = readable(await getArrowTable("SELECT * FROM '" + dt.tableName + "' LIMIT 50")))
 		);
 		chartUnsubscribe = chartType.subscribe((cht) => {
 			$data.chartType = cht;

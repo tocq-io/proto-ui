@@ -35,11 +35,11 @@ export type TocqNode = {
 export type GeneralResult = {
 	id: RecordId;
 };
-const db = new Surreal({
+const surrealDb = new Surreal({
 	engines: surrealdbWasmEngines()
 });
 export async function openGraphDb() {
-	await db.connect('indxdb://configuration', { namespace: 'browser', database: 'proto' });
+	await surrealDb.connect('indxdb://configuration', { namespace: 'browser', database: 'proto' });
 	// TODO make it schemafull
 	// .then(
 	// 	() => (db.query(
@@ -52,7 +52,7 @@ export async function openGraphDb() {
 // Data Files
 export async function storeDataFile(dataFile: DataFile, digest: string): Promise<DataFileRecord> {
 	// TODO use UPSERT with v2 of DB
-	const result = await db.create<DataFileRecord>('data', {
+	const result = await surrealDb.create<DataFileRecord>('data', {
 		id: new RecordId('data', digest),
 		format: dataFile.format,
 		tableName: dataFile.tableName,
@@ -65,40 +65,41 @@ export async function storeDataFile(dataFile: DataFile, digest: string): Promise
 }
 export async function updateDataFile(fileData: DataFile, digest: string): Promise<DataFileRecord> {
 	// TODO use UPSERT with v2 of DB
-	const result = db.merge<DataFileRecord>(new StringRecordId('data:' + digest), {
+	const result = surrealDb.merge<DataFileRecord>(new StringRecordId('data:' + digest), {
 		chartType: fileData.chartType,
 		nodeView: fileData.nodeView,
 	});
 	return result;
 }
 export async function deleteDataRecord(digest: string) {
-	return db.delete(new StringRecordId('data:' + digest));
+	return surrealDb.delete(new StringRecordId('data:' + digest));
 }
 export async function deleteAllDataToQuery(digest: string) {
 	const queryString = 'DELETE data:' + digest + '<-import;DELETE data:' + digest + '<-show;';
-	return db.query(queryString);
+	return surrealDb.query(queryString);
 }
 // Queries
-export async function linkQueryToData(dataId: string, digest: string): Promise<InOutEdge> {
-	const queryString = 'RELATE queries:' + digest + '->import->data:' + dataId + ';';
-	const result = await db.query<InOutEdge[][]>(queryString);
+export async function linkQueryToData(tableName: string, digest: string): Promise<InOutEdge> {
+	const tableId = await surrealDb.query<RecordId[][]>('SELECT id FROM data WHERE tableName = "' +tableName+ '";');
+	const queryString = 'RELATE queries:' + digest + '->import->' + tableId[0][0].id.toString() + ';';
+	const result = await surrealDb.query<InOutEdge[][]>(queryString);
 	return result[0][0];
 }
 
 export async function deleteQueryToDataImport(digest: string) {
 	const queryString = 'DELETE queries:' + digest + '->import;';
-	return db.query(queryString);
+	return surrealDb.query(queryString);
 }
 export async function getDataGraph(): Promise<GeneralResult[][]> {
-	let result = db.query<GeneralResult[][]>('SELECT * FROM data;SELECT * FROM queries;SELECT * FROM import;');
+	let result = surrealDb.query<GeneralResult[][]>('SELECT * FROM data;SELECT * FROM queries;SELECT * FROM import;');
 	return result;
 }
 export async function deleteItAll() {
-	return db.query('REMOVE DATABASE proto;');
+	return surrealDb.query('REMOVE DATABASE proto;');
 }
 export async function storeDfSqlFile(queryData: QueryData, digest: string): Promise<QueryRecord> {
 	// TODO use UPSERT with v2 of DB
-	const result = await db.create<QueryRecord>('queries', {
+	const result = await surrealDb.create<QueryRecord>('queries', {
 		id: new RecordId('queries', digest),
 		format: queryData.format,
 		statement: queryData.statement,
@@ -110,7 +111,7 @@ export async function storeDfSqlFile(queryData: QueryData, digest: string): Prom
 }
 export async function updateDfSqlFile(queryData: QueryData, digest: string): Promise<QueryRecord> {
 	// TODO use UPSERT with v2 of DB
-	const result = db.merge<QueryRecord>(new StringRecordId('queries:' + digest), {
+	const result = surrealDb.merge<QueryRecord>(new StringRecordId('queries:' + digest), {
 		statement: queryData.statement,
 		chartType: queryData.chartType,
 		nodeView: queryData.nodeView
@@ -118,15 +119,15 @@ export async function updateDfSqlFile(queryData: QueryData, digest: string): Pro
 	return result;
 }
 export async function deleteDfSqlFile(digest: string) {
-	return db.delete(new StringRecordId('queries:' + digest));
+	return surrealDb.delete(new StringRecordId('queries:' + digest));
 }
 // User
 export async function getUserId(): Promise<string> {
 	const record = new StringRecordId('user:' + 'browser');
-	let user = await db.select<User>(record);
+	let user = await surrealDb.select<User>(record);
 	if (user === undefined) {
 		user = await initKeyPair().then((keyId) => {
-			return db.create<User>(record, {
+			return surrealDb.create<User>(record, {
 				scope: 'Browser Only',
 				identity: {
 					key: keyId

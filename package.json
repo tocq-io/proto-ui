@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
-		"dev": "npm run surreal-fix && vite dev",
+		"dev": "vite dev && npm run surreal-fix",
 		"build": "vite build",
 		"preview-all": "npm run wasm && npm run build && wrangler pages dev",
 		"preview": "npm run build && wrangler pages dev",
@@ -19,10 +19,13 @@
 		"deploy-all": "npm run wasm && npm run build && wrangler pages deploy",
 		"deploy": "npm run build && wrangler pages deploy",
 		"cf-typegen": "wrangler types && mv worker-configuration.d.ts src/",
-		"wasm": ". $HOME/.cargo/env && wasm-pack build ./proto-query-engine --target web",
+		"wasm": "wasm-pack build ./proto-query-engine --target web",
 		"install-rust-wasm": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && . $HOME/.cargo/env && rustup toolchain install stable --profile minimal && rustup target add wasm32-unknown-unknown && cargo install wasm-pack",
 		"surreal-fix": "cp node_modules/surrealdb.wasm/dist/embedded/index_bg.wasm node_modules/.vite/deps/"
 	},
+	"browser": {
+        "worker_threads": true
+    },
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240718.0",
 		"@playwright/test": "^1.28.1",
@@ -61,11 +64,11 @@
 	"dependencies": {
 		"@apache-arrow/ts": "^17.0.0",
 		"@codemirror/lang-sql": "^6.7.0",
+		"@duckdb/duckdb-wasm": "^1.28.1-dev106.0",
 		"@xyflow/svelte": "^0.1.14",
 		"chart.js": "^4.4.4",
 		"codemirror": "^6.0.1",
 		"elkjs": "^0.9.3",
-		"proto-query-engine": "file:../proto-query-engine/pkg",
 		"surrealdb.wasm": "^1.0.0-beta"
 	}
 }

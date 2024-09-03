@@ -23,7 +23,6 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { updateDfSqlFile } from '$lib/graphUtils';
 	import { getArrowTable } from '$lib/arrowSqlUtils';
-	import { stringHash } from '$lib/signUtils';
 	import type { Table } from '@apache-arrow/ts';
 	import ChartWrapper from '$lib/ui/view/chart-wrapper.svelte';
 
@@ -43,7 +42,7 @@
 	let loading = true;
 	let codeText = writable($data.statement);
 	// TODO let this exist only during the lifetime of the query node
-	let table: Readable<Table | undefined>;
+	let table: Readable<Table>;
 	let chartType: Writable<string> = writable($data.chartType);
 	let dataUnsubscribe: Unsubscriber;
 	let chartUnsubscribe: Unsubscriber;
@@ -58,12 +57,12 @@
 		} else {
 			updateQuery($data, id);
 		}
-		table = readable(await getArrowTable($codeText, id));
+		table = readable(await getArrowTable($codeText));
 	}
 	async function safeState() {
 		if ($data.nodeView === DetailView.ViewChart || $data.nodeView === DetailView.ViewTable) {
 			if ($data.statement !== $codeText) {
-				table = readable(await getArrowTable($codeText, id));
+				table = readable(await getArrowTable($codeText));
 				$data.statement = $codeText;
 			}
 		}
@@ -82,7 +81,7 @@
 		wrapperDivId = window.crypto.randomUUID();
 		editorElementId = window.crypto.randomUUID();
 		dataUnsubscribe = data.subscribe(
-			async (dt) => (table = readable(await getArrowTable(dt.statement, id)))
+			async (dt) => (table = readable(await getArrowTable(dt.statement)))
 		);
 		chartUnsubscribe = chartType.subscribe((cht) => {
 			$data.chartType = cht;

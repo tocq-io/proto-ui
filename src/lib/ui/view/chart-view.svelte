@@ -79,7 +79,7 @@
 				}
 			}
 		});
-		return '';
+		return true;
 	}
 
 	onMount(async () => {

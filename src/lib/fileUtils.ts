@@ -11,17 +11,20 @@ export async function getAvailableGb(): Promise<string> {
 	).toFixed(2);
 }
 export async function getFileImportDir(): Promise<FileSystemDirectoryHandle> {
-	return navigator.storage.getDirectory().then(
-		(opfsRoot) => (opfsRoot.getDirectoryHandle('data', { create: true })));
+	return navigator.storage.getDirectory();
 }
 export async function resetImportDir() {
 	return navigator.storage.getDirectory().then(
 		(opfsRoot) => (opfsRoot.removeEntry('data', { recursive: true })));
 }
+export async function getCsvFile(fileName: string): Promise<FileSystemFileHandle> {
+	return getFileImportDir()
+	.then((importDir) =>importDir.getFileHandle(fileName + '.csv', { create: false }));
+}
 export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: File) {
 	const tableName = file.name.replace(/\.[^/.]+$/, '');
 	await digestFile(file)
-		.then(([digest, salt]) => (importDir.getFileHandle(digest + '.csv', { create: true }))
+		.then(([digest, salt]) => (importDir.getFileHandle(tableName + '.csv', { create: true }))
 			.then((importFile) => (importFile.createWritable())
 				.then((writable) => (writable.write(file))
 					.then(() => (writable.close())

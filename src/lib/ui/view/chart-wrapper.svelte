@@ -2,7 +2,7 @@
 	import { Alert, Radio } from 'flowbite-svelte';
 	import { InfoCircleSolid } from 'flowbite-svelte-icons';
 	import type { Table } from '@apache-arrow/ts';
-	import ChartView from './chart-view.svelte';
+	import ChartView from '$lib/ui/view/chart-view.svelte';
 	import { type Readable, type Writable } from 'svelte/store';
 	export let chartType: Writable<string>;
 	export let table: Readable<Table | undefined>;

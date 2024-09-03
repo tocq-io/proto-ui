@@ -10,7 +10,7 @@
 
 	import type { Table } from '@apache-arrow/ts';
 	import type { Readable } from 'svelte/store';
-	export let table: Readable<Table | undefined>;
+	export let table: Readable<Table>;
 </script>
 
 <div class="max-w-4xl text-xs">

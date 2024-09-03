@@ -1,16 +1,16 @@
 import { getUserId } from '$lib/graphUtils';
-let db: IDBDatabase;
-export function openDB() {
+let signDb: IDBDatabase;
+export function openSignDB() {
 	const DBOpenRequest = indexedDB.open('identity');
 	DBOpenRequest.onsuccess = (e) => {
 		if (e.target) {
-			db = (<IDBOpenDBRequest>e.target).result;
+			signDb = (<IDBOpenDBRequest>e.target).result;
 		}
 	};
 	DBOpenRequest.onupgradeneeded = (e) => {
 		if (e.target) {
-			db = (<IDBOpenDBRequest>e.target).result;
-			db.createObjectStore('keypairs', { keyPath: 'id' });
+			signDb = (<IDBOpenDBRequest>e.target).result;
+			signDb.createObjectStore('keypairs', { keyPath: 'id' });
 		}
 	};
 }
@@ -18,13 +18,13 @@ export function resetKeys() {
 	indexedDB.deleteDatabase('identity');
 }
 function storeKeyPair(id: string, keys: CryptoKeyPair) {
-	const store = db.transaction('keypairs', 'readwrite').objectStore('keypairs');
+	const store = signDb.transaction('keypairs', 'readwrite').objectStore('keypairs');
 	store.add({ id: id, keys: keys });
 }
 async function getKeyPair(id: string): Promise<CryptoKeyPair> {
 	return new Promise<CryptoKeyPair>((resolve, reject) => {
 		let keys: CryptoKeyPair;
-		const tx = db.transaction('keypairs', 'readonly');
+		const tx = signDb.transaction('keypairs', 'readonly');
 		tx.oncomplete = () => resolve(keys);
 		tx.onerror = (event) => {
 			if (event.target) {

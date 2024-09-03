@@ -1,5 +1,4 @@
 <script lang="ts">
-	import init, { init_panic_hook } from 'proto-query-engine';
 	import {
 		SvelteFlow,
 		Background,
@@ -18,12 +17,13 @@
 	import { showDataUpload } from '$lib/storeUtils';
 	import { onMount } from 'svelte';
 	import { addEmptyQueryNode, initFlow } from '$lib/flowUtils';
-	import { openDB, resetKeys } from '$lib/signUtils';
+	import { openSignDB, resetKeys } from '$lib/signUtils';
 	import { deleteItAll, openGraphDb } from '$lib/graphUtils';
 	import { Alert, Button, ButtonGroup } from 'flowbite-svelte';
 	import { BullhornOutline, PlayOutline, PlusOutline } from 'flowbite-svelte-icons';
 	import '@xyflow/svelte/dist/style.css';
 	import { resetImportDir } from '$lib/fileUtils';
+	import { initDuckDb } from '$lib/arrowSqlUtils';
 
 	const nodeTypes = {
 		dataNode: DataFile,
@@ -111,10 +111,8 @@
 	}
 
 	onMount(async () => {
-		await init();
-		// Debug only
-		init_panic_hook();
-		openDB();
+		initDuckDb();
+		openSignDB();
 		await openGraphDb();
 		await initFlow().then(() => goLayout());
 	});

@@ -1,8 +1,9 @@
 import { type Edge, type Node } from '@xyflow/svelte';
 import { getDataGraph, type QueryRecord, type InOutEdge, type DataFileRecord } from '$lib/graphUtils';
 import { nodes, edges, resetGraph, DATA_NODE_TYPE, QUERY_NODE_TYPE } from '$lib/storeUtils';
-import { register_csv } from 'proto-query-engine';
 import { writable } from 'svelte/store';
+import { registerCsv } from '$lib//arrowSqlUtils';
+import { getCsvFile } from './fileUtils';
 
 const nodeStyle = 'border: 1px solid #777; border-radius: 7px; padding: 10px; background: rgba(255, 255, 255, 0.65);';
 
@@ -24,7 +25,8 @@ function updateNodeStore(id: string, type: string, data: any, x: number = 0){
 export async function addDataNode(df: DataFileRecord) {
     let dataId = df.id.id.toString();
     // TODO this should maybe be done during init in the query-engine
-    await register_csv(dataId + '.csv', df.tableName);
+    await getCsvFile(df.tableName)
+        .then((file) => registerCsv(file, df.tableName, dataId));
     let data = writable({
         tableName: df.tableName,
         size: df.size,
