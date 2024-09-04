@@ -1,6 +1,7 @@
 import { digestFile } from '$lib/signUtils';
 import { storeDataFile, type DataFile } from '$lib/graphUtils';
 import { addDataNode } from '$lib/flowUtils';
+import { load_csv } from 'proto-query-engine/proto_query_engine';
 
 export async function getAvailableGb(): Promise<string> {
 	const quota = (await navigator.storage.estimate()).quota;
@@ -20,20 +21,23 @@ export async function resetImportDir() {
 }
 export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: File) {
 	const tableName = file.name.replace(/\.[^/.]+$/, '');
+
+	//await load_csv(dataId, df.tableName);
 	await digestFile(file)
 		.then((digest) => (importDir.getFileHandle(digest + '.csv', { create: true }))
 			.then((importFile) => (importFile.createWritable())
 				.then((writable) => (writable.write(file))
 					.then(() => (writable.close())
-						.then(() => {
-							let dataFile = {
-								tableName: tableName,
-								format: 'text/csv',
-								size: file.size,
-								nodeView: 0,
-								chartType: 'bar'
-							} as DataFile;
-							storeDataFile(dataFile, digest)
-								.then((fileData) => (addDataNode(fileData)));
-						})))));
+						.then(() => load_csv(digest)
+							.then(() => {
+								let dataFile = {
+									tableName: tableName,
+									format: 'text/csv',
+									size: file.size,
+									nodeView: 0,
+									chartType: 'bar'
+								} as DataFile;
+								storeDataFile(dataFile, digest)
+									.then((fileData) => (addDataNode(fileData)));
+							}))))));
 }
