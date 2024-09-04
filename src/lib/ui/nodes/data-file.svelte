@@ -52,7 +52,7 @@
 	onMount(async () => {
 		wrapperDivId = window.crypto.randomUUID();
 		dataUnsubscribe = data.subscribe(
-			async (dt) => (table = readable(await getArrowTable('SELECT * FROM ' + dt.tableName, id)))
+			async (dt) => (table = readable(await getArrowTable("SELECT * FROM '" + dt.tableName + "' LIMIT 50", id)))
 		);
 		chartUnsubscribe = chartType.subscribe((cht) => {
 			$data.chartType = cht;

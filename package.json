@@ -19,7 +19,7 @@
 		"deploy-all": "npm run wasm && npm run build && wrangler pages deploy",
 		"deploy": "npm run build && wrangler pages deploy",
 		"cf-typegen": "wrangler types && mv worker-configuration.d.ts src/",
-		"wasm": ". $HOME/.cargo/env && wasm-pack build ./proto-query-engine --target web",
+		"wasm": "wasm-pack build ./proto-query-engine --target web",
 		"install-rust-wasm": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && . $HOME/.cargo/env && rustup toolchain install stable --profile minimal && rustup target add wasm32-unknown-unknown && cargo install wasm-pack",
 		"surreal-fix": "cp node_modules/surrealdb.wasm/dist/embedded/index_bg.wasm node_modules/.vite/deps/"
 	},

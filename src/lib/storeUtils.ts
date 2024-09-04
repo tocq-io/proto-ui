@@ -1,4 +1,3 @@
-import type { Table } from '@apache-arrow/ts';
 import { type NodeProps, type Edge, type Node } from '@xyflow/svelte';
 import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
 import { type Writable, writable } from 'svelte/store';
