@@ -55,14 +55,32 @@ export async function initKeyPair(): Promise<string> {
 	storeKeyPair(pubKeyString, keyPair);
 	return pubKeyString;
 }
-export async function digestFile(file: File): Promise<[string, Uint8Array]> {
+export async function digestFile(file: File): Promise<string> {
+	const keys = await getUserId().then((userId) => getKeyPair(userId));
+	if (keys === undefined) return '';
 	const fileUint8 = await file.arrayBuffer(); // encode as (utf-8) Uint8Array
-	return getUserId().then((userId) => digestBuffer(fileUint8, userId));
+	if (fileUint8.byteLength < 8e+6) { //8MB
+		return digestBuffer(fileUint8, keys);
+	} else {
+		const noSlices = Math.ceil(fileUint8.byteLength / 8e+6);
+		const arrBoundaries = Array.from({ length: noSlices }, (_, i) => i * 8e+6);
+		const DIGEST_LENGTH = 256; // length of RSASSA-PKCS1-v1_5 digest
+		let flattArray = new ArrayBuffer(noSlices * DIGEST_LENGTH);
+		let flattView = new Uint8Array(flattArray);
+		await Promise.all(arrBoundaries.map(async (boundary, i, arr) => {
+			const byteSlice = i < noSlices ? fileUint8.slice(boundary, arr[i + 1]) : fileUint8.slice(boundary, fileUint8.byteLength);
+			const digBuff = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', keys.privateKey, byteSlice);
+			flattView.set(new Uint8Array(digBuff), i * DIGEST_LENGTH);
+		}));
+		return quickHash(flattArray);
+	}
 }
-export async function digestString(data: string): Promise<[string, Uint8Array]> {
+export async function digestString(data: string): Promise<string> {
 	const enc = new TextEncoder();
 	const dataUint8 = enc.encode(data); // encode as (utf-8) Uint8Array
-	return getUserId().then((userId) => digestBuffer(dataUint8, userId));
+	const keys = await getUserId().then((userId) => getKeyPair(userId));
+	if (keys === undefined) return '';
+	return digestBuffer(dataUint8, keys);
 }
 export async function stringHash(str: string): Promise<string> {
 	const enc = new TextEncoder();
@@ -74,14 +92,7 @@ async function quickHash(value: ArrayBuffer): Promise<string> {
 	const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
 	return hashArray.map((b) => b.toString(16).padStart(2, '0')).join(''); // convert bytes to hex string
 }
-async function digestBuffer(buffer: ArrayBuffer, userId: string): Promise<[string, Uint8Array]> {
-	const keys = await getKeyPair(userId);
-	if (keys === undefined) return ['', new Uint8Array(0)];
-	const rsArr = new Uint8Array(16);
-	const randomSalt = crypto.getRandomValues(rsArr);
-	var saltedBuffer = new Uint8Array(buffer.byteLength + randomSalt.byteLength);
-	saltedBuffer.set(new Uint8Array(buffer), 0);
-	saltedBuffer.set(new Uint8Array(randomSalt), buffer.byteLength);
-	const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', keys.privateKey, saltedBuffer);
-	return [await quickHash(signature), saltedBuffer];
+async function digestBuffer(buffer: ArrayBuffer, keys: CryptoKeyPair): Promise<string> {
+	const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', keys.privateKey, buffer);
+	return quickHash(signature);
 }

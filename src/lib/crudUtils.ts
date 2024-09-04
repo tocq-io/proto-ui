@@ -5,8 +5,7 @@ import { unegister_table } from "proto-query-engine";
 import { getTables } from "$lib/arrowSqlUtils";
 
 export async function persistQuery(queryData: QueryData) {
-    const [digest, salt] = await digestString(queryData.statement);
-    queryData.salt = salt;
+    const digest = await digestString(queryData.statement);
     await storeDfSqlFile(queryData, digest).then((query) => updateEmptyQueryNode(query));
     (await getTables(queryData.statement))
         .forEach((tableId) => linkQueryToData(tableId, digest)

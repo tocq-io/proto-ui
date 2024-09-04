@@ -23,7 +23,6 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { updateDfSqlFile } from '$lib/graphUtils';
 	import { getArrowTable } from '$lib/arrowSqlUtils';
-	import { stringHash } from '$lib/signUtils';
 	import type { Table } from '@apache-arrow/ts';
 	import ChartWrapper from '$lib/ui/view/chart-wrapper.svelte';
 
@@ -33,7 +32,7 @@
 	export let data: $$Props['data'];
 	export let id: $$Props['id'];
 	let editorElementId = 'init_eid';
-	let wrapperDivId: string;
+	let wrapperDivId: string = window ? window.crypto.randomUUID() : '';
 	enum DetailView {
 		ViewTable = 1,
 		ViewChart = 2,
@@ -42,7 +41,6 @@
 	}
 	let loading = true;
 	let codeText = writable($data.statement);
-	// TODO let this exist only during the lifetime of the query node
 	let table: Readable<Table | undefined>;
 	let chartType: Writable<string> = writable($data.chartType);
 	let dataUnsubscribe: Unsubscriber;
@@ -79,11 +77,12 @@
 		chartUnsubscribe();
 	});
 	onMount(async () => {
-		wrapperDivId = window.crypto.randomUUID();
 		editorElementId = window.crypto.randomUUID();
-		dataUnsubscribe = data.subscribe(
-			async (dt) => (table = readable(await getArrowTable(dt.statement, id)))
-		);
+		dataUnsubscribe = data.subscribe(async (dt) => {
+			if (dt.statement) {
+				table = readable(await getArrowTable(dt.statement, id));
+			}
+		});
 		chartUnsubscribe = chartType.subscribe((cht) => {
 			$data.chartType = cht;
 			if (!loading) safeState();

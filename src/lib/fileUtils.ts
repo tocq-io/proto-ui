@@ -21,7 +21,7 @@ export async function resetImportDir() {
 export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: File) {
 	const tableName = file.name.replace(/\.[^/.]+$/, '');
 	await digestFile(file)
-		.then(([digest, salt]) => (importDir.getFileHandle(digest + '.csv', { create: true }))
+		.then((digest) => (importDir.getFileHandle(digest + '.csv', { create: true }))
 			.then((importFile) => (importFile.createWritable())
 				.then((writable) => (writable.write(file))
 					.then(() => (writable.close())
@@ -30,7 +30,6 @@ export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: F
 								tableName: tableName,
 								format: 'text/csv',
 								size: file.size,
-								salt: salt,
 								nodeView: 0,
 								chartType: 'bar'
 							} as DataFile;

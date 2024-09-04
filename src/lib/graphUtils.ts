@@ -30,7 +30,6 @@ export type TocqNode = {
 	format: string;
 	chartType: string;
 	nodeView: number;
-	salt?: Uint8Array;
 };
 export type GeneralResult = {
 	id: RecordId;
@@ -59,7 +58,6 @@ export async function storeDataFile(dataFile: DataFile, digest: string): Promise
 		size: dataFile.size,
 		chartType: dataFile.chartType,
 		nodeView: dataFile.nodeView,
-		salt: dataFile.salt,
 	});
 	return result[0];
 }
@@ -104,7 +102,6 @@ export async function storeDfSqlFile(queryData: QueryData, digest: string): Prom
 		statement: queryData.statement,
 		chartType: queryData.chartType,
 		nodeView: queryData.nodeView,
-		salt: queryData.salt,
 	});
 	return result[0];
 }

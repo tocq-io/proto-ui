@@ -38,7 +38,7 @@
 	}
 	let table: Readable<Table | undefined>;
 	let chartType: Writable<string> = writable($data.chartType);
-	let wrapperDivId: string;
+	let wrapperDivId: string = window ? window.crypto.randomUUID() : '';
 	let chartUnsubscribe: Unsubscriber;
 	let dataUnsubscribe: Unsubscriber;
 
@@ -50,9 +50,9 @@
 		chartUnsubscribe();
 	});
 	onMount(async () => {
-		wrapperDivId = window.crypto.randomUUID();
 		dataUnsubscribe = data.subscribe(
-			async (dt) => (table = readable(await getArrowTable("SELECT * FROM '" + dt.tableName + "' LIMIT 50", id)))
+			async (dt) =>
+				(table = readable(await getArrowTable("SELECT * FROM '" + dt.tableName + "' LIMIT 10", id)))
 		);
 		chartUnsubscribe = chartType.subscribe((cht) => {
 			$data.chartType = cht;
