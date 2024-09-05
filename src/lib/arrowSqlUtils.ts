@@ -13,10 +13,10 @@ export async function getTables(sqlStatement: string): Promise<Set<string>> {
                 if (row[0] === 'physical_plan') {
                     for (const analysis of row[1].split(/\n/)) {
                         let candidate: string = analysis.trim();
-                        const idLength = 'CsvExec: file_groups={1 group: [['.length;
-                        const startIndex = candidate.indexOf('CsvExec: ');
+                        const idLength = 'ArrowExec: file_groups={1 group: [['.length;
+                        const startIndex = candidate.indexOf('ArrowExec: ');
                         if (startIndex == 0) {
-                            const endIndex = candidate.indexOf('.csv]]}, projection');
+                            const endIndex = candidate.indexOf('.arrow');
                             candidate = candidate.substring(idLength, endIndex);
                             tables.add(candidate.trim());
                         }

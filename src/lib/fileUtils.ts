@@ -11,10 +11,6 @@ export async function getAvailableGb(): Promise<string> {
 		1000000000
 	).toFixed(2);
 }
-export async function getFileImportDir(): Promise<FileSystemDirectoryHandle> {
-	return navigator.storage.getDirectory().then(
-		(opfsRoot) => (opfsRoot.getDirectoryHandle('data', { create: true })));
-}
 export async function resetImportDir() {
 	return navigator.storage.getDirectory().then(
 		(opfsRoot) => (opfsRoot.removeEntry('data', { recursive: true })));

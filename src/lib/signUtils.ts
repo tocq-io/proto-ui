@@ -57,7 +57,7 @@ export async function initKeyPair(): Promise<string> {
 }
 export async function digestFile(fileUint8: ArrayBuffer): Promise<string> {
 	const keys = await getUserId().then((userId) => getKeyPair(userId));
-	const MAX_F_SIZE = 4e+6; // 4MB
+	const MAX_F_SIZE = 8e+6; // 8MB
 	if (keys === undefined) return '';
 	if (fileUint8.byteLength < MAX_F_SIZE) { 
 		return digestBuffer(fileUint8, keys);

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button, Fileupload, Modal } from 'flowbite-svelte';
 	import { PlusOutline } from 'flowbite-svelte-icons';
-	import { writeCsvFile, getFileImportDir } from '$lib/fileUtils';
+	import { writeCsvFile } from '$lib/fileUtils';
 	import { showDataUpload } from '$lib/storeUtils';
 
 	let files: FileList;

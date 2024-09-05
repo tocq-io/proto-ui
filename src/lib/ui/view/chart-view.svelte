@@ -7,7 +7,7 @@
 	export let table: Readable<Table | undefined>;
 	export let chartType: Readable<string>;
 	export let wrapperDivId: string;
-	let canvasElId: string;
+	let canvasElId: string = window ? window.crypto.randomUUID() : '';
 	let canvas: HTMLCanvasElement;
 	let chart: Chart | undefined;
 	enum CHART_TYPE {
@@ -76,14 +76,14 @@
 					y: {
 						beginAtZero: true
 					}
-				}
+				},
+				normalized: true,
 			}
 		});
 		return '';
 	}
 
-	onMount(async () => {
-		canvasElId = window.crypto.randomUUID();
+	onMount(async () => {		
 		Chart.register(...registerables);
 	});
 	$: table && setChart();

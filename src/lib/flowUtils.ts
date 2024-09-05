@@ -23,8 +23,6 @@ function updateNodeStore(id: string, type: string, data: any, x: number = 0){
 
 export async function addDataNode(df: DataFileRecord) {
     let dataId = df.id.id.toString();
-    console.log(dataId +"//"+ df.tableName);
-    //await register_csv(dataId, df.tableName);
     await register_table(dataId, df.tableName);
     let data = writable({
         tableName: df.tableName,
@@ -137,9 +135,6 @@ export async function initFlow() {
                     break;
                 case 'import':
                     addQueryDataEdge(<InOutEdge>entry, 'import');
-                    break;
-                case 'show':
-                    addQueryDataEdge(<InOutEdge>entry, 'show');
                     break;
             }
         }
