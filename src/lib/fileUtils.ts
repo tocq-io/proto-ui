@@ -1,7 +1,7 @@
 import { digestFile } from '$lib/signUtils';
 import { storeDataFile, type DataFile } from '$lib/graphUtils';
 import { addDataNode } from '$lib/flowUtils';
-import { load_csv } from 'proto-query-engine/proto_query_engine';
+import { load_csv_bytes } from 'proto-query-engine/proto_query_engine';
 
 export async function getAvailableGb(): Promise<string> {
 	const quota = (await navigator.storage.estimate()).quota;
@@ -19,25 +19,20 @@ export async function resetImportDir() {
 	return navigator.storage.getDirectory().then(
 		(opfsRoot) => (opfsRoot.removeEntry('data', { recursive: true })));
 }
-export async function writeCsvFile(importDir: FileSystemDirectoryHandle, file: File) {
+export async function writeCsvFile(file: File) {
 	const tableName = file.name.replace(/\.[^/.]+$/, '');
-
-	//await load_csv(dataId, df.tableName);
-	await digestFile(file)
-		.then((digest) => (importDir.getFileHandle(digest + '.csv', { create: true }))
-			.then((importFile) => (importFile.createWritable())
-				.then((writable) => (writable.write(file))
-					.then(() => (writable.close())
-						.then(() => load_csv(digest)
-							.then(() => {
-								let dataFile = {
-									tableName: tableName,
-									format: 'text/csv',
-									size: file.size,
-									nodeView: 0,
-									chartType: 'bar'
-								} as DataFile;
-								storeDataFile(dataFile, digest)
-									.then((fileData) => (addDataNode(fileData)));
-							}))))));
+	const fileUint8 = await file.arrayBuffer(); // encode as (utf-8) Uint8Array
+	await digestFile(fileUint8)
+		.then((digest) => load_csv_bytes(new Uint8Array(fileUint8), digest)
+			.then(() => {
+				let dataFile = {
+					tableName: tableName,
+					format: 'text/csv',
+					size: file.size,
+					nodeView: 0,
+					chartType: 'bar'
+				} as DataFile;
+				storeDataFile(dataFile, digest)
+					.then((fileData) => (addDataNode(fileData)));
+			}));
 }

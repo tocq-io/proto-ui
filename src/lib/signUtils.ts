@@ -55,15 +55,15 @@ export async function initKeyPair(): Promise<string> {
 	storeKeyPair(pubKeyString, keyPair);
 	return pubKeyString;
 }
-export async function digestFile(file: File): Promise<string> {
+export async function digestFile(fileUint8: ArrayBuffer): Promise<string> {
 	const keys = await getUserId().then((userId) => getKeyPair(userId));
+	const MAX_F_SIZE = 4e+6; // 4MB
 	if (keys === undefined) return '';
-	const fileUint8 = await file.arrayBuffer(); // encode as (utf-8) Uint8Array
-	if (fileUint8.byteLength < 8e+6) { //8MB
+	if (fileUint8.byteLength < MAX_F_SIZE) { 
 		return digestBuffer(fileUint8, keys);
 	} else {
-		const noSlices = Math.ceil(fileUint8.byteLength / 8e+6);
-		const arrBoundaries = Array.from({ length: noSlices }, (_, i) => i * 8e+6);
+		const noSlices = Math.ceil(fileUint8.byteLength / MAX_F_SIZE);
+		const arrBoundaries = Array.from({ length: noSlices }, (_, i) => i * MAX_F_SIZE);
 		const DIGEST_LENGTH = 256; // length of RSASSA-PKCS1-v1_5 digest
 		let flattArray = new ArrayBuffer(noSlices * DIGEST_LENGTH);
 		let flattView = new Uint8Array(flattArray);

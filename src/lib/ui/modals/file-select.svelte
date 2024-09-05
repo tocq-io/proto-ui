@@ -7,9 +7,8 @@
 	let files: FileList;
 
 	async function importFiles() {
-		const importDir = await getFileImportDir();
 		for (const file of files) {
-			await writeCsvFile(importDir, file);
+			await writeCsvFile(file);
 		}
 	}
 </script>
