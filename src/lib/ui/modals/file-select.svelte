@@ -22,7 +22,7 @@
 		quote: '"',
 		comment: '#',
 		escape: '',
-		null_regex: '(AB)|$^',
+		null_regex: '(NA)|$^',
 		truncated: false
 	};
 
@@ -64,7 +64,7 @@
 				<Input type="text" id="escape" bind:value={csvConfig.escape} size="sm" maxlength="1" />
 			</div>
 			<div>
-				<Label for="nullRegex" class="text-xs">Null Regex (default: '(AB)|$^')</Label>
+				<Label for="nullRegex" class="text-xs">Null Regex (default: '(NA)|$^')</Label>
 				<Input type="text" id="nullRegex" size="sm" bind:value={csvConfig.null_regex} maxlength="32" />
 			</div>
 			<Toggle size="small" id="truncated" class="mt-4" bind:checked={csvConfig.truncated}

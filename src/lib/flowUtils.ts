@@ -1,18 +1,18 @@
 import { type Edge, type Node } from '@xyflow/svelte';
-import { getDataGraph, type QueryRecord, type InOutEdge, type DataFileRecord } from '$lib/graphUtils';
+import { getDataGraph, type QueryRecord, type InOutEdge, type DataFileRecord, type NodePosition } from '$lib/graphUtils';
 import { nodes, edges, resetGraph, DATA_NODE_TYPE, QUERY_NODE_TYPE } from '$lib/storeUtils';
 import { writable } from 'svelte/store';
 import { registerArrowTable } from './dfSqlUtils';
 
 const nodeStyle = 'border: 1px solid #777; border-radius: 7px; padding: 10px; background: rgba(255, 255, 255, 0.65);';
 
-function updateNodeStore(id: string, type: string, data: any, x: number = 0){
+function updateNodeStore(id: string, type: string, data: any, position: NodePosition){
     let node = {} as Node;
     node.type = type;
     node.id = id;
     node.deletable = false;
     node.connectable = false;
-    node.position = { x: x, y: 0 };
+    node.position = position;
     node.style = nodeStyle;
     node.data = data;
     nodes.update((nodeArr) => {
@@ -29,18 +29,21 @@ export async function addDataNode(df: DataFileRecord) {
         size: df.size,
         format: df.format,
         chartType: df.chartType,
-        nodeView: df.nodeView
+        nodeView: df.nodeView,
+        position: df.position,
     });
-    updateNodeStore(dataId, DATA_NODE_TYPE, data);
+    updateNodeStore(dataId, DATA_NODE_TYPE, data, df.position);
 }
 export async function addEmptyQueryNode() {
+    const position = {x: 480, y: 50};
     let data = writable({
         statement: '',
         format: 'df/sql',
         chartType: 'bar',
-        nodeView: 3
+        nodeView: 3,
+        position: position,
     });
-    updateNodeStore('empty_query', QUERY_NODE_TYPE, data, 480);
+    updateNodeStore('empty_query', QUERY_NODE_TYPE, data, position);
 }
 export async function updateEmptyQueryNode(query: QueryRecord) {
     const queryId = query.id.id.toString();
@@ -64,8 +67,9 @@ export async function addQueryNode(query: QueryRecord) {
         format: query.format,
         chartType: query.chartType,
         nodeView: query.nodeView,
+        position: query.position,
     });
-    updateNodeStore(queryId, QUERY_NODE_TYPE, data);
+    updateNodeStore(queryId, QUERY_NODE_TYPE, data, query.position);
 }
 export async function updateQueryNode(query: QueryRecord) {
     const queryId = query.id.id.toString();

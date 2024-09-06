@@ -26,7 +26,8 @@ export async function writeCsvFile(file: File, csvConfig: CsvConfig) {
 					format: 'text/csv',
 					size: file.size,
 					nodeView: 0,
-					chartType: 'bar'
+					chartType: 'bar',
+					position: { x: 50, y: 50 }
 				} as DataFile;
 				storeDataFile(dataFile, digest)
 					.then((fileData) => (addDataNode(fileData)));

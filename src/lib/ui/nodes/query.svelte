@@ -31,6 +31,7 @@
 
 	export let data: $$Props['data'];
 	export let id: $$Props['id'];
+
 	let editorElementId = 'init_eid';
 	let wrapperDivId: string = window ? window.crypto.randomUUID() : '';
 	enum DetailView {

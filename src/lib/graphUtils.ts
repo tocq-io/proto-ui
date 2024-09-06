@@ -30,7 +30,12 @@ export type TocqNode = {
 	format: string;
 	chartType: string;
 	nodeView: number;
+	position: NodePosition;
 };
+export type NodePosition = {
+	x: number;
+	y: number;
+}
 export type GeneralResult = {
 	id: RecordId;
 };
@@ -58,6 +63,7 @@ export async function storeDataFile(dataFile: DataFile, digest: string): Promise
 		size: dataFile.size,
 		chartType: dataFile.chartType,
 		nodeView: dataFile.nodeView,
+		position: dataFile.position,
 	});
 	return result[0];
 }
@@ -66,6 +72,13 @@ export async function updateDataFile(fileData: DataFile, digest: string): Promis
 	const result = surrealDb.merge<DataFileRecord>(new StringRecordId('data:' + digest), {
 		chartType: fileData.chartType,
 		nodeView: fileData.nodeView,
+	});
+	return result;
+}
+export async function updateDataFilePosition(position: NodePosition, digest: string): Promise<DataFileRecord> {
+	// TODO use UPSERT with v2 of DB
+	const result = surrealDb.merge<DataFileRecord>(new StringRecordId('data:' + digest), {
+		position: position,
 	});
 	return result;
 }
@@ -102,6 +115,7 @@ export async function storeDfSqlFile(queryData: QueryData, digest: string): Prom
 		statement: queryData.statement,
 		chartType: queryData.chartType,
 		nodeView: queryData.nodeView,
+		position: queryData.position,
 	});
 	return result[0];
 }
@@ -111,6 +125,13 @@ export async function updateDfSqlFile(queryData: QueryData, digest: string): Pro
 		statement: queryData.statement,
 		chartType: queryData.chartType,
 		nodeView: queryData.nodeView
+	});
+	return result;
+}
+export async function updateDfSqlFilePosition(position: NodePosition, digest: string): Promise<QueryRecord> {
+	// TODO use UPSERT with v2 of DB
+	const result = surrealDb.merge<QueryRecord>(new StringRecordId('queries:' + digest), {
+		position: position,
 	});
 	return result;
 }
