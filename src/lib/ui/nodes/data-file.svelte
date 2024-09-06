@@ -22,7 +22,7 @@
 		type Writable
 	} from 'svelte/store';
 	import ChartWrapper from '$lib/ui/view/chart-wrapper.svelte';
-	import { getArrowTable } from '$lib/arrowSqlUtils';
+	import { getArrowTable } from '$lib/dfSqlUtils';
 
 	type $$Props = DataFileProps;
 	$$restProps;

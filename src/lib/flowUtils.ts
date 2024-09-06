@@ -1,8 +1,8 @@
 import { type Edge, type Node } from '@xyflow/svelte';
 import { getDataGraph, type QueryRecord, type InOutEdge, type DataFileRecord } from '$lib/graphUtils';
 import { nodes, edges, resetGraph, DATA_NODE_TYPE, QUERY_NODE_TYPE } from '$lib/storeUtils';
-import { register_table } from 'proto-query-engine';
 import { writable } from 'svelte/store';
+import { registerArrowTable } from './dfSqlUtils';
 
 const nodeStyle = 'border: 1px solid #777; border-radius: 7px; padding: 10px; background: rgba(255, 255, 255, 0.65);';
 
@@ -23,7 +23,7 @@ function updateNodeStore(id: string, type: string, data: any, x: number = 0){
 
 export async function addDataNode(df: DataFileRecord) {
     let dataId = df.id.id.toString();
-    await register_table(dataId, df.tableName);
+    await registerArrowTable(dataId, df.tableName);
     let data = writable({
         tableName: df.tableName,
         size: df.size,

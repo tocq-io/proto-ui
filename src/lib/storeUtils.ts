@@ -20,7 +20,7 @@ export type ErrorView = {
 };
 ///// SVELTE STORES
 export let errorView: Writable<ErrorView> = writable({
-    color: 'yellow',
+    color: 'red',
     visibility: 'hidden',
     msg: '...'
 });

@@ -1,6 +1,28 @@
 import { Table, tableFromIPC } from "@apache-arrow/ts";
-import { run_sql } from "proto-query-engine";
+import init, { load_csv_bytes, register_table, run_sql, init_panic_hook } from "proto-query-engine";
 import { errorView } from "$lib/storeUtils";
+
+export type CsvConfig = {
+    delimiter: string,
+    quote: string,
+    comment: string,
+    escape: string,
+    null_regex: string,
+    truncated: boolean,
+}
+
+function setErrorView(msg: string) {
+    errorView.set({
+        color: 'red',
+        visibility: 'visible',
+        msg: msg
+    });
+}
+
+export async function initDfSql() {
+    await init();
+    init_panic_hook();
+}
 
 export async function getTables(sqlStatement: string): Promise<Set<string>> {
     let tables = new Set<string>();
@@ -23,19 +45,10 @@ export async function getTables(sqlStatement: string): Promise<Set<string>> {
                     }
                 }
             }
-            // TODO this is a bit odd
-            errorView.update((errV) => {
-                errV.visibility = 'hidden';
-                return errV;
-            });
             return tables;
         })
         .catch((e) => {
-            errorView.set({
-                color: 'red',
-                visibility: 'visible',
-                msg: e.message
-            });
+            setErrorView(e.message);
             return new Set();
         });
 }
@@ -43,18 +56,25 @@ export async function getTables(sqlStatement: string): Promise<Set<string>> {
 export async function getArrowTable(sqlStatement: string, id: string): Promise<Table | undefined> {
     return run_sql(sqlStatement)
         .then((reslt) => {
-            errorView.update((errV) => {
-                errV.visibility = 'hidden';
-                return errV;
-            });
             return tableFromIPC(reslt);
         })
         .catch((e) => {
-            errorView.set({
-                color: 'red',
-                visibility: 'visible',
-                msg: e.message
-            });
+            setErrorView(e.message);
             return undefined
         });
+}
+
+export async function registerArrowTable(dataId: string, tableName: string) {
+    return register_table(dataId, tableName)
+        .catch((e) => {
+            setErrorView(e.message);
+        });
+}
+
+export async function importCsvData(digest: string, fileUint8: ArrayBuffer, csvConfig: CsvConfig) {
+    return load_csv_bytes(new Uint8Array(fileUint8), digest, csvConfig)
+        .catch((e) => {
+            setErrorView(e.message);
+        });
+
 }

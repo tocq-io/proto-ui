@@ -2,7 +2,7 @@ import { addQueryDataEdge, removeSpecificTargetEdges, updateQueryNode, removeSou
 import { digestString } from "$lib/signUtils";
 import { deleteAllDataToQuery, deleteQueryToDataImport, deleteDataRecord, deleteDfSqlFile, linkQueryToData, storeDfSqlFile, updateDfSqlFile, type QueryData } from "$lib/graphUtils";
 import { unegister_table } from "proto-query-engine";
-import { getTables } from "$lib/arrowSqlUtils";
+import { getTables } from "$lib/dfSqlUtils";
 
 export async function persistQuery(queryData: QueryData) {
     const digest = await digestString(queryData.statement);

@@ -22,7 +22,7 @@
 	import TableView from '$lib/ui/view/table-view.svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { updateDfSqlFile } from '$lib/graphUtils';
-	import { getArrowTable } from '$lib/arrowSqlUtils';
+	import { getArrowTable } from '$lib/dfSqlUtils';
 	import type { Table } from '@apache-arrow/ts';
 	import ChartWrapper from '$lib/ui/view/chart-wrapper.svelte';
 

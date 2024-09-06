@@ -1,5 +1,4 @@
 <script lang="ts">
-	import init, { init_panic_hook } from 'proto-query-engine';
 	import {
 		SvelteFlow,
 		Background,
@@ -21,9 +20,10 @@
 	import { openDB, resetKeys } from '$lib/signUtils';
 	import { deleteItAll, openGraphDb } from '$lib/graphUtils';
 	import { Alert, Button, ButtonGroup } from 'flowbite-svelte';
-	import { BullhornOutline, PlayOutline, PlusOutline } from 'flowbite-svelte-icons';
+	import { BullhornOutline, CloseCircleOutline, PlayOutline, PlusOutline } from 'flowbite-svelte-icons';
 	import '@xyflow/svelte/dist/style.css';
 	import { resetImportDir } from '$lib/fileUtils';
+	import { initDfSql } from '$lib/dfSqlUtils';
 
 	const nodeTypes = {
 		dataNode: DataFile,
@@ -97,7 +97,7 @@
 					nodes.set(layoutedNodes);
 				}
 			})
-			.then(() => (window.requestAnimationFrame(() => fitView())));
+			.then(() => window.requestAnimationFrame(() => fitView()));
 	}
 
 	async function resetLocalData() {
@@ -111,9 +111,7 @@
 	}
 
 	onMount(async () => {
-		await init();
-		// Debug only
-		init_panic_hook();
+		await initDfSql();
 		openDB();
 		await openGraphDb();
 		await initFlow().then(() => goLayout());
@@ -154,10 +152,17 @@
 					>
 				</ButtonGroup>
 			</Panel>
-			<Panel position="top-left" style="visibility: {$errorView.visibility}; width: 50%;">
-				<Alert color={$errorView.color}>
+			<Panel position="top-left" style="visibility: {$errorView.visibility}; width: 33%;">
+				<Alert color={$errorView.color} dismissable>
 					<BullhornOutline slot="icon" class="h-5 w-5" />
 					<span class="text-sm font-medium">{$errorView.msg}</span>
+					<Button
+						slot="close-button"
+						size="xs"
+						pill
+						on:click={() => ($errorView.visibility = 'hidden')}
+						class="ms-auto h-6 w-6"><CloseCircleOutline color="white" size="lg" strokeWidth="3" /></Button
+					>
 				</Alert>
 			</Panel>
 			<Background />
