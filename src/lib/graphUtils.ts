@@ -128,12 +128,14 @@ export async function updateDfSqlFile(queryData: QueryData, digest: string): Pro
 	});
 	return result;
 }
-export async function updateDfSqlFilePosition(position: NodePosition, digest: string): Promise<QueryRecord> {
+export async function updateDfSqlFilePosition(position: NodePosition, digest: string) {
 	// TODO use UPSERT with v2 of DB
-	const result = surrealDb.merge<QueryRecord>(new StringRecordId('queries:' + digest), {
-		position: position,
-	});
-	return result;
+	if (digest !== 'empty_query') {
+		const result = surrealDb.merge<QueryRecord>(new StringRecordId('queries:' + digest), {
+			position: position,
+		});
+		return result;
+	}
 }
 export async function deleteDfSqlFile(digest: string) {
 	return surrealDb.delete(new StringRecordId('queries:' + digest));
