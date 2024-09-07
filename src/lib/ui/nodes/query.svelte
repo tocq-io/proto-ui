@@ -32,7 +32,7 @@
 	export let data: $$Props['data'];
 	export let id: $$Props['id'];
 
-	let editorElementId = 'init_eid';
+	let editorElementId = window ? window.crypto.randomUUID() : '';
 	let wrapperDivId: string = window ? window.crypto.randomUUID() : '';
 	enum DetailView {
 		ViewTable = 1,
@@ -78,7 +78,6 @@
 		chartUnsubscribe();
 	});
 	onMount(async () => {
-		editorElementId = window.crypto.randomUUID();
 		dataUnsubscribe = data.subscribe(async (dt) => {
 			if (dt.statement) {
 				table = readable(await getArrowTable(dt.statement, id));

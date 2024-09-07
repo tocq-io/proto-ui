@@ -7,7 +7,8 @@
 		type EdgeTypes,
 		Panel,
 		Position,
-		type Node
+		type Node,
+		type Viewport
 	} from '@xyflow/svelte';
 	import dagre from '@dagrejs/dagre';
 	import { nodes, edges, errorView, resetGraph } from '$lib/storeUtils';
@@ -15,12 +16,14 @@
 	import Query from '$lib/ui/nodes/query.svelte';
 	import QueryDataEdge from '$lib/ui/nodes/query-data-edge.svelte';
 	import { showDataUpload } from '$lib/storeUtils';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { addEmptyQueryNode, initFlow } from '$lib/flowUtils';
 	import { openDB, resetKeys } from '$lib/signUtils';
 	import {
+		closeGraphDb,
 		deleteItAll,
 		openGraphDb,
+		storeViewPort,
 		updateDataFilePosition,
 		updateDfSqlFilePosition
 	} from '$lib/graphUtils';
@@ -34,6 +37,7 @@
 	import '@xyflow/svelte/dist/style.css';
 	import { resetImportDir } from '$lib/fileUtils';
 	import { initDfSql } from '$lib/dfSqlUtils';
+	import { writable, type Writable } from 'svelte/store';
 
 	const nodeTypes = {
 		dataNode: DataFile,
@@ -41,6 +45,12 @@
 	};
 	const edgeTypes: EdgeTypes = {
 		queryDataEdge: QueryDataEdge
+	};
+	let viewport: Writable<Viewport> = writable({ x: 0, y: 0, zoom: 0.7 });
+	const fitViewOptions = {
+		minZoom: 0.6,
+		duration: 0,
+		nodes: $nodes
 	};
 
 	function doLayout() {
@@ -68,7 +78,7 @@
 			if (node.measured && node.measured.width && node.measured.height) {
 				node.position = {
 					x: nodeWithPosition.x - node.measured.width / 2 + 50,
-					y: nodeWithPosition.y - node.measured.height / 2 + 50
+					y: nodeWithPosition.y - node.measured.height / 2 + 70
 				};
 			}
 		});
@@ -89,7 +99,7 @@
 		);
 	}
 
-	async function storeUpdateNodesSync(nodes: Node[]){
+	async function storeUpdateNodesSync(nodes: Node[]) {
 		for (const node of nodes) {
 			await storeNodePosition(node);
 		}
@@ -98,7 +108,7 @@
 	async function storeNodePosition(node: Node) {
 		switch (node.type) {
 			case 'queryNode':
-				await  updateDfSqlFilePosition(node.position, node.id);
+				await updateDfSqlFilePosition(node.position, node.id);
 				break;
 			case 'dataNode':
 				await updateDataFilePosition(node.position, node.id);
@@ -113,8 +123,13 @@
 	onMount(async () => {
 		await initDfSql();
 		openDB();
-		await openGraphDb(); 
-		initFlow();
+		await openGraphDb();
+		await initFlow();
+	});
+
+	onDestroy(async () => {
+		// TODO, needs the db to be owned by this view or a backend storage..
+		// storeViewPort($viewport.x, $viewport.y, $viewport.zoom);
 	});
 </script>
 
@@ -125,6 +140,9 @@
 			{edges}
 			{nodeTypes}
 			{edgeTypes}
+			{viewport}
+			fitView
+			{fitViewOptions}
 			on:nodedragstop={(e) => peristNodePositionAfterDrag(e)}
 		>
 			<Panel position="top-right">

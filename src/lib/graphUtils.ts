@@ -35,13 +35,21 @@ export type TocqNode = {
 export type NodePosition = {
 	x: number;
 	y: number;
-}
+};
+type FlowView = {
+	x: number,
+	y: number,
+	zoom: number
+};
 export type GeneralResult = {
 	id: RecordId;
 };
 const surrealDb = new Surreal({
 	engines: surrealdbWasmEngines()
 });
+export async function closeGraphDb() {
+	await surrealDb.close();
+}
 export async function openGraphDb() {
 	await surrealDb.connect('indxdb://configuration', { namespace: 'browser', database: 'proto' });
 	// TODO make it schemafull
@@ -79,6 +87,15 @@ export async function updateDataFilePosition(position: NodePosition, digest: str
 	// TODO use UPSERT with v2 of DB
 	const result = surrealDb.merge<DataFileRecord>(new StringRecordId('data:' + digest), {
 		position: position,
+	});
+	return result;
+}
+export async function storeViewPort(x: number, y: number, zoom: number) {
+	// TODO use UPSERT with v2 of DB
+	const result = surrealDb.merge<FlowView>(new StringRecordId('view:port'), {
+		x: x,
+		y: y,
+		zoom: zoom
 	});
 	return result;
 }
