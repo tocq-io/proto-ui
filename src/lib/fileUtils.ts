@@ -17,9 +17,9 @@ export async function resetImportDir() {
 }
 export async function writeCsvFile(file: File, csvConfig: CsvConfig) {
 	const tableName = file.name.replace(/\.[^/.]+$/, '');
-	const fileUint8 = await file.arrayBuffer(); // encode as (utf-8) Uint8Array
-	await digestFile(fileUint8)
-		.then((digest) => importCsvData(digest, fileUint8, csvConfig)
+	const fileArrayBuffer = await file.arrayBuffer(); // encode as (utf-8) Uint8Array
+	await digestFile(fileArrayBuffer)
+		.then((digest) => importCsvData(digest, fileArrayBuffer, csvConfig)
 			.then(() => {
 				let dataFile = {
 					tableName: tableName,

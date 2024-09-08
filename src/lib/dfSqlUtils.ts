@@ -71,8 +71,8 @@ export async function registerArrowTable(dataId: string, tableName: string) {
         });
 }
 
-export async function importCsvData(digest: string, fileUint8: ArrayBuffer, csvConfig: CsvConfig) {
-    return load_csv_bytes(new Uint8Array(fileUint8), digest, csvConfig)
+export async function importCsvData(digest: string, fileArrayBuffer: ArrayBuffer, csvConfig: CsvConfig) {
+    return load_csv_bytes(fileArrayBuffer, digest, csvConfig)
         .catch((e) => {
             setErrorView(e.message);
         });

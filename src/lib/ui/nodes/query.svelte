@@ -3,7 +3,7 @@
 	import { Alert, Button, ButtonGroup } from 'flowbite-svelte';
 	import {
 		ChartMixedOutline,
-		CloseCircleOutline,
+		CloseCircleSolid,
 		EditOutline,
 		EyeOutline,
 		FloppyDiskOutline,
@@ -95,8 +95,8 @@
 <div>
 	<div class="mb-2 grid sm:grid-cols-2">
 		<div class="flex gap-2">
-			<Button class="mt-0.5 h-6 w-6" pill size="xs" color="primary" on:click={() => deleteSqlNode()}
-				><CloseCircleOutline color="white" size="lg" strokeWidth="3" /></Button
+			<Button class="mt-0.5 h-6 w-6" pill size="xs" color="dark" on:click={() => deleteSqlNode()}
+				><CloseCircleSolid color="white" size="xl" /></Button
 			><span class="text-xl font-semibold">DF Query</span>
 		</div>
 		<div class="text-right">

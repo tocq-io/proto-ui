@@ -4,7 +4,7 @@
 	import { Alert, Button, ButtonGroup } from 'flowbite-svelte';
 	import {
 		ChartMixedOutline,
-		CloseCircleOutline,
+		CloseCircleSolid,
 		EyeOutline,
 		InfoCircleOutline,
 		TableRowOutline
@@ -66,17 +66,17 @@
 	<div class="mb-2 grid sm:grid-cols-2">
 		<div class="flex gap-2">
 			<Button
-				class="mt-0.5 h-6 w-6"
+				class="mt-0.5 w-6 h-6"
 				pill
 				size="xs"
-				color="primary"
-				on:click={() => deleteDataNode()}
-				><CloseCircleOutline color="white" size="lg" strokeWidth="3" /></Button
+				color="dark"
+				on:click={deleteDataNode}
+				><CloseCircleSolid color="white" size="xl" /></Button
 			><span class="text-xl font-semibold">TABLE [{$data.tableName}]</span>
 		</div>
 		<div class="text-right">
 			<ButtonGroup>
-				<Button
+				<Button	
 					size="lg"
 					class="h-8 w-8"
 					on:click={() => (($data.nodeView = DetailView.ViewBasic), updateDataFile($data, id))}

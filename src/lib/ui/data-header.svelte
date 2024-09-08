@@ -1,19 +1,17 @@
 <script lang="ts">
-	import { writable, type Writable } from 'svelte/store';
-	import { getAvailableGb } from '$lib/fileUtils';
-
-	let gbPromise: Writable<Promise<string>>;
-
-	$: gbPromise = writable(getAvailableGb());
+	import { page } from '$app/stores';
+	import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
+	$: activeUrl = $page.url.pathname;
 </script>
 
-<header class="px-8 text-gray-900 dark:text-white">
-		<h1 class="text-4xl font-extrabold tracking-tight"><nobr>tocq.io > data on the edge</nobr></h1>
-		{#await $gbPromise}
-			<span class="text-xl">--(/\)--</span>
-		{:then gbs}
-			<span class="text-md font-semibold"
-				>Avalailable browser storage: {gbs} GB</span
-			>
-		{/await}
-</header>
+<Navbar fluid>
+	<NavBrand href="/">
+		<img src="/logo.webp" class="ml-5 h-16 sm:h-16" alt="tocq.io logo" />
+	</NavBrand>
+	<NavHamburger />
+	<NavUl {activeUrl} divClass="md:block md:w-auto">
+		<NavLi activeClass="text-xl text-fuchsia-600" nonActiveClass="text-xl" href="/">Editor</NavLi>
+		<NavLi activeClass="text-xl" nonActiveClass="text-xl">Data Directory</NavLi>
+		<NavLi activeClass="text-xl"  nonActiveClass="text-xl">History</NavLi>
+	</NavUl>
+</Navbar>

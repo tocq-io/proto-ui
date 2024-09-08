@@ -8,7 +8,8 @@
 		Panel,
 		Position,
 		type Node,
-		type Viewport
+		type Viewport,
+		ControlButton
 	} from '@xyflow/svelte';
 	import dagre from '@dagrejs/dagre';
 	import { nodes, edges, errorView, resetGraph } from '$lib/storeUtils';
@@ -20,19 +21,35 @@
 	import { addEmptyQueryNode, initFlow } from '$lib/flowUtils';
 	import { openDB, resetKeys } from '$lib/signUtils';
 	import {
-		closeGraphDb,
 		deleteItAll,
 		openGraphDb,
-		storeViewPort,
 		updateDataFilePosition,
 		updateDfSqlFilePosition
 	} from '$lib/graphUtils';
-	import { Alert, Button, ButtonGroup } from 'flowbite-svelte';
+	import { Alert, Button, SpeedDial, SpeedDialButton } from 'flowbite-svelte';
 	import {
+		BrainOutline,
+		BrainSolid,
 		BullhornOutline,
+		CirclePlusOutline,
+		CirclePlusSolid,
 		CloseCircleOutline,
+		CloudArrowUpOutline,
+		CloudArrowUpSolid,
+		DatabaseOutline,
+		ExpandOutline,
+		FacebookSolid,
 		PlayOutline,
-		PlusOutline
+		PlusOutline,
+		RocketOutline,
+		RocketSolid,
+		ShareAllOutline,
+		ShareAllSolid,
+		TrashBinOutline,
+		TruckOutline,
+		TruckSolid,
+		UploadOutline,
+		UploadSolid
 	} from 'flowbite-svelte-icons';
 	import '@xyflow/svelte/dist/style.css';
 	import { resetImportDir } from '$lib/fileUtils';
@@ -146,35 +163,67 @@
 			on:nodedragstop={(e) => peristNodePositionAfterDrag(e)}
 		>
 			<Panel position="top-right">
-				<ButtonGroup>
-					<Button class="h-6" on:click={() => ($showDataUpload = true)}>
-						<PlusOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Data</span>
-					</Button>
-					<Button class="h-6" on:click={() => addEmptyQueryNode()}>
-						<PlusOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Query</span>
-					</Button>
-					<Button class="h-6" disabled>
-						<PlusOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Model</span>
-					</Button>
-					<Button class="h-6" disabled>
-						<PlusOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Function</span>
-					</Button>
-					<Button class="h-6" disabled>
-						<PlayOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Publish</span>
-					</Button>
-					<Button class="h-6" disabled>
-						<PlayOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Share</span>
-					</Button>
-					<Button class="h-6" disabled>
-						<PlayOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Deploy</span>
-					</Button>
-					<Button class="h-6" on:click={() => resetLocalData()}>
-						<PlayOutline class="mr-0.5 h-3.5 w-3.5" /><span class="text-md">Reset</span>
-					</Button>
-					<Button on:click={() => doLayout()} class="h-6"
-						><span class="text-md">Layout</span></Button
+				<SpeedDial
+					color="purpleToPink"
+					gradient
+					defaultClass="end-5 bottom-5"
+					placement="left"
+					tooltip="none"
+					textOutside
+				>
+					<CirclePlusOutline class="h-5 w-5" slot="icon" />
+					<SpeedDialButton
+						btnDefaultClass="w-5"
+						textOutsideClass="block absolute text-xs font-medium top-full"
+						name="Model"
+						disabled
 					>
-				</ButtonGroup>
+						<BrainOutline color="purple" />
+					</SpeedDialButton>
+					<SpeedDialButton
+						btnDefaultClass="w-5"
+						textOutsideClass="block absolute text-xs font-medium top-full"
+						name="Function"
+						disabled
+					>
+						<FacebookSolid color="purple" />
+					</SpeedDialButton>
+					<SpeedDialButton
+						btnDefaultClass="w-5"
+						textOutsideClass="block absolute text-xs font-medium top-full"
+						name="Data"
+						on:click={() => ($showDataUpload = true)}
+					>
+						<UploadOutline color="purple" />
+					</SpeedDialButton>
+					<SpeedDialButton
+						btnDefaultClass="w-5"
+						textOutsideClass="block absolute text-xs font-medium top-full"
+						name="Query"
+						on:click={() => addEmptyQueryNode()}
+					>
+						<DatabaseOutline color="purple" />
+					</SpeedDialButton>
+				</SpeedDial>
+				<SpeedDial
+					color="greenToBlue"
+					gradient
+					defaultClass="mt-2"
+					placement="bottom"
+					tooltip="none"
+					textOutside
+				>
+					<TruckOutline class="h-5 w-5" slot="icon" />
+					<SpeedDialButton btnDefaultClass="w-5" textOutsideClass="block absolute -start-12 top-1/2 text-xs font-medium -translate-y-1/2" name="Publish" disabled>
+						<RocketOutline color="green" />
+					</SpeedDialButton>
+					<SpeedDialButton btnDefaultClass="w-5" textOutsideClass="block absolute -start-12 top-1/2 text-xs font-medium -translate-y-1/2" name="Share" disabled>
+						<ShareAllOutline color="green" />
+					</SpeedDialButton>
+					<SpeedDialButton btnDefaultClass="w-5" textOutsideClass="block absolute -start-12 top-1/2 text-xs font-medium -translate-y-1/2" name="Deploy" disabled>
+						<CloudArrowUpOutline color="green" />
+					</SpeedDialButton>
+				</SpeedDial>
 			</Panel>
 			<Panel position="top-left" style="visibility: {$errorView.visibility}; width: 33%;">
 				<Alert color={$errorView.color} dismissable>
@@ -191,7 +240,14 @@
 				</Alert>
 			</Panel>
 			<Background />
-			<Controls />
+			<Controls>
+				<ControlButton title="shuffle layout" on:click={() => doLayout()}>
+					<ExpandOutline class="w-5" />
+				</ControlButton>
+				<ControlButton title="reset everything" on:click={() => resetLocalData()}>
+					<TrashBinOutline />
+				</ControlButton>
+			</Controls>
 			<MiniMap zoomable pannable height={120} />
 		</SvelteFlow>
 	</div>
