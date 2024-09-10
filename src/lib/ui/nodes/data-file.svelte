@@ -69,7 +69,7 @@
 				class="mt-0.5 w-6 h-6"
 				pill
 				size="xs"
-				color="dark"
+				color="purple"
 				on:click={deleteDataNode}
 				><CloseCircleSolid color="white" size="xl" /></Button
 			><span class="text-xl font-semibold">TABLE [{$data.tableName}]</span>

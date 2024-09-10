@@ -5,7 +5,7 @@ import wasm from 'vite-plugin-wasm';
 export default defineConfig({
 	plugins: [wasm(), sveltekit()],
 	optimizeDeps: {
-		exclude: ['surrealdb.wasm', 'proto-query-engine'],
+		exclude: ['surrealdb.wasm', 'surrealql.wasm', 'proto-query-engine'],
 		esbuildOptions: {
 			target: 'esnext',
 		},
@@ -15,11 +15,11 @@ export default defineConfig({
 			allow: ['..'],
 		},
 	},
-	// esbuild: {
-	// 	supported: {
-	// 		'top-level-await': true
-	// 	},
-	// },
+	esbuild: {
+		supported: {
+			'top-level-await': true
+		},
+	},
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}']
 	},
