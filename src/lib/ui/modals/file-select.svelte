@@ -49,7 +49,14 @@
 		<div class="my-4 grid gap-4 sm:grid-cols-3">
 			<div>
 				<Label for="delimiter" class="text-xs">Delimiter (default: ',')</Label>
-				<Input type="text" id="delimiter" bind:value={csvConfig.delimiter} size="sm" maxlength="1" required />
+				<Input
+					type="text"
+					id="delimiter"
+					bind:value={csvConfig.delimiter}
+					size="sm"
+					maxlength="1"
+					required
+				/>
 			</div>
 			<div>
 				<Label for="quote" class="text-xs">Quote (default: '"')</Label>
@@ -65,7 +72,13 @@
 			</div>
 			<div>
 				<Label for="nullRegex" class="text-xs">Null Regex (default: '(NA)|$^')</Label>
-				<Input type="text" id="nullRegex" size="sm" bind:value={csvConfig.null_regex} maxlength="32" />
+				<Input
+					type="text"
+					id="nullRegex"
+					size="sm"
+					bind:value={csvConfig.null_regex}
+					maxlength="32"
+				/>
 			</div>
 			<Toggle size="small" id="truncated" class="mt-4" bind:checked={csvConfig.truncated}
 				>Truncated Rows</Toggle

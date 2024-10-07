@@ -1,22 +1,22 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { basicSetup, EditorView } from 'codemirror';
-	import { sql } from '@codemirror/lang-sql';
+	import { javascript } from '@codemirror/lang-javascript';
 	import { type Writable } from 'svelte/store';
 
-	export let sqlText: Writable<string>;
-	export let sqlEditorElementId: string;
+	export let jsText: Writable<string>;
+	export let jsEditorElementId: string;
 
 	onMount(async () => {
-		const targetElement = document.getElementById(sqlEditorElementId)!;
+		const targetElement = document.getElementById(jsEditorElementId)!;
 		new EditorView({
-			doc: $sqlText,
+			doc: $jsText,
 			extensions: [
 				basicSetup,
-				sql(),
+				javascript(),
 				EditorView.updateListener.of(function (e) {
 					if (e.docChanged) {
-						$sqlText = e.state.doc.toString();
+						$jsText = e.state.doc.toString();
 					}
 				})
 			],
@@ -25,4 +25,4 @@
 	});
 </script>
 
-<div id={sqlEditorElementId}></div>
+<div id={jsEditorElementId}></div>

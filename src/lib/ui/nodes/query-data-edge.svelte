@@ -25,12 +25,12 @@
 <BaseEdge path={edgePath} />
 
 <EdgeLabelRenderer>
-    <div
-        style:transform={`translate(-50%, -100%) translate(${targetX}px,${targetY}px)`}
-        class="edge-label nodrag nopan"
-    >
-        {data.label}
-    </div>
+	<div
+		style:transform={`translate(-50%, -100%) translate(${targetX}px,${targetY}px)`}
+		class="edge-label nodrag nopan"
+	>
+		{data.label}
+	</div>
 </EdgeLabelRenderer>
 
 <style>
@@ -39,8 +39,8 @@
 		background: rgba(255, 255, 255, 0.35);
 		padding: 6px 16px;
 		border-radius: 5px;
-        font-family: sans-serif;
+		font-family: sans-serif;
 		font-size: 12px;
-        font-weight: 500;
+		font-weight: 500;
 	}
 </style>

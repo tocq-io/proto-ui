@@ -1,30 +1,25 @@
 <script lang="ts">
 	import { Handle, Position } from '@xyflow/svelte';
-	import { Alert, Button, ButtonGroup } from 'flowbite-svelte';
+	import { A, Alert, Button, ButtonGroup, Span } from 'flowbite-svelte';
 	import {
 		ChartMixedOutline,
 		CloseCircleSolid,
 		EditOutline,
-		EyeOutline,
 		FloppyDiskOutline,
-		InfoCircleOutline
+		InfoCircleOutline,
+		TableRowOutline
 	} from 'flowbite-svelte-icons';
 	import { type QueryProps } from '$lib/storeUtils';
-	import CodeEditor from '$lib/ui/editor/sql-editor.svelte';
+	import SqlEditor from '$lib/ui/editor/sql-editor.svelte';
+	import JsEditor from '$lib/ui/editor/js-editor.svelte';
 	import { deleteQuery, persistQuery, updateQuery } from '$lib/crudUtils';
-	import {
-		readable,
-		writable,
-		type Readable,
-		type Unsubscriber,
-		type Writable
-	} from 'svelte/store';
+	import { readable, writable, type Readable, type Unsubscriber } from 'svelte/store';
 	import TableView from '$lib/ui/view/table-view.svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { updateDfSqlFile } from '$lib/graphUtils';
 	import { getArrowTable } from '$lib/dfSqlUtils';
 	import type { Table } from '@apache-arrow/ts';
-	import ChartWrapper from '$lib/ui/view/chart-wrapper.svelte';
+	import ChartView from '$lib/ui/view/chart-view.svelte';
 
 	type $$Props = QueryProps;
 	$$restProps;
@@ -32,38 +27,39 @@
 	export let data: $$Props['data'];
 	export let id: $$Props['id'];
 
-	let editorElementId = window ? window.crypto.randomUUID() : '';
-	let wrapperDivId: string = window ? window.crypto.randomUUID() : '';
+	let sqlEditorElementId = window ? window.crypto.randomUUID() : '';
+	let jsEditorElementId = window ? window.crypto.randomUUID() : '';
+	let chartViewElementId: string = window ? window.crypto.randomUUID() : '';
 	enum DetailView {
 		ViewTable = 1,
 		ViewChart = 2,
-		ViewEditor = 3,
+		ViewChartEditor = 3,
 		ViewBasic = 0
 	}
-	let loading = true;
-	let codeText = writable($data.statement);
+	let sqlText = writable($data.statement);
+	let jsText = writable($data.chartConfig);
 	let table: Readable<Table | undefined>;
-	let chartType: Writable<string> = writable($data.chartType);
 	let dataUnsubscribe: Unsubscriber;
-	let chartUnsubscribe: Unsubscriber;
 
 	function deleteSqlNode() {
 		deleteQuery(id);
 	}
 	async function saveSqlNode() {
-		$data.statement = $codeText;
+		$data.statement = $sqlText;
 		if (id === 'empty_query') {
 			persistQuery($data);
 		} else {
 			updateQuery($data, id);
 		}
-		table = readable(await getArrowTable($codeText, id));
+		table = readable(await getArrowTable($sqlText));
 	}
 	async function safeState() {
 		if ($data.nodeView === DetailView.ViewChart || $data.nodeView === DetailView.ViewTable) {
-			if ($data.statement !== $codeText) {
-				table = readable(await getArrowTable($codeText, id));
-				$data.statement = $codeText;
+			if ($data.statement !== $sqlText) {
+				table = readable(await getArrowTable($sqlText));
+				$data.statement = $sqlText;
+			} else if ($data.chartConfig !== $jsText) {
+				$data.chartConfig = $jsText;
 			}
 		}
 		updateDfSqlFile($data, id);
@@ -75,29 +71,23 @@
 
 	onDestroy(async () => {
 		dataUnsubscribe();
-		chartUnsubscribe();
 	});
 	onMount(async () => {
 		dataUnsubscribe = data.subscribe(async (dt) => {
 			if (dt.statement) {
-				table = readable(await getArrowTable(dt.statement, id));
+				table = readable(await getArrowTable(dt.statement));
 			}
 		});
-		chartUnsubscribe = chartType.subscribe((cht) => {
-			$data.chartType = cht;
-			if (!loading) safeState();
-		});
-		loading = false;
 	});
 </script>
 
 <Handle type="target" position={Position.Top} />
-<div>
+<div class="min-w-192">
 	<div class="mb-2 grid sm:grid-cols-2">
 		<div class="flex gap-2">
-			<Button class="mt-0.5 h-6 w-6" pill size="xs" color="dark" on:click={() => deleteSqlNode()}
+			<Button class="mt-0.5 h-6 w-6" pill size="xs" color="purple" on:click={() => deleteSqlNode()}
 				><CloseCircleSolid color="white" size="xl" /></Button
-			><span class="text-xl font-semibold">DF Query</span>
+			><span class="text-xl font-semibold">QUERY</span>
 		</div>
 		<div class="text-right">
 			<ButtonGroup>
@@ -111,7 +101,7 @@
 					size="lg"
 					class="h-8 w-8"
 					on:click={() => (($data.nodeView = DetailView.ViewTable), safeState())}
-					disabled={isEmpty()}><EyeOutline /></Button
+					disabled={isEmpty()}><TableRowOutline /></Button
 				>
 				<Button
 					size="lg"
@@ -122,8 +112,8 @@
 				<Button
 					size="lg"
 					class="h-8 w-8"
-					on:click={() => (($data.nodeView = DetailView.ViewEditor), safeState())}
-					><EditOutline /></Button
+					on:click={() => (($data.nodeView = DetailView.ViewChartEditor), safeState())}
+					disabled={isEmpty()}><EditOutline /></Button
 				>
 				<Button size="lg" class="h-8 w-8" on:click={() => saveSqlNode()}
 					><FloppyDiskOutline /></Button
@@ -131,14 +121,31 @@
 			</ButtonGroup>
 		</div>
 	</div>
-	{#if $data.nodeView === DetailView.ViewEditor}
-		<Alert color="blue" class="py-2">
-			<CodeEditor {codeText} {editorElementId} />
-		</Alert>
-	{:else if $data.nodeView === DetailView.ViewTable && !isEmpty()}
+
+	<Alert color="blue" class="mt-2 py-2">
+		<SqlEditor {sqlText} {sqlEditorElementId} />
+	</Alert>
+	{#if $data.nodeView === DetailView.ViewTable && !isEmpty()}
 		<TableView {table} />
+	{:else if $data.nodeView === DetailView.ViewChartEditor && !isEmpty()}
+		<Alert color="red" class="mt-4 py-2">
+			<JsEditor {jsText} {jsEditorElementId} />
+		</Alert>
+		<div class="ml-1 mt-2 text-sm">
+			<A
+				color="text-blue-400"
+				href="https://www.chartjs.org/docs/latest/configuration/"
+				target="_blank">Chart.js configuration</A
+			>
+			using the underlying
+			<A
+				color="text-blue-400"
+				href="https://arrow.apache.org/docs/js/classes/Arrow_dom.Table.html"
+				target="_blank">Arrow table</A
+			>. The $table is stored in memory within this context.
+		</div>
 	{:else if $data.nodeView === DetailView.ViewChart && !isEmpty()}
-		<ChartWrapper {table} {chartType} {wrapperDivId} />
+		<ChartView {jsText} {table} {chartViewElementId} />
 	{:else}
 		<Alert color="light" class="mt-1 p-2">
 			<div class="flex gap-0.5 text-xs">

@@ -1,5 +1,5 @@
-import flowbitePlugin from 'flowbite/plugin';
-
+import flowbytePlugin from 'flowbite/plugin';
+import flowbyteTypo from 'flowbite-typography';
 import type { Config } from 'tailwindcss';
 
 export default {
@@ -24,8 +24,16 @@ export default {
 					800: '#CC4522',
 					900: '#A5371B'
 				}
+			},
+			minWidth: {
+				'128': '36rem',
+				'192': '48rem'
+			},
+			minHeight: {
+				'128': '36rem',
+				'192': '48rem'
 			}
 		}
 	},
-	plugins: [require('flowbite/plugin'), require('flowbite-typography')],
+	plugins: [flowbytePlugin, flowbyteTypo]
 } as Config;

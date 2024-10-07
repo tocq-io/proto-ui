@@ -57,7 +57,7 @@ export async function initKeyPair(): Promise<string> {
 }
 export async function digestFile(fileArrayBuffer: ArrayBuffer): Promise<string> {
 	const keys = await getUserId().then((userId) => getKeyPair(userId));
-	const MAX_F_SIZE = 8e+6; // 8MB
+	const MAX_F_SIZE = 8e6; // 8MB
 	if (keys === undefined) return '';
 	if (fileArrayBuffer.byteLength < MAX_F_SIZE) {
 		return digestBuffer(fileArrayBuffer, keys);
@@ -65,13 +65,18 @@ export async function digestFile(fileArrayBuffer: ArrayBuffer): Promise<string> 
 		const noSlices = Math.ceil(fileArrayBuffer.byteLength / MAX_F_SIZE);
 		const arrBoundaries = Array.from({ length: noSlices }, (_, i) => i * MAX_F_SIZE);
 		const DIGEST_LENGTH = 256; // length of RSASSA-PKCS1-v1_5 digest
-		let flattArray = new ArrayBuffer(noSlices * DIGEST_LENGTH);
-		let flattView = new Uint8Array(flattArray);
-		await Promise.all(arrBoundaries.map(async (boundary, i, arr) => {
-			const byteSlice = i < noSlices ? fileArrayBuffer.slice(boundary, arr[i + 1]) : fileArrayBuffer.slice(boundary, fileArrayBuffer.byteLength);
-			const digBuff = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', keys.privateKey, byteSlice);
-			flattView.set(new Uint8Array(digBuff), i * DIGEST_LENGTH);
-		}));
+		const flattArray = new ArrayBuffer(noSlices * DIGEST_LENGTH);
+		const flattView = new Uint8Array(flattArray);
+		await Promise.all(
+			arrBoundaries.map(async (boundary, i, arr) => {
+				const byteSlice =
+					i < noSlices
+						? fileArrayBuffer.slice(boundary, arr[i + 1])
+						: fileArrayBuffer.slice(boundary, fileArrayBuffer.byteLength);
+				const digBuff = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', keys.privateKey, byteSlice);
+				flattView.set(new Uint8Array(digBuff), i * DIGEST_LENGTH);
+			})
+		);
 		return quickHash(flattArray);
 	}
 }

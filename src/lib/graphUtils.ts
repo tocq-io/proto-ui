@@ -1,5 +1,5 @@
-import { Surreal, StringRecordId, RecordId } from 'surrealdb.js';
-import { surrealdbWasmEngines } from 'surrealdb.wasm';
+import { Surreal, StringRecordId, RecordId } from 'surrealdb';
+import { surrealdbWasmEngines } from '@surrealdb/wasm';
 import { initKeyPair } from '$lib/signUtils';
 type User = {
 	scope: string;
@@ -15,6 +15,7 @@ export type DataFile = TocqNode & {
 export type QueryRecord = QueryData & GeneralResult;
 export type QueryData = TocqNode & {
 	statement: string;
+	chartConfig: string;
 };
 export type InOutEdge = GeneralResult & {
 	in: RecordId;
@@ -28,7 +29,6 @@ export type InEdges = GeneralResult & {
 };
 export type TocqNode = {
 	format: string;
-	chartType: string;
 	nodeView: number;
 	position: NodePosition;
 };
@@ -37,9 +37,9 @@ export type NodePosition = {
 	y: number;
 };
 type FlowView = {
-	x: number,
-	y: number,
-	zoom: number
+	x: number;
+	y: number;
+	zoom: number;
 };
 export type GeneralResult = {
 	id: RecordId;
@@ -54,12 +54,12 @@ export async function openGraphDb() {
 	await surrealDb.connect('indxdb://configuration', { namespace: 'browser', database: 'proto' });
 	// TODO make it schemafull
 	// .then(
-	// 	() => (db.query(
-	// 		"DEFINE FIELD in ON TABLE import TYPE record<DataFile>;"
-	// 		+ "DEFINE FIELD out ON TABLE import TYPE record<Transformer>;"
-	// 		+ "DEFINE INDEX unique_relationships ON TABLE import COLUMNS in, out UNIQUE;").then(
-	// 			(result) => (console.log(result)
-	// 			))));
+	//     () => (db.query(
+	//     "DEFINE FIELD in ON TABLE import TYPE record<DataFile>;"
+	//     + "DEFINE FIELD out ON TABLE import TYPE record<Transformer>;"
+	//     + "DEFINE INDEX unique_relationships ON TABLE import COLUMNS in, out UNIQUE;").then(
+	//     (result) => (console.log(result)
+	//     ))));
 }
 // Data Files
 export async function storeDataFile(dataFile: DataFile, digest: string): Promise<DataFileRecord> {
@@ -69,24 +69,25 @@ export async function storeDataFile(dataFile: DataFile, digest: string): Promise
 		format: dataFile.format,
 		tableName: dataFile.tableName,
 		size: dataFile.size,
-		chartType: dataFile.chartType,
 		nodeView: dataFile.nodeView,
-		position: dataFile.position,
+		position: dataFile.position
 	});
 	return result[0];
 }
 export async function updateDataFile(fileData: DataFile, digest: string): Promise<DataFileRecord> {
 	// TODO use UPSERT with v2 of DB
 	const result = surrealDb.merge<DataFileRecord>(new StringRecordId('data:' + digest), {
-		chartType: fileData.chartType,
-		nodeView: fileData.nodeView,
+		nodeView: fileData.nodeView
 	});
 	return result;
 }
-export async function updateDataFilePosition(position: NodePosition, digest: string): Promise<DataFileRecord> {
+export async function updateDataFilePosition(
+	position: NodePosition,
+	digest: string
+): Promise<DataFileRecord> {
 	// TODO use UPSERT with v2 of DB
 	const result = surrealDb.merge<DataFileRecord>(new StringRecordId('data:' + digest), {
-		position: position,
+		position: position
 	});
 	return result;
 }
@@ -118,7 +119,9 @@ export async function deleteQueryToDataImport(digest: string) {
 	return surrealDb.query(queryString);
 }
 export async function getDataGraph(): Promise<GeneralResult[][]> {
-	let result = surrealDb.query<GeneralResult[][]>('SELECT * FROM data;SELECT * FROM queries;SELECT * FROM import;');
+	const result = surrealDb.query<GeneralResult[][]>(
+		'SELECT * FROM data;SELECT * FROM queries;SELECT * FROM import;'
+	);
 	return result;
 }
 export async function deleteItAll() {
@@ -130,9 +133,9 @@ export async function storeDfSqlFile(queryData: QueryData, digest: string): Prom
 		id: new RecordId('queries', digest),
 		format: queryData.format,
 		statement: queryData.statement,
-		chartType: queryData.chartType,
+		chartConfig: queryData.chartConfig,
 		nodeView: queryData.nodeView,
-		position: queryData.position,
+		position: queryData.position
 	});
 	return result[0];
 }
@@ -140,7 +143,7 @@ export async function updateDfSqlFile(queryData: QueryData, digest: string): Pro
 	// TODO use UPSERT with v2 of DB
 	const result = surrealDb.merge<QueryRecord>(new StringRecordId('queries:' + digest), {
 		statement: queryData.statement,
-		chartType: queryData.chartType,
+		chartConfig: queryData.chartConfig,
 		nodeView: queryData.nodeView
 	});
 	return result;
@@ -149,7 +152,7 @@ export async function updateDfSqlFilePosition(position: NodePosition, digest: st
 	// TODO use UPSERT with v2 of DB
 	if (digest !== 'empty_query') {
 		const result = surrealDb.merge<QueryRecord>(new StringRecordId('queries:' + digest), {
-			position: position,
+			position: position
 		});
 		return result;
 	}

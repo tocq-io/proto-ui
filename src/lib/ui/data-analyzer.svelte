@@ -29,27 +29,18 @@
 	import { Alert, Button, SpeedDial, SpeedDialButton } from 'flowbite-svelte';
 	import {
 		BrainOutline,
-		BrainSolid,
 		BullhornOutline,
 		CirclePlusOutline,
-		CirclePlusSolid,
 		CloseCircleOutline,
 		CloudArrowUpOutline,
-		CloudArrowUpSolid,
 		DatabaseOutline,
 		ExpandOutline,
 		FacebookSolid,
-		PlayOutline,
-		PlusOutline,
 		RocketOutline,
-		RocketSolid,
 		ShareAllOutline,
-		ShareAllSolid,
 		TrashBinOutline,
 		TruckOutline,
-		TruckSolid,
-		UploadOutline,
-		UploadSolid
+		UploadOutline
 	} from 'flowbite-svelte-icons';
 	import '@xyflow/svelte/dist/style.css';
 	import { resetImportDir } from '$lib/fileUtils';
@@ -150,8 +141,8 @@
 	});
 </script>
 
-<section class="px-8">
-	<div class="overview h-full border-2 border-dotted border-slate-500" style="height: 85dvh;">
+<section>
+	<div class="overview h-full" style="height: 100vh;">
 		<SvelteFlow
 			{nodes}
 			{edges}
@@ -214,13 +205,28 @@
 					textOutside
 				>
 					<TruckOutline class="h-5 w-5" slot="icon" />
-					<SpeedDialButton btnDefaultClass="w-5" textOutsideClass="block absolute -start-12 top-1/2 text-xs font-medium -translate-y-1/2" name="Publish" disabled>
+					<SpeedDialButton
+						btnDefaultClass="w-5"
+						textOutsideClass="block absolute -start-12 top-1/2 text-xs font-medium -translate-y-1/2"
+						name="Publish"
+						disabled
+					>
 						<RocketOutline color="green" />
 					</SpeedDialButton>
-					<SpeedDialButton btnDefaultClass="w-5" textOutsideClass="block absolute -start-12 top-1/2 text-xs font-medium -translate-y-1/2" name="Share" disabled>
+					<SpeedDialButton
+						btnDefaultClass="w-5"
+						textOutsideClass="block absolute -start-12 top-1/2 text-xs font-medium -translate-y-1/2"
+						name="Share"
+						disabled
+					>
 						<ShareAllOutline color="green" />
 					</SpeedDialButton>
-					<SpeedDialButton btnDefaultClass="w-5" textOutsideClass="block absolute -start-12 top-1/2 text-xs font-medium -translate-y-1/2" name="Deploy" disabled>
+					<SpeedDialButton
+						btnDefaultClass="w-5"
+						textOutsideClass="block absolute -start-12 top-1/2 text-xs font-medium -translate-y-1/2"
+						name="Deploy"
+						disabled
+					>
 						<CloudArrowUpOutline color="green" />
 					</SpeedDialButton>
 				</SpeedDial>

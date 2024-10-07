@@ -13,13 +13,13 @@
 	export let table: Readable<Table | undefined>;
 </script>
 
-<div class="max-w-4xl text-xs">
+<div class="mt-2 min-w-96 max-w-7xl text-xs">
 	{#if $table}
 		<ViewTable>
 			<TableHead>
 				{#each $table.schema.fields as field}
 					<TableHeadCell padding="px-2 py-1 text-center" scope="col"
-						><nobr>{field.name} ({field.type})</nobr></TableHeadCell
+						><nobr>{field.name}</nobr></TableHeadCell
 					>
 				{/each}
 			</TableHead>
