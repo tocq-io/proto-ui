@@ -12,7 +12,7 @@ export const DEFAULT_CHART_CFG = `{
 		datasets: $table.schema.fields.slice(1).map((s) => {
 			return {
 				label: s.name,
-				data: $table.toArray().map((row) => row[s.name]),
+				data: $table.toArray().map((row) => Number(row[s.name])),
 			};
 		})
 	}

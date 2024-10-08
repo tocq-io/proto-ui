@@ -15,7 +15,7 @@
 
 <div class="mt-2 min-w-96 max-w-7xl text-xs">
 	{#if $table}
-		<ViewTable>
+		<ViewTable class="overflow-scroll">
 			<TableHead>
 				{#each $table.schema.fields as field}
 					<TableHeadCell padding="px-2 py-1 text-center" scope="col"

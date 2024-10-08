@@ -78,7 +78,7 @@
 			<Alert color="light" class="p-2">
 				<div class="grid grid-cols-5 gap-1">
 					{#each $table.schema.fields as field}
-						<nobr>{field}</nobr>
+						<nobr>{field.name}</nobr>
 					{/each}
 				</div>
 			</Alert>
