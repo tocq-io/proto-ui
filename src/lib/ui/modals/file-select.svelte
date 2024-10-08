@@ -36,7 +36,7 @@
 <Modal title="Upload CSV files" bind:open={$showDataUpload} autoclose class="min-w-full">
 	<div class="mb-8 mt-2 grid gap-4 sm:grid-cols-2">
 		<div class="w-96">
-			<Fileupload id="multiple_files" multiple bind:files />
+			<Fileupload id="multiple_files" multiple bind:files value="hello" />
 		</div>
 		<div class="text-right">
 			<Button color="purple" type="submit" class="w-44" on:click={() => importFiles()}>
@@ -77,7 +77,7 @@
 					id="nullRegex"
 					size="sm"
 					bind:value={csvConfig.null_regex}
-					maxlength=32
+					maxlength="32"
 				/>
 			</div>
 			<Toggle color="purple" size="small" id="truncated" class="mt-4" bind:checked={csvConfig.truncated}

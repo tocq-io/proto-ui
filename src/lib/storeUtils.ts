@@ -2,7 +2,6 @@ import { type NodeProps, type Edge, type Node } from '@xyflow/svelte';
 import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
 import { type Writable, writable } from 'svelte/store';
 import type { DataFile, QueryData } from '$lib/graphUtils';
-import type { Chart } from 'chart.js';
 ///// CONSTANTS
 export const DATA_NODE_TYPE = 'dataNode';
 export const QUERY_NODE_TYPE = 'queryNode';
@@ -13,7 +12,7 @@ export const DEFAULT_CHART_CFG = `{
 		datasets: $table.schema.fields.slice(1).map((s) => {
 			return {
 				label: s.name,
-				data: $table.toArray().map((row) => row[s.name])
+				data: $table.toArray().map((row) => row[s.name]),
 			};
 		})
 	}
@@ -45,4 +44,10 @@ export function resetGraph() {
 	nodes.set([]);
 	edges.set([]);
 }
-
+export function setErrorView(msg: string) {
+	errorView.set({
+		color: 'red',
+		visibility: 'visible',
+		msg: msg
+	});
+}

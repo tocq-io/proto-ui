@@ -1,6 +1,6 @@
 import { Table, tableFromIPC } from '@apache-arrow/ts';
 import init, { load_csv_bytes, register_table, run_sql, init_panic_hook } from 'proto-query-engine';
-import { errorView } from '$lib/storeUtils';
+import { setErrorView } from '$lib/storeUtils';
 
 export type CsvConfig = {
 	delimiter: string;
@@ -10,14 +10,6 @@ export type CsvConfig = {
 	null_regex: string;
 	truncated: boolean;
 };
-
-function setErrorView(msg: string) {
-	errorView.set({
-		color: 'red',
-		visibility: 'visible',
-		msg: msg
-	});
-}
 
 export async function initDfSql() {
 	await init();

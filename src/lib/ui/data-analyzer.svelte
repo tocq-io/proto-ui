@@ -129,8 +129,8 @@
 	}
 
 	onMount(async () => {
-		await initDfSql();
 		openDB();
+		await initDfSql();
 		await openGraphDb();
 		await initFlow();
 	});

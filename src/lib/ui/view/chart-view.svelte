@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { setErrorView } from '$lib/storeUtils';
 	import type { Table } from '@apache-arrow/ts';
 	import { Chart, registerables } from 'chart.js';
 	import { onMount } from 'svelte';
@@ -45,8 +46,17 @@
 			// TODO: this is very simple, maybe add some checks
 			cfg = eval('(' + $jsText + ')');
 		}
-		chart = new Chart(canvas, cfg);
-		return '';
+		try {
+			chart = new Chart(canvas, cfg);
+		} catch(e){
+			let errMsg = 'chart config: ';
+			if (typeof e === "string") {
+				errMsg += e.toUpperCase() // works, `e` narrowed to string
+			} else if (e instanceof Error) {
+				errMsg += e.message // works, `e` narrowed to Error
+			}
+			setErrorView(errMsg);
+		}
 	}
 
 	onMount(async () => {
