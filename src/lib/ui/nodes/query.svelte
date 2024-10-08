@@ -160,7 +160,7 @@
 			</div>
 			<div class="mt-1">
 				<Label for="quote" class="text-sm pb-0.5 pl-1">Table name</Label>
-				<Input type="text" id="quote" bind:value={$data.tableName} size="sm" maxlength=32 disabled placeholder="TBD later"/>
+				<Input type="text" id="quote" bind:value={$data.tableName} size="sm" maxlength="32" disabled placeholder="TBD later"/>
 			</div>
 		</div>
 		</Alert>

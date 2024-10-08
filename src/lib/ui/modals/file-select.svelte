@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		A,
 		Alert,
 		Button,
 		Card,
@@ -33,7 +34,7 @@
 	}
 </script>
 
-<Modal title="Upload CSV files" bind:open={$showDataUpload} autoclose class="min-w-full">
+<Modal title="Add CSV file to workspace" bind:open={$showDataUpload} autoclose class="min-w-full">
 	<div class="mb-8 mt-2 grid gap-4 sm:grid-cols-2">
 		<div class="w-96">
 			<Fileupload id="multiple_files" multiple bind:files value="hello" />
@@ -80,16 +81,28 @@
 					maxlength="32"
 				/>
 			</div>
-			<Toggle color="purple" size="small" id="truncated" class="mt-4" bind:checked={csvConfig.truncated}
-				>Truncated Rows</Toggle
+			<Toggle
+				color="purple"
+				size="small"
+				id="truncated"
+				class="mt-4"
+				bind:checked={csvConfig.truncated}>Truncated Rows</Toggle
 			>
 		</div>
-
 		<Alert color="light" class="mt-2 p-0.5">
 			<InfoCircleSolid slot="icon" class="h-4 w-4" />
 			<span class="text-md"
 				>The CSV file needs a header to import it meaningfully as table with Apache Arrow.</span
 			>
 		</Alert>
+	</Card>
+
+	<Card padding="sm" size="lg">
+		<Toggle color="purple" size="small" id="truncated" class="mt-1" disabled
+			>Add files to the&nbsp;<A color="purple" href="#">Open Data Catalogue</A>, check the&nbsp;<A
+				color="purple"
+				href="#">terms and conditions</A
+			>!!</Toggle
+		>
 	</Card>
 </Modal>

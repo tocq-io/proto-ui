@@ -98,7 +98,7 @@
 	}
 
 	async function resetLocalData() {
-		resetImportDir().then(() =>
+		await resetImportDir().then(() =>
 			deleteItAll().then(() => {
 				resetKeys();
 				resetGraph();
