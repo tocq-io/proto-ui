@@ -39,8 +39,8 @@
 			<Fileupload id="multiple_files" multiple bind:files />
 		</div>
 		<div class="text-right">
-			<Button type="submit" class="w-44" on:click={() => importFiles()}>
-				<PlusOutline class="mr-2 h-3.5 w-3.5" />Add new files
+			<Button color="purple" type="submit" class="w-44" on:click={() => importFiles()}>
+				<PlusOutline class="mr-2 h-4 w-4" />Add new files
 			</Button>
 		</div>
 	</div>
@@ -77,15 +77,15 @@
 					id="nullRegex"
 					size="sm"
 					bind:value={csvConfig.null_regex}
-					maxlength="32"
+					maxlength=32
 				/>
 			</div>
-			<Toggle size="small" id="truncated" class="mt-4" bind:checked={csvConfig.truncated}
+			<Toggle color="purple" size="small" id="truncated" class="mt-4" bind:checked={csvConfig.truncated}
 				>Truncated Rows</Toggle
 			>
 		</div>
 
-		<Alert color="green" class="mt-2 p-0.5">
+		<Alert color="light" class="mt-2 p-0.5">
 			<InfoCircleSolid slot="icon" class="h-4 w-4" />
 			<span class="text-md"
 				>The CSV file needs a header to import it meaningfully as table with Apache Arrow.</span

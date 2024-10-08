@@ -2,6 +2,7 @@ import { type NodeProps, type Edge, type Node } from '@xyflow/svelte';
 import type { FrameColor } from 'flowbite-svelte/Frame.svelte';
 import { type Writable, writable } from 'svelte/store';
 import type { DataFile, QueryData } from '$lib/graphUtils';
+import type { Chart } from 'chart.js';
 ///// CONSTANTS
 export const DATA_NODE_TYPE = 'dataNode';
 export const QUERY_NODE_TYPE = 'queryNode';
@@ -44,3 +45,4 @@ export function resetGraph() {
 	nodes.set([]);
 	edges.set([]);
 }
+

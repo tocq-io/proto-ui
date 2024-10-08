@@ -11,6 +11,16 @@
 	let canvas: HTMLCanvasElement;
 	let chart: Chart | undefined;
 
+	export function downloadChart(){
+		if (chart) {
+			var a = document.createElement('a');
+			a.href = chart.toBase64Image();
+			a.download = 'chart_'+canvasElId+'.png';
+			// Trigger the download
+			a.click();
+		}
+	}
+
 	function setCanvas() {
 		canvas?.remove();
 		const host = document.getElementById(chartViewElementId);
@@ -49,4 +59,5 @@
 <div
 	id={chartViewElementId}
 	class="mt-2 min-h-96 rounded-lg border-2 border-dotted border-pink-200"
+	style="position: relative;"
 />

@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { Handle, Position } from '@xyflow/svelte';
-	import { A, Alert, Button, ButtonGroup, Span } from 'flowbite-svelte';
+	import { A, Alert, Button, ButtonGroup, Label, Input, Toggle } from 'flowbite-svelte';
 	import {
 		ChartMixedOutline,
 		CloseCircleSolid,
+		DownloadOutline,
 		EditOutline,
 		FloppyDiskOutline,
 		InfoCircleOutline,
@@ -15,7 +16,7 @@
 	import { deleteQuery, persistQuery, updateQuery } from '$lib/crudUtils';
 	import { readable, writable, type Readable, type Unsubscriber } from 'svelte/store';
 	import TableView from '$lib/ui/view/table-view.svelte';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, SvelteComponent } from 'svelte';
 	import { updateDfSqlFile } from '$lib/graphUtils';
 	import { getArrowTable } from '$lib/dfSqlUtils';
 	import type { Table } from '@apache-arrow/ts';
@@ -40,6 +41,7 @@
 	let jsText = writable($data.chartConfig);
 	let table: Readable<Table | undefined>;
 	let dataUnsubscribe: Unsubscriber;
+	let chartComponent: SvelteComponent;
 
 	function deleteSqlNode() {
 		deleteQuery(id);
@@ -83,11 +85,11 @@
 
 <Handle type="target" position={Position.Top} />
 <div class="min-w-192">
-	<div class="mb-2 grid sm:grid-cols-2">
+	<div class="mb-2 grid grid-cols-2">
 		<div class="flex gap-2">
 			<Button class="mt-0.5 h-6 w-6" pill size="xs" color="purple" on:click={() => deleteSqlNode()}
 				><CloseCircleSolid color="white" size="xl" /></Button
-			><span class="text-xl font-semibold">QUERY</span>
+			><span class="text-xl font-semibold">SQL QUERY</span>
 		</div>
 		<div class="text-right">
 			<ButtonGroup>
@@ -114,6 +116,9 @@
 					class="h-8 w-8"
 					on:click={() => (($data.nodeView = DetailView.ViewChartEditor), safeState())}
 					disabled={isEmpty()}><EditOutline /></Button
+				>
+				<Button size="lg" class="h-8 w-8" on:click={() => chartComponent.downloadChart()}
+					disabled={($data.nodeView !== DetailView.ViewChart) || isEmpty()}><DownloadOutline /></Button
 				>
 				<Button size="lg" class="h-8 w-8" on:click={() => saveSqlNode()}
 					><FloppyDiskOutline /></Button
@@ -145,13 +150,19 @@
 			>. The $table is stored in memory within this context.
 		</div>
 	{:else if $data.nodeView === DetailView.ViewChart && !isEmpty()}
-		<ChartView {jsText} {table} {chartViewElementId} />
+		<ChartView {jsText} {table} {chartViewElementId} bind:this={chartComponent} />
 	{:else}
-		<Alert color="light" class="mt-1 p-2">
-			<div class="flex gap-0.5 text-xs">
-				<span><nobr>[format: {$data.format}]</nobr></span>
-				<span class="w-full text-right">[{id}]</span>
+		<Alert color="light" class="mt-2 p-2">
+			
+		<div class="mb-2 grid grid-cols-2">
+			<div class="ml-2 mt-8">
+				<Toggle color="purple" disabled>Persist table for other queries</Toggle>
 			</div>
+			<div class="mt-1">
+				<Label for="quote" class="text-sm pb-0.5 pl-1">Table name</Label>
+				<Input type="text" id="quote" bind:value={$data.tableName} size="sm" maxlength=32 disabled placeholder="TBD later"/>
+			</div>
+		</div>
 		</Alert>
 	{/if}
 </div>

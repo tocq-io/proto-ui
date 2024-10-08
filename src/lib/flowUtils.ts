@@ -50,6 +50,7 @@ export async function addDataNode(df: DataFileRecord) {
 export async function addEmptyQueryNode() {
 	const position = { x: 480, y: 50 };
 	const data = writable({
+		tableName: '',
 		statement: '',
 		format: 'df/sql',
 		chartConfig: DEFAULT_CHART_CFG,
@@ -76,6 +77,7 @@ export async function updateEmptyQueryNode(query: QueryRecord) {
 export async function addQueryNode(query: QueryRecord) {
 	const queryId = query.id.id.toString();
 	const data = writable({
+		tableName: query.tableName,
 		statement: query.statement,
 		format: query.format,
 		chartConfig: query.chartConfig,

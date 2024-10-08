@@ -9,7 +9,6 @@ type User = {
 };
 export type DataFileRecord = DataFile & GeneralResult;
 export type DataFile = TocqNode & {
-	tableName: string;
 	size: number;
 };
 export type QueryRecord = QueryData & GeneralResult;
@@ -28,6 +27,7 @@ export type InEdges = GeneralResult & {
 	in: RecordId[];
 };
 export type TocqNode = {
+	tableName: string;
 	format: string;
 	nodeView: number;
 	position: NodePosition;
@@ -131,6 +131,7 @@ export async function storeDfSqlFile(queryData: QueryData, digest: string): Prom
 	// TODO use UPSERT with v2 of DB
 	const result = await surrealDb.create<QueryRecord>('queries', {
 		id: new RecordId('queries', digest),
+		tableName: queryData.tableName,
 		format: queryData.format,
 		statement: queryData.statement,
 		chartConfig: queryData.chartConfig,
@@ -144,7 +145,8 @@ export async function updateDfSqlFile(queryData: QueryData, digest: string): Pro
 	const result = surrealDb.merge<QueryRecord>(new StringRecordId('queries:' + digest), {
 		statement: queryData.statement,
 		chartConfig: queryData.chartConfig,
-		nodeView: queryData.nodeView
+		nodeView: queryData.nodeView,
+		tableName: queryData.tableName,
 	});
 	return result;
 }
