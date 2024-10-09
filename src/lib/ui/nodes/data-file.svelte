@@ -13,7 +13,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import TableView from '$lib/ui/view/table-view.svelte';
 	import { updateDataFile } from '$lib/graphUtils';
-	import { readable, type Readable, type Unsubscriber } from 'svelte/store';
+	import { readable, writable, type Readable, type Unsubscriber } from 'svelte/store';
 	import { getArrowTable } from '$lib/dfSqlUtils';
 
 	type $$Props = DataFileProps;
@@ -27,19 +27,31 @@
 		ViewBasic = 0
 	}
 	let table: Readable<Table | undefined>;
+	let total_items: Readable<number>;
+	let page = writable(0);
 	let dataUnsubscribe: Unsubscriber;
+	let pageUnsubscribe: Unsubscriber;
 
 	function deleteDataNode() {
 		deleteDataRecordAndEdges(id, $data.tableName);
 	}
 	onDestroy(async () => {
 		dataUnsubscribe();
+		pageUnsubscribe();
 	});
 	onMount(async () => {
-		dataUnsubscribe = data.subscribe(
-			async (dt) =>
-				(table = readable(await getArrowTable("SELECT * FROM '" + dt.tableName + "' LIMIT 10")))
-		);
+		dataUnsubscribe = data.subscribe(async (dt) => {
+			total_items = readable(
+				await getArrowTable("SELECT count(1) as total FROM '" + dt.tableName + "'").then((r) =>
+					Number(r?.toArray()[0]['total'])
+				)
+			);
+		});
+		pageUnsubscribe = page.subscribe(async (pg) => {
+			table = readable(
+				await getArrowTable("SELECT * FROM '" + $data.tableName + "' LIMIT 10 OFFSET " + pg)
+			);
+		});
 	});
 </script>
 
@@ -76,14 +88,19 @@
 	<div>
 		{#if $data.nodeView === DetailView.ViewSchema && $table}
 			<Alert color="light" class="p-2">
-				<div class="grid grid-cols-5 gap-1">
+				<span class="ml-1 mb-1 text-lg font-semibold">Schema</span>
+				<div class="grid w-max grid-cols-5 gap-1">
 					{#each $table.schema.fields as field}
-						<nobr>{field.name}</nobr>
+						<div class="grid grid-cols-2 border-2 border-dashed">
+							<span class="ml-2 max-w-48">{field.name}</span><span class="mr-2 text-right"
+								>{field.type}</span
+							>
+						</div>
 					{/each}
 				</div>
 			</Alert>
 		{:else if $data.nodeView === DetailView.ViewTable}
-			<TableView {table} />
+			<TableView {table} {total_items} {page} />
 		{:else}
 			<Alert color="light" class="mt-1 p-2">
 				<div class="flex gap-1.5 text-xs">

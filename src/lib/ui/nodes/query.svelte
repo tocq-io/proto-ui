@@ -40,7 +40,11 @@
 	let sqlText = writable($data.statement);
 	let jsText = writable($data.chartConfig);
 	let table: Readable<Table | undefined>;
+	let slicedTable: Readable<Table | undefined>;
+	let total_items: Readable<number>;
+	let page = writable(0);
 	let dataUnsubscribe: Unsubscriber;
+	let pageUnsubscribe: Unsubscriber;
 	let chartComponent: SvelteComponent;
 
 	function deleteSqlNode() {
@@ -73,12 +77,19 @@
 
 	onDestroy(async () => {
 		dataUnsubscribe();
+		pageUnsubscribe();
 	});
 	onMount(async () => {
 		dataUnsubscribe = data.subscribe(async (dt) => {
 			if (dt.statement) {
 				table = readable(await getArrowTable(dt.statement));
+				slicedTable = readable($table?.slice(0, 10));
+				$page = 0;
+				total_items = readable($table?.numRows);
 			}
+		});
+		pageUnsubscribe = page.subscribe(async (pg) => {
+			slicedTable = readable($table?.slice(pg, pg + 10));
 		});
 	});
 </script>
@@ -131,7 +142,7 @@
 		<SqlEditor {sqlText} {sqlEditorElementId} />
 	</Alert>
 	{#if $data.nodeView === DetailView.ViewTable && !isEmpty()}
-		<TableView {table} />
+		<TableView table={slicedTable} {page} {total_items} />
 	{:else if $data.nodeView === DetailView.ViewChartEditor && !isEmpty()}
 		<Alert color="red" class="mt-4 py-2">
 			<JsEditor {jsText} {jsEditorElementId} />
@@ -160,7 +171,7 @@
 			</div>
 			<div class="mt-1">
 				<Label for="quote" class="text-sm pb-0.5 pl-1">Table name</Label>
-				<Input type="text" id="quote" bind:value={$data.tableName} size="sm" maxlength="32" disabled placeholder="TBD later"/>
+				<Input type="text" id="quote" bind:value={$data.tableName} size="sm" maxlength={Number(32)} disabled placeholder="TBD later"/>
 			</div>
 		</div>
 		</Alert>

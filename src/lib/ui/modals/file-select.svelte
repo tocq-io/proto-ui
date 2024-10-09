@@ -55,21 +55,21 @@
 					id="delimiter"
 					bind:value={csvConfig.delimiter}
 					size="sm"
-					maxlength="1"
+					maxlength={Number(1)}
 					required
 				/>
 			</div>
 			<div>
 				<Label for="quote" class="text-xs">Quote (default: '"')</Label>
-				<Input type="text" id="quote" bind:value={csvConfig.quote} size="sm" maxlength="1" />
+				<Input type="text" id="quote" bind:value={csvConfig.quote} size="sm" maxlength={Number(1)} />
 			</div>
 			<div>
 				<Label for="comment" class="text-xs">Comment (default: '#')</Label>
-				<Input type="text" id="comment" bind:value={csvConfig.comment} size="sm" maxlength="1" />
+				<Input type="text" id="comment" bind:value={csvConfig.comment} size="sm" maxlength={Number(1)} />
 			</div>
 			<div>
 				<Label for="escape" class="text-xs">Excape (default: 'none')</Label>
-				<Input type="text" id="escape" bind:value={csvConfig.escape} size="sm" maxlength="1" />
+				<Input type="text" id="escape" bind:value={csvConfig.escape} size="sm" maxlength={Number(1)} />
 			</div>
 			<div>
 				<Label for="nullRegex" class="text-xs">Null Regex (default: '(NA)|$^')</Label>
@@ -78,7 +78,7 @@
 					id="nullRegex"
 					size="sm"
 					bind:value={csvConfig.null_regex}
-					maxlength="32"
+					maxlength={Number(32)}
 				/>
 			</div>
 			<Toggle

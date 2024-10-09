@@ -154,80 +154,31 @@
 			on:nodedragstop={(e) => peristNodePositionAfterDrag(e)}
 		>
 			<Panel position="top-right">
-				<SpeedDial
-					color="purpleToPink"
-					gradient
-					defaultClass="end-5 bottom-5"
-					placement="left"
-					tooltip="none"
-					textOutside
-				>
-					<CirclePlusOutline class="h-5 w-5" slot="icon" />
-					<SpeedDialButton
-						btnDefaultClass="w-5"
-						textOutsideClass="block absolute text-xs font-medium top-full"
-						name="Model"
-						disabled
-					>
-						<BrainOutline color="purple" />
+				<SpeedDial color="purpleToPink" gradient defaultClass="end-5 bottom-5" placement="left">
+					<CirclePlusOutline class="h-6 w-6" slot="icon" />
+					<SpeedDialButton name="Model" disabled tooltip="bottom">
+						<BrainOutline color="purple" class="h-6 w-6" />
 					</SpeedDialButton>
-					<SpeedDialButton
-						btnDefaultClass="w-5"
-						textOutsideClass="block absolute text-xs font-medium top-full"
-						name="Function"
-						disabled
-					>
-						<FacebookSolid color="purple" />
+					<SpeedDialButton name="Function" disabled tooltip="bottom">
+						<FacebookSolid color="purple" class="h-6 w-6" />
 					</SpeedDialButton>
-					<SpeedDialButton
-						btnDefaultClass="w-5"
-						textOutsideClass="block absolute text-xs font-medium top-full"
-						name="Data"
-						on:click={() => ($showDataUpload = true)}
-					>
-						<UploadOutline color="purple" />
+					<SpeedDialButton name="Data" tooltip="bottom" on:click={() => ($showDataUpload = true)}>
+						<UploadOutline color="purple" class="h-6 w-6" />
 					</SpeedDialButton>
-					<SpeedDialButton
-						btnDefaultClass="w-5"
-						textOutsideClass="block absolute text-xs font-medium top-full"
-						name="Query"
-						on:click={() => addEmptyQueryNode()}
-					>
-						<DatabaseOutline color="purple" />
+					<SpeedDialButton name="Query" tooltip="bottom" on:click={() => addEmptyQueryNode()}>
+						<DatabaseOutline color="purple" class="h-6 w-6" />
 					</SpeedDialButton>
 				</SpeedDial>
-				<SpeedDial
-					color="greenToBlue"
-					gradient
-					defaultClass="mt-2"
-					placement="bottom"
-					tooltip="none"
-					textOutside
-				>
-					<TruckOutline class="h-5 w-5" slot="icon" />
-					<SpeedDialButton
-						btnDefaultClass="w-5"
-						textOutsideClass="block absolute -start-12 top-1/2 text-xs font-medium -translate-y-1/2"
-						name="Publish"
-						disabled
-					>
-						<RocketOutline color="green" />
+				<SpeedDial color="greenToBlue" gradient defaultClass="mt-2" placement="bottom">
+					<TruckOutline class="h-6 w-6" slot="icon" />
+					<SpeedDialButton name="Publish" disabled tooltip="left">
+						<RocketOutline color="green" class="h-6 w-6" />
 					</SpeedDialButton>
-					<SpeedDialButton
-						btnDefaultClass="w-5"
-						textOutsideClass="block absolute -start-12 top-1/2 text-xs font-medium -translate-y-1/2"
-						name="Share"
-						disabled
-					>
-						<ShareAllOutline color="green" />
+					<SpeedDialButton name="Share" disabled tooltip="left">
+						<ShareAllOutline color="green" class="h-6 w-6" />
 					</SpeedDialButton>
-					<SpeedDialButton
-						btnDefaultClass="w-5"
-						textOutsideClass="block absolute -start-12 top-1/2 text-xs font-medium -translate-y-1/2"
-						name="Deploy"
-						disabled
-					>
-						<CloudArrowUpOutline color="green" />
+					<SpeedDialButton name="Deploy" disabled tooltip="left">
+						<CloudArrowUpOutline color="green" class="h-6 w-6" />
 					</SpeedDialButton>
 				</SpeedDial>
 			</Panel>
