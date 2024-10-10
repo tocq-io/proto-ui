@@ -30,11 +30,11 @@
 			<TableHead>
 				{#each $table.schema.fields as field, j}
 					{#if j < 8}
-						<TableHeadCell padding="px-2 py-1 text-center" scope="col"
+						<TableHeadCell padding="px-2 py-1 text-center bg-slate-200" scope="col"
 							><nobr>{field.name}</nobr></TableHeadCell
 						>
 					{:else if j === 9}
-						<TableBodyCell tdClass="px-2 py-1 text-center">...</TableBodyCell>
+						<TableHeadCell padding="px-2 py-1 text-center bg-slate-200">...</TableHeadCell>
 					{/if}
 				{/each}
 			</TableHead>
@@ -76,10 +76,11 @@
 		</ViewTable>
 	{/if}
 	{#if $total_items > 10}
-		<div class="grid grid-cols-2 gap-2 pt-2 mx-2">
+		<div class="mx-2 grid grid-cols-2 gap-2 pt-2">
 			<Pagination
 				table
 				pages={[]}
+				normalClass="bg-slate-200 text-gray-900 hover:bg-purple-900 hover:text-purple-100 h-6"
 				on:previous={() => {
 					if ($page > 0) $page -= 10;
 				}}
@@ -87,24 +88,22 @@
 					if ($page < $total_items) $page += 10;
 				}}
 			>
-				<div slot="prev" class="flex items-center gap-2 bg-gray-800 text-white">
+				<div slot="prev" class="flex items-center gap-2">
 					<ArrowLeftOutline class="me-2 h-4 w-4" />
 					Prev
 				</div>
-				<div slot="next" class="flex items-center gap-2 bg-gray-800 text-white">
+				<div slot="next" class="flex items-center gap-2">
 					Next
 					<ArrowRightOutline class="ms-2 h-4 w-4" />
 				</div>
 			</Pagination>
-			<div class="mt-2 text-right text-sm text-gray-700 dark:text-gray-400">
-				Showing <span class="font-semibold text-gray-900 dark:text-white">{$page + 1}</span>
+			<div class="mt-1 text-right text-xs font-semibold">
+				<span class="bg-slate-200 text-gray-900 py-1.5 px-2.5 rounded">Showing <span>{$page + 1}</span>
 				to
-				<span class="font-semibold text-gray-900 dark:text-white"
-					>{$page + 10 >= $total_items ? $total_items : $page + 10}</span
-				>
+				<span>{$page + 10 >= $total_items ? $total_items : $page + 10}</span>
 				of
-				<span class="font-semibold text-gray-900 dark:text-white">{$total_items}</span>
-				Entries
+				<span>{$total_items}</span>
+				Entries</span>
 			</div>
 		</div>
 	{/if}

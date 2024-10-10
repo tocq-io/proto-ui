@@ -34,6 +34,7 @@
 		CloseCircleOutline,
 		CloudArrowUpOutline,
 		DatabaseOutline,
+		DownloadOutline,
 		ExpandOutline,
 		FacebookSolid,
 		RocketOutline,
@@ -45,7 +46,6 @@
 	import '@xyflow/svelte/dist/style.css';
 	import { resetImportDir } from '$lib/fileUtils';
 	import { initDfSql } from '$lib/dfSqlUtils';
-	import { writable, type Writable } from 'svelte/store';
 
 	const nodeTypes = {
 		dataNode: DataFile,
@@ -53,12 +53,6 @@
 	};
 	const edgeTypes: EdgeTypes = {
 		queryDataEdge: QueryDataEdge
-	};
-	let viewport: Writable<Viewport> = writable({ x: 0, y: 0, zoom: 0.7 });
-	const fitViewOptions = {
-		minZoom: 0.6,
-		duration: 0,
-		nodes: $nodes
 	};
 
 	function doLayout() {
@@ -148,37 +142,37 @@
 			{edges}
 			{nodeTypes}
 			{edgeTypes}
-			{viewport}
-			fitView
-			{fitViewOptions}
 			on:nodedragstop={(e) => peristNodePositionAfterDrag(e)}
 		>
 			<Panel position="top-right">
 				<SpeedDial color="purpleToPink" gradient defaultClass="end-5 bottom-5" placement="left">
-					<CirclePlusOutline class="h-6 w-6" slot="icon" />
-					<SpeedDialButton name="Model" disabled tooltip="bottom">
-						<BrainOutline color="purple" class="h-6 w-6" />
+					<CirclePlusOutline slot="icon" />
+					<SpeedDialButton btnDefaultClass="w-11" name="Model" disabled tooltip="bottom">
+						<BrainOutline color="purple" />
 					</SpeedDialButton>
-					<SpeedDialButton name="Function" disabled tooltip="bottom">
-						<FacebookSolid color="purple" class="h-6 w-6" />
+					<SpeedDialButton btnDefaultClass="w-11" name="Function" disabled tooltip="bottom">
+						<FacebookSolid color="purple" />
 					</SpeedDialButton>
-					<SpeedDialButton name="Data" tooltip="bottom" on:click={() => ($showDataUpload = true)}>
-						<UploadOutline color="purple" class="h-6 w-6" />
+					<SpeedDialButton btnDefaultClass="w-11" name="Data" tooltip="bottom" on:click={() => ($showDataUpload = true)}>
+						<UploadOutline color="purple" />
 					</SpeedDialButton>
-					<SpeedDialButton name="Query" tooltip="bottom" on:click={() => addEmptyQueryNode()}>
-						<DatabaseOutline color="purple" class="h-6 w-6" />
+					<SpeedDialButton btnDefaultClass="w-11" name="Query" tooltip="bottom" on:click={() => addEmptyQueryNode()}>
+						<DatabaseOutline color="purple" />
 					</SpeedDialButton>
 				</SpeedDial>
 				<SpeedDial color="greenToBlue" gradient defaultClass="mt-2" placement="bottom">
-					<TruckOutline class="h-6 w-6" slot="icon" />
-					<SpeedDialButton name="Publish" disabled tooltip="left">
-						<RocketOutline color="green" class="h-6 w-6" />
+					<TruckOutline slot="icon" />
+					<SpeedDialButton btnDefaultClass="w-11" name="Publish" disabled tooltip="left">
+						<RocketOutline color="green" />
 					</SpeedDialButton>
-					<SpeedDialButton name="Share" disabled tooltip="left">
-						<ShareAllOutline color="green" class="h-6 w-6" />
+					<SpeedDialButton btnDefaultClass="w-11" name="Share" disabled tooltip="left">
+						<ShareAllOutline color="green" />
 					</SpeedDialButton>
-					<SpeedDialButton name="Deploy" disabled tooltip="left">
-						<CloudArrowUpOutline color="green" class="h-6 w-6" />
+					<SpeedDialButton btnDefaultClass="w-11" name="Deploy" disabled tooltip="left">
+						<CloudArrowUpOutline color="green" />
+					</SpeedDialButton>
+					<SpeedDialButton btnDefaultClass="w-11" name="Download" disabled tooltip="left">
+						<DownloadOutline color="green" />
 					</SpeedDialButton>
 				</SpeedDial>
 			</Panel>

@@ -138,7 +138,7 @@
 		</div>
 	</div>
 
-	<Alert color="blue" class="mt-2 py-2">
+	<Alert color="blue" class="mt-2 py-2 mb-1">
 		<SqlEditor {sqlText} {sqlEditorElementId} />
 	</Alert>
 	{#if $data.nodeView === DetailView.ViewTable && !isEmpty()}
@@ -167,7 +167,7 @@
 			
 		<div class="mb-2 grid grid-cols-2">
 			<div class="ml-2 mt-8">
-				<Toggle color="purple" disabled>Persist table for other queries</Toggle>
+				<Toggle color="purple" disabled>Persist query results as table</Toggle>
 			</div>
 			<div class="mt-1">
 				<Label for="quote" class="text-sm pb-0.5 pl-1">Table name</Label>
